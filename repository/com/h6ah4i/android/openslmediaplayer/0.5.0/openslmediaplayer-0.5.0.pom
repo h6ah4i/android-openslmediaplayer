@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.h6ah4i.android</groupId>
+  <artifactId>openslmediaplayer</artifactId>
+  <version>0.5.0</version>
+  <packaging>aar</packaging>
+  <licenses>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>OpenSLMediaPlayer</comments>
+    </license>
+    <license>
+      <name>The Apache Software License, Version 2.0</name>
+      <url>http://www.apache.org/licenses/LICENSE-2.0.txt</url>
+      <distribution>repo</distribution>
+      <comments>[dependent libraries] cxxdasp, cxxporthelper, OpenSL ES CXX</comments>
+    </license>
+    <license>
+      <name>FFTPACK5 (the "Software") License</name>
+      <url>https://www2.cisl.ucar.edu/resources/legacy/fft5/license</url>
+      <distribution>repo</distribution>
+      <comments>[dependent library] PFFFT</comments>
+    </license>
+    <license>
+      <name>The BSD 3-Clause License</name>
+      <url>http://opensource.org/licenses/BSD-3-Clause</url>
+      <distribution>repo</distribution>
+      <comments>[dependent library] Ne10</comments>
+    </license>
+  </licenses>
+  <developers>
+    <developer>
+      <id>h6ah4i</id>
+      <name>Haruki Hasegawa</name>
+    </developer>
+  </developers>
+  <scm>
+    <connection>git:https://github.com/h6ah4i/android-openslmediaplayer.git</connection>
+    <developerConnection>git:git@github.com:h6ah4i/android-openslmediaplayer.git</developerConnection>
+    <url>https://github.com/h6ah4i/android-openslmediaplayer</url>
+  </scm>
+</project>

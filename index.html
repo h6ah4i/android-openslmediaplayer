@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="h6ah4i">
+
+  <title>OpenSLMediaPlayer - Yet another implementation of MediaPlayer class based on OpenSL ES</title>
+
+  <link href="//maxcdn.bootstrapcdn.com/bootswatch/3.3.0/flatly/bootstrap.min.css" rel="stylesheet">
+  <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/styles/github.min.css" rel="stylesheet">
+  <link href="assets/css/main.css" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- NavBar -->
+  <nav class="navbar navbar-default navbar-fixed-top">
+    <div class="container">
+      <div class="navbar-header">
+        <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+          <span class="icon-bar"></span>
+        </button>
+        <a class="navbar-brand" href="#">OpenSLMediaPlayer</a>
+      </div>
+
+      <div class="navbar-collapse collapse">
+
+        <ul class="nav navbar-nav">
+          <li><a href="#section_overview">Overview</a></li>
+          <li><a href="#section_getting_started">Getting Started</a></li>
+          <li><a href="#section_demonstration">Demo</a></li>
+          <li><a href="#section_download">Download</a></li>
+          <li><a href="#section_documents">Documents</a></li>
+          <li><a href="#section_license">License</a></li>
+        </ul>
+
+        <ul class="nav navbar-nav navbar-right">
+          <li><a href="https://github.com/h6ah4i/android-openslmediaplayer"><i class="fa fa-github"></i> View project on GitHub</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <article>
+
+    <!-- Header -->
+    <header class="jumbotron" id="section_headerwrap">
+    	<div class="row">
+        <div class="col-lg-1 col-lg-offset-1 text-center">
+          <i class="fa fa-android fa-3x"></i>
+        </div>
+        <div class="col-lg-8 text-center">
+          <h1>Yet another implementation of</br> MediaPlayer class based on OpenSL ES.</h1>
+      	</div>
+      </div>
+    </header>
+
+    <!-- Overview -->
+    <section class="container" id="section_overview">
+      <h2>Overview</h2>
+
+      <p>This library offers a compatible class of Android's <a href="http://developer.android.com/reference/android/media/MediaPlayer.html">MediaPlayer</a> class.
+      Not just a re-implementation, also provides some enhanced features;</p>
+
+      <div class="row">
+        <div class="col-lg-6">
+          <ul>
+            <li>Compatible with Android's
+              <a href="http://developer.android.com/reference/android/media/MediaPlayer.html">MediaPlayer</a> and
+              <a href="http://developer.android.com/reference/android/media/audiofx/package-summary.html">audio effects classes</a></li>
+            <li>Provides both Java and C++ API sets</li>
+            <li>Also includes standard <a href="http://developer.android.com/reference/android/media/MediaPlayer.html">MediaPlayer</a> based classes which fixes a lot of bugs</li>
+          </ul>
+        </div>
+        <div class="col-lg-6">
+          <ul>
+            <li>Smooth fade-in, fade-out</li>
+            <li>High quality resampler</li>
+            <li>10 bands graphic equalizer with preamplifier</a></li>
+            <li>High quality Visualizer class to capture audio for visualization purpose</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Getting Started -->
+    <section class="container" id="section_getting_started">
+      <h2>Getting Started</h2>
+
+      <div class="row">
+        <div class="col-lg-12">
+          <p>Add these lines into your <code class="nohighlight">build.gradle</code> file.</p>
+<pre><code class="groovy">repositories {
+    maven { url 'http://h6ah4i.github.io/android-openslmediaplayer/repository/' }
+}
+
+dependencies {
+    compile 'com.h6ah4i.android:openslmediaplayer:0.5.0'
+}</code></pre>
+
+        <p>The minimal example code snippet:</p>
+<pre><code class="java">// create
+IMediaPlayerFactory factory = new OpenSLMediaPlayerFactory(getApplicationContext());
+IBasicMediaPlayer player = factory.createMediaPlayer();
+
+// prepare
+player.setDataSource("[path to media file]");
+player.prepare();
+
+// start playback
+player.start();
+
+// pause playback
+player.pause();
+
+// release
+player.release();
+factory.release();</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- Demonstration -->
+    <section class="container" id="section_demonstration">
+      <h2>Demonstration</h2>
+        <div class="row">
+
+          <!-- Demo app 1 -->
+          <div class="col-lg-6">
+            <h3>Java API demo app</h3>
+            <!-- BEGIN carousel-demoapp-1 -->
+            <div id="carousel-demoapp-1" class="carousel slide" data-ride="carousel">
+              <ol class="carousel-indicators">
+                <li data-target="#carousel-demoapp-1" data-slide-to="0" class="active"></li>
+                <li data-target="#carousel-demoapp-1" data-slide-to="1"></li>
+                <li data-target="#carousel-demoapp-1" data-slide-to="2"></li>
+                <li data-target="#carousel-demoapp-1" data-slide-to="3"></li>
+              </ol>
+              <div class="carousel-inner" role="listbox">
+                <div class="item active">
+                  <img src="./assets/img/demo_app_1_ss_1.png" alt="Screen shot of Player Control page">
+                </div>
+                <div class="item">
+                  <img src="./assets/img/demo_app_1_ss_2.png" alt="Screen shot of Navigation Drawer">
+                </div>
+                <div class="item">
+                  <img src="./assets/img/demo_app_1_ss_3.png" alt="Screen shot of HQEqualizer page">
+                </div>
+                <div class="item">
+                  <img src="./assets/img/demo_app_1_ss_4.png" alt="Screen shot of HQVisualizer page">
+                </div>
+              </div>
+              <a class="left carousel-control" href="#carousel-demoapp-1" role="button" data-slide="prev">
+                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="right carousel-control" href="#carousel-demoapp-1" role="button" data-slide="next">
+                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
+            <!-- END carousel-demoapp-1 -->
+            <p class="text-center">
+              <a href="http://play.google.com/store/apps/details?id=com.h6ah4i.android.example.openslmediaplayer">
+                <img src="./assets/img/en_generic_rgb_wo_45.png" alt="Get it on Google Play">
+              </a>
+            </p>
+          </div>
+
+          <!-- Demo app 2 -->
+          <div class="col-lg-6">
+            <h3>C++ Native API demo app</h3>
+            <!-- BEGIN carousel-demoapp-2 -->
+            <div id="carousel-demoapp-2" class="carousel slide" data-ride="carousel">
+              <ol class="carousel-indicators">
+                <li data-target="#carousel-demoapp-2" data-slide-to="0" class="active"></li>
+              </ol>
+              <div class="carousel-inner" role="listbox">
+                <div class="item active">
+                  <img src="./assets/img/demo_app_2_ss_1.png" alt="Screen shot of native API example app">
+                </div>
+              </div>
+              <a class="left carousel-control" href="#carousel-demoapp-2" role="button" data-slide="prev">
+                <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+              </a>
+              <a class="right carousel-control" href="#carousel-demoapp-2" role="button" data-slide="next">
+                <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+              </a>
+            </div>
+            <!-- END carousel-demoapp-2 -->
+            <p class="text-center">
+              <a href="http://play.google.com/store/apps/details?id=com.h6ah4i.android.example.nativeopenslmediaplayer">
+                <img src="./assets/img/en_generic_rgb_wo_45.png" alt="Get it on Google Play">
+              </a>
+            </p>
+          </div>
+        </div>
+
+      <p class="well well-sm text-info">
+        The source code of these demonstration apps are available as example codes on repository.
+      </p>
+    </section>
+
+    <!-- Download -->
+    <section class="container" id="section_download">
+      <h2>Download source code</h2>
+      <p>
+        <a class="btn btn-default" href="https://github.com/h6ah4i/android-openslmediaplayer/zipball/master"><i class="fa fa-download"></i> Download .zip</a>
+        <a class="btn btn-default" href="https://github.com/h6ah4i/android-openslmediaplayer/tarball/master"><i class="fa fa-download"></i> Download .tar.gz</a>
+        <a class="btn btn-default" href="https://github.com/h6ah4i/android-openslmediaplayer"><i class="fa fa-github"></i> View on GitHub</a>
+      </p>
+    </section>
+
+    <!-- Documentation -->
+    <section class="container" id="section_documents">
+      <h2>Documentation</h2>
+      <p>Please refer to <a href="https://github.com/h6ah4i/android-openslmediaplayer/wiki/">Wiki</a> for development information.
+        And the latest JavaDoc can be accessed from <a href="./javadoc/0.5.0/">here</a>.</li>
+      </p>
+    </section>
+
+    <!-- License -->
+    <section class="container" id="section_license">
+      <h2>License</h2>
+
+      <p>The OpenSLMediaPlayer library is released under the <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache Software License, Version 2.0</a>.</p>
+
+      <div class="row">
+        <div class="col-lg-12">
+          <pre>Copyright 2014 Haruki Hasegawa
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.</pre>
+
+            <p>Furthermore, this library contains some third party dependent libraries, so you also have to take care of their licenses.</p>
+
+            <dl class="dl-horizontal" id="dl-dependent-libraries">
+              <dt><a href="https://github.com/h6ah4i/cxxdasp">cxxdap</a></dt>
+                <dd><i class="fa fa-hand-o-right"></i> <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache Software License, Version 2.0</a></dd>
+              <dt><a href="https://github.com/h6ah4i/cxxporthelper">cxxporthelper</a></dt>
+                <dd><i class="fa fa-hand-o-right"></i> <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache Software License, Version 2.0</a></dd>
+              <dt><a href="https://github.com/h6ah4i/openslescxx">OpenSL ES CXX</a></dt>
+                <dd><i class="fa fa-hand-o-right"></i> <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache Software License, Version 2.0</a></dd>
+              <dt><a href="https://bitbucket.org/jpommier/pffft">PFFFT</a></dt>
+                <dd><i class="fa fa-hand-o-right"></i> <a href="https://www2.cisl.ucar.edu/resources/legacy/fft5/license">FFTPACK5 Software License</a></dd>
+              <dt><a href="http://projectne10.github.io/Ne10/">Ne10</a></dt>
+                <dd><i class="fa fa-hand-o-right"></i> <a href="http://opensource.org/licenses/BSD-3-Clause">BSD 3-Clause license</a></dd>
+            </dl>
+        </div>
+      </div>
+    </section>
+
+  </article>
+
+  <hr />
+
+  <!-- Footer -->
+  <footer class="container">
+    <div class="row">
+      <div class="col-lg-12">
+        <p class="text-center">&copy; copyright 2014 Haruki Hasegawa (<a href="https://github.com/h6ah4i">h6ah4i</a>)</p
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+  <script src="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/highlight.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/languages/java.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/8.4/languages/groovy.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+</body>
+</html>

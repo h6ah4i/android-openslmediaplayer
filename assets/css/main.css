@@ -1,0 +1,58 @@
+pre > code {
+  background: transparent !important;
+}
+
+#section_headerwrap {
+  background-color: #2b3d4f;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  padding-top:50px;
+  padding-bottom: 50px;
+  width: 100%;
+  color: white;
+  font-size: 45px;
+}
+
+#section_headerwrap h1 {
+  font-size: 45px;
+}
+
+#dl-dependent-libraries {
+  margin-left: 1em;
+}
+
+#dl-dependent-libraries dt {
+  text-align: left;
+}
+
+#carousel-demoapp-1,
+#carousel-demoapp-2 {
+  padding-bottom: 40px;
+  margin-bottom: 10px;
+  background-color: #666;
+}
+
+#carousel-demoapp-1 img,
+#carousel-demoapp-2 img {
+  max-width:300px;
+  max-height:450px;
+  width: auto;
+  height: auto;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+#carousel-demoapp-1 .carousel-indicators,
+#carousel-demoapp-2 .carousel-indicators {
+  background-color: #333;
+  width: 100%;
+  margin: 0;
+  padding-top: 10px;
+  padding-bottom: 10px;
+  left: 0;
+  bottom: 0;
+}
+
+#section_demonstration h3 {
+  font-size: 120%;
+}
