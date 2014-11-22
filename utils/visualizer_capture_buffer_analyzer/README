@@ -1,0 +1,25 @@
+What's this?
+---
+
+Helper scripts to plot buffer status graph of VisualizerCapturedAudioDataBuffer class.
+
+
+Requirements
+---
+
+- Android Studio or Eclipse (ADT)
+- ADB
+- Python
+- Gnuplot
+
+
+Usage
+---
+1. Uncomment the LOG_TAG definition line in VisualizerCapturedAudioDataBuffer.cpp (or HQVisualizerCapturedAudioDataBuffer.cpp)
+2. Rebuild and install the OpenSLMediaPlayerExample app
+3. Open this directory with terminal app
+4. Run ./capture_buffer_log.sh to start logging
+5. Stop logging by Ctrl+C
+6. Run ./split_log.sh
+7. Run gnuplot and input the following command 
+  load "plot.plt"

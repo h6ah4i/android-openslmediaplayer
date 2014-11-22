@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+       Copyright (C) 2014 Haruki Hasegawa
+
+       Licensed under the Apache License, Version 2.0 (the "License");
+       you may not use this file except in compliance with the License.
+       You may obtain a copy of the License at
+
+           http://www.apache.org/licenses/LICENSE-2.0
+
+       Unless required by applicable law or agreed to in writing, software
+       distributed under the License is distributed on an "AS IS" BASIS,
+       WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+       See the License for the specific language governing permissions and
+       limitations under the License.
+-->
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/contents_vertical_margin"
+    android:paddingLeft="@dimen/contents_horizontal_margin"
+    android:paddingRight="@dimen/contents_horizontal_margin"
+    android:paddingTop="@dimen/contents_vertical_margin" >
+
+    <RelativeLayout
+        android:id="@+id/container_waveform_fft"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/container_visualizer_settings"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentTop="true" >
+
+        <!-- Waveform visualizer -->
+
+        <com.h6ah4i.android.example.openslmediaplayer.app.visualizer.HQWaveformVisualizerSurfaceView
+            android:id="@+id/surfaceview_visualizer_waveform"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_above="@+id/center_horizontal_separator_waveform_fft" />
+
+        <ToggleButton
+            android:id="@+id/toggle_button_visualizer_enable_waveform"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignRight="@+id/surfaceview_visualizer_waveform"
+            android:layout_alignTop="@+id/surfaceview_visualizer_waveform"
+            android:textOff="WaveForm"
+            android:textOn="WaveForm"
+            tools:ignore="HardcodedText" />
+
+        <!-- Separator -->
+
+        <android.support.v7.widget.Space
+            android:id="@+id/center_horizontal_separator_waveform_fft"
+            android:layout_width="match_parent"
+            android:layout_height="8dp"
+            android:layout_centerInParent="true" />
+
+        <!-- FFT visualizer -->
+
+        <com.h6ah4i.android.example.openslmediaplayer.app.visualizer.HQFftVisualizerSurfaceView
+            android:id="@+id/surfaceview_visualizer_fft"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/center_horizontal_separator_waveform_fft" />
+
+        <ToggleButton
+            android:id="@+id/toggle_button_visualizer_enable_fft"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignRight="@+id/surfaceview_visualizer_fft"
+            android:layout_alignTop="@+id/surfaceview_visualizer_fft"
+            android:textOff="FFT"
+            android:textOn="FFT"
+            tools:ignore="HardcodedText" />
+    </RelativeLayout>
+
+    <LinearLayout
+        android:id="@+id/container_visualizer_settings"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="4dp"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal" >
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:text="Window type: "
+            android:textAppearance="?android:attr/textAppearanceSmall"
+            tools:ignore="HardcodedText" />
+
+        <Spinner
+            android:id="@+id/spinner_hq_visualizer_window_type"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingBottom="8dp"
+            android:paddingTop="8dp" />
+    </LinearLayout>
+
+</RelativeLayout>

@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (C) 2014 Haruki Hasegawa
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+    <!-- OpenSLMediaPlayer -->
+    <string name="about_openslmediaplayer_name">OpenSLMediaPlayer</string>
+    <string name="about_openslmediaplayer_url">http://h6ah4i.github.io/android-openslmediaplayer/</string>
+    <string name="about_openslmediaplayer_license"><![CDATA[
+Copyright (C) 2014 Haruki Hasegawa\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+You may obtain a copy of the License at\n
+\n
+\u0020\u0020\u0020\u0020http://www.apache.org/licenses/LICENSE-2.0\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- cxxporthelper -->
+    <string name="about_cxxporthelper_name">cxxporthelper</string>
+    <string name="about_cxxporthelper_url">https://github.com/h6ah4i/cxxporthelper/</string>
+    <string name="about_cxxporthelper_license"><![CDATA[
+Copyright (C) 2014 Haruki Hasegawa\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+You may obtain a copy of the License at\n
+\n
+\u0020\u0020\u0020\u0020http://www.apache.org/licenses/LICENSE-2.0\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- lockfreedatastructure -->
+    <string name="about_lockfreedatastructure_name">lockfreedatastructure</string>
+    <string name="about_lockfreedatastructure_url">http://github.com/h6ah4i/lockfreedatastructure/</string>
+    <string name="about_lockfreedatastructure_license"><![CDATA[
+Copyright (C) 2014 Haruki Hasegawa\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+You may obtain a copy of the License at\n
+\n
+\u0020\u0020\u0020\u0020http://www.apache.org/licenses/LICENSE-2.0\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- cxxdasp -->
+    <string name="about_cxxdasp_name">cxxdasp</string>
+    <string name="about_cxxdasp_url">http://github.com/h6ah4i/cxxdasp/</string>
+    <string name="about_cxxdasp_license"><![CDATA[
+Copyright (C) 2014 Haruki Hasegawa\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+You may obtain a copy of the License at\n
+\n
+\u0020\u0020\u0020\u0020http://www.apache.org/licenses/LICENSE-2.0\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- OpenSL ES CXX -->
+    <string name="about_openslescxx_name">OpenSL ES CXX</string>
+    <string name="about_openslescxx_url">https://github.com/h6ah4i/openslescxx/</string>
+    <string name="about_openslescxx_license"><![CDATA[
+Copyright (C) 2014 Haruki Hasegawa\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+You may obtain a copy of the License at\n
+\n
+\u0020\u0020\u0020\u0020http://www.apache.org/licenses/LICENSE-2.0\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- PFFFT -->
+    <string name="about_pffft_name">PFFFT</string>
+    <string name="about_pffft_url">https://bitbucket.org/jpommier/pffft</string>
+    <string name="about_pffft_license"><![CDATA[
+Copyright © 2004 the University Corporation for Atmospheric Research ("UCAR").
+All rights reserved. Developed by NCAR\'s Computational and Information Systems Laboratory, UCAR, www2.cisl.ucar.edu.\n
+\n
+Redistribution and use of the Software in source and binary forms, \n
+with or without modification, is permitted provided that the following conditions are met:\n
+\n
+Neither the names of NCAR\'s Computational and Information Systems Laboratory,
+the University Corporation for Atmospheric Research, nor the names of its sponsors or
+contributors may be used to endorse or promote products derived from this Software without specific prior written permission.\n
+Redistributions of source code must retain the above copyright notices, this list of conditions, and the disclaimer below.\n
+Redistributions in binary form must reproduce the above copyright notice, this list of conditions,
+and the disclaimer below in the documentation and/or other materials provided with the distribution.\n
+THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING,
+BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
+IN NO EVENT SHALL THE CONTRIBUTORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, INDIRECT, INCIDENTAL,
+ SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
+ TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS WITH THE SOFTWARE.]]></string>
+
+    <!-- Ne10 -->
+    <string name="about_ne10_name">Ne10</string>
+    <string name="about_ne10_url">http://projectne10.github.io/Ne10/</string>
+    <string name="about_ne10_license"><![CDATA[
+Copyright 2012-14 ARM Limited\n
+All rights reserved.\n
+\n
+Redistribution and use in source and binary forms, with or without\n
+modification, are permitted provided that the following conditions are met:\n
+\u0020\u0020* Redistributions of source code must retain the above copyright\n
+\u0020\u0020\u0020\u0020notice, this list of conditions and the following disclaimer.\n
+\u0020\u0020* Redistributions in binary form must reproduce the above copyright\n
+\u0020\u0020\u0020\u0020notice, this list of conditions and the following disclaimer in the\n
+\u0020\u0020\u0020\u0020documentation and/or other materials provided with the distribution.\n
+\u0020\u0020* Neither the name of ARM Limited nor the\n
+\u0020\u0020\u0020\u0020names of its contributors may be used to endorse or promote products\n
+\u0020\u0020\u0020\u0020derived from this software without specific prior written permission.\n
+\n
+THIS SOFTWARE IS PROVIDED BY ARM LIMITED AND CONTRIBUTORS "AS IS" AND\n
+ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED\n
+WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE\n
+DISCLAIMED. IN NO EVENT SHALL ARM LIMITED BE LIABLE FOR ANY\n
+DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES\n
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;\n
+LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND\n
+ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT\n
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS\n
+SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.]]></string>
+
+    <!-- Android Utility Function Library (/platform/system/core, libutils) -->
+    <string name="about_android_platform_system_core_libutils_name">Android Utility Function Library (/platform/system/core, libutils)</string>
+    <string name="about_android_platform_system_core_libutils_license"><![CDATA[
+Copyright (c) 2005-2008, The Android Open Source Project\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- Android platform code (/platform/system/media, libaudio_utis) -->
+    <string name="about_android_platform_system_media_libaudio_utils_name">Android platform code (/platform/system/media, libaudio_utis)</string>
+    <string name="about_android_platform_system_media_libaudio_utils_license"><![CDATA[
+Copyright (C) 2011 The Android Open Source Project\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+You may obtain a copy of the License at\n
+\n
+\u0020\u0020\u0020\u0020http://www.apache.org/licenses/LICENSE-2.0\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- Android platform code (/platform/frameworks/av, libmedia) -->
+    <string name="about_android_platform_frameworks_av_libmedia_name">Android platform code (/platform/frameworks/av, libmedia)</string>
+    <string name="about_android_platform_frameworks_av_libmedia_license"><![CDATA[
+Copyright (c) 2005-2008, The Android Open Source Project\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- Android platform code (/platform/frameworks/av, libeffect) -->
+    <string name="about_android_platform_frameworks_av_libeffect_name">Android platform code (/platform/frameworks/av, libeffect)</string>
+    <string name="about_android_platform_frameworks_av_libeffect_license"><![CDATA[
+Copyright (c) 2005-2008, The Android Open Source Project\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- Android platform code (/platform/frameworks/base, media/java/android/media/*) -->
+    <string name="about_android_platform_frameworks_base_name">Android platform code (/platform/frameworks/base, media/java/android/media/*)</string>
+    <string name="about_android_platform_frameworks_base_license"><![CDATA[
+Copyright (c) 2005-2008, The Android Open Source Project\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- Android v4 Support Library -->
+    <string name="about_support_v4_name">Android v4 Support Library</string>
+    <string name="about_support_v4_url">https://developer.android.com/tools/support-library/features.html#v7</string>
+    <string name="about_support_v4_license"><![CDATA[
+Copyright (c) 2005-2013, The Android Open Source Project\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+
+    <!-- Android v7 Support Library -->
+    <string name="about_support_v7_name">Android v7 Support Library (appcompat, gridlayout)</string>
+    <string name="about_support_v7_url">https://developer.android.com/tools/support-library/features.html#v7</string>
+    <string name="about_support_v7_license"><![CDATA[
+Copyright (c) 2005-2013, The Android Open Source Project\n
+\n
+Licensed under the Apache License, Version 2.0 (the "License");\n
+you may not use this file except in compliance with the License.\n
+\n
+Unless required by applicable law or agreed to in writing, software\n
+distributed under the License is distributed on an "AS IS" BASIS,\n
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.\n
+See the License for the specific language governing permissions and\n
+limitations under the License.]]></string>
+</resources>

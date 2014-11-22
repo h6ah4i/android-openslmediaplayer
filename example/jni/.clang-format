@@ -1,0 +1,14 @@
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: Cpp11
+ColumnLimit: 120
+IndentWidth: 4
+AccessModifierOffset: -4
+UseTab: Never
+BreakBeforeBraces: Stroustrup
+BinPackParameters: true
+AllowShortIfStatementsOnASingleLine: false
+IndentCaseLabels: false
+CommentPragmas: '\*'
+AlwaysBreakTemplateDeclarations: true
+AllowAllParametersOfDeclarationOnNextLine: true

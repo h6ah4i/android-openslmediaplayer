@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2014 Haruki Hasegawa
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<resources>
+
+    <color name="app_color_primary">#ffab40</color>
+    <color name="app_color_primary_dark">#f57c00</color>
+    <color name="app_color_accent">#dd4000</color>
+    <color name="app_toolbar_title_text">#aa000000</color>
+    <color name="app_navigation_drawer_background_mode_section">#eeeeee</color>
+    <color name="app_navigation_drawer_separator">#cccccc</color>
+    <color name="app_navigation_drawer_background_page_section">#ffffff</color>
+
+</resources>

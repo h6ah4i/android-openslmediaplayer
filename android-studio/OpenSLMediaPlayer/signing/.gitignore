@@ -1,0 +1,4 @@
+example-signing.properties
+native-example-signing.properties
+library-maven-publish-signing.properties
+*.keystore

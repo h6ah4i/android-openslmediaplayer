@@ -1,0 +1,143 @@
+/*
+ *    Copyright (C) 2014 Haruki Hasegawa
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+apply plugin: 'maven'
+apply plugin: 'signing'
+
+// Declare these properties in project's extension
+// - ext.mavenPublishDestDir = [path to destination directory]
+// - ext.mavenPublishDataFile = [path to data properties file]
+// - ext.mavenPublishSigningSetting = [path to signing info properties file] (optional)
+
+def repoDir = project.mavenPublishDestDir
+def dataProps = new Properties()
+dataProps.load(project.file(project.mavenPublishDataFile).newDataInputStream())
+
+def doclavaProjPath =  project.path + ':doclava'
+def optUseDoclava = project.useDoclava
+
+task cleanDocsOutDir(type: Delete) {
+    delete project.docsDir
+}
+
+task androidJavadocs(
+    type: Javadoc, 
+    dependsOn: [ doclavaProjPath + ':download', cleanDocsOutDir ]) {
+
+    source = android.sourceSets.main.java.srcDirs
+    classpath += project.files(android.getBootClasspath().join(File.pathSeparator))
+    excludes += '**/BuildConfig.java'
+    excludes += '**/R.java'
+    options.encoding "utf-8"
+
+    if (optUseDoclava) {
+        title = ""  // This is required to avoid Doclava error: "javadoc: error - invalid flag: -doctitle"
+
+        options.bootClasspath new File(System.getenv('JAVA_HOME') + "/jre/lib/rt.jar")
+        options.docletpath = [ project.file('./doclava/build/libs/doclava.jar') ]
+        options.doclet 'com.google.doclava.Doclava'
+        options.addStringOption 'hdf project.name', project.rootProject.name
+        options.addStringOption 'templatedir', project.docLavaTemplateDir
+        println project.file('doclava-template').absolutePath
+    }
+}
+
+task androidJavadocsJar(type: Jar, dependsOn: androidJavadocs) {
+    classifier = 'javadoc'
+    from androidJavadocs.destinationDir
+}
+
+task androidSourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+signing {
+    // load 'keyId', 'password' and 'secretKeyRingFile' 
+    def propsFile = project.file(project.mavenPublishSigningSetting)
+
+    if (propsFile.exists()) {
+        def props = new Properties()
+        props.load(propsFile.newDataInputStream())
+
+        if (props.keyId != null && 
+            props.password != null && 
+            props.secretKeyRingFile != null) {
+            project.ext.keyId = props.keyId
+            project.ext.password  = props.password
+            project.ext.secretKeyRingFile = props.secretKeyRingFile
+        }
+    }
+
+    required { gradle.taskGraph.hasTask("uploadArchives") }
+    sign configurations.archives
+}
+
+uploadArchives {
+    repositories.mavenDeployer {
+        beforeDeployment { MavenDeployment deployment -> signing.signPom(deployment) }
+
+        repository(url: "file://${repoDir}")
+
+        pom.groupId = dataProps.POM_GROUP_ID
+        pom.artifactId = dataProps.POM_ARTIFACT_ID
+        pom.version = dataProps.VERSION_NAME
+        pom.project {
+            licenses {
+                license {
+                    name dataProps.POM_APACHE_V2_LICENCE_NAME
+                    url dataProps.POM_APACHE_V2_LICENCE_URL
+                    distribution dataProps.POM_APACHE_V2_LICENCE_DIST
+                    comments "OpenSLMediaPlayer"
+                }
+                license {
+                    name dataProps.POM_APACHE_V2_LICENCE_NAME
+                    url dataProps.POM_APACHE_V2_LICENCE_URL
+                    distribution dataProps.POM_APACHE_V2_LICENCE_DIST
+                    comments "[dependent libraries] cxxdasp, cxxporthelper, OpenSL ES CXX"
+                }
+                license {
+                    name dataProps.POM_FFTPACK5_LICENCE_NAME
+                    url dataProps.POM_FFTPACK5_LICENCE_URL
+                    distribution dataProps.POM_FFTPACK5_LICENCE_DIST
+                    comments "[dependent library] PFFFT"
+                }
+                license {
+                    name dataProps.POM_BSD_3_CLAUSE_LICENCE_NAME
+                    url dataProps.POM_BSD_3_CLAUSE_LICENCE_URL
+                    distribution dataProps.POM_BSD_3_CLAUSE_LICENCE_DIST
+                    comments "[dependent library] Ne10"
+                }
+            }
+            scm {
+                url dataProps.POM_SCM_URL
+                connection dataProps.POM_SCM_CONNECTION
+                developerConnection dataProps.POM_SCM_DEVELOPER_CONNECTION
+            }
+            developers {
+                developer {
+                    id dataProps.POM_DEVELOPER_ID
+                    name dataProps.POM_DEVELOPER_NAME
+                }
+            }
+        }
+    }
+}
+
+artifacts {
+    archives androidSourcesJar
+    archives androidJavadocsJar
+}

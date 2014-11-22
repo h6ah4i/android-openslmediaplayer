@@ -1,0 +1,13 @@
+This directory contains a part of the Android frameworks libraries.
+
+Original repository:
+  https://android.googlesource.com/platform/system/media
+ 
+Based commit-ID:
+  16ef11bf7f6a220aa8eb3d358f1aada33a1b5a46
+
+
+libaudio_utils  (libandroid-platform-system-media-audio_utils.a):
+
+  License:
+    Apache License, Version 2.0

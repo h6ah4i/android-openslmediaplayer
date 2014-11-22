@@ -1,0 +1,12 @@
+[submodule "library/dep_libs/cxxdasp"]
+	path = library/dep_libs/cxxdasp
+	url = https://github.com/h6ah4i/cxxdasp.git
+[submodule "library/dep_libs/openslescxx"]
+	path = library/dep_libs/openslescxx
+	url = https://github.com/h6ah4i/openslescxx.git
+[submodule "library/dep_libs/lockfreedatastructure"]
+	path = library/dep_libs/lockfreedatastructure
+	url = https://github.com/h6ah4i/lockfreedatastructure.git
+[submodule "android-studio/OpenSLMediaPlayer/library/doclava-template"]
+	path = android-studio/OpenSLMediaPlayer/library/doclava-template
+	url = https://github.com/h6ah4i/android-openslmediaplayer-doclava-template.git

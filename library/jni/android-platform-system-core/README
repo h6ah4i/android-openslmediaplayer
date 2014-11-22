@@ -1,0 +1,18 @@
+This directory contains a part of the Android frameworks libraries.
+
+Original repository:
+  https://android.googlesource.com/platform/system/core
+ 
+Based commit-ID:
+  47770b7396186d6700688fd039320283e5b68501
+
+
+libutils  (libandroid-platform-system-core-utils.a):
+
+  License:
+    Apache License, Version 2.0   (see libutils/NOTICE)
+
+  Classes:
+    - RefBase
+    - Strong Pointer (sp<T>)
+    - Weak Pointer (wp<T>)

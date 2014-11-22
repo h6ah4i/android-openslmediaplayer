@@ -1,0 +1,111 @@
+/*
+ *    Copyright (C) 2014 Haruki Hasegawa
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+import org.apache.tools.ant.taskdefs.condition.Os
+
+android {
+    ext {
+        def props = new Properties()
+        props.load(project.rootProject.file('local.properties').newDataInputStream())
+
+        def ndkDir = props.getProperty('ndk.dir')
+        def ndkCommandName = Os.isFamily(Os.FAMILY_WINDOWS) ? 'ndk-build.cmd' : 'ndk-build'
+        def ndkIntermediatesBaseDir = file('./build/intermediates/ndk')
+
+        ndkBuildCommandFullPath = (ndkDir == null) ? ndkCommandName : (new File(ndkDir, ndkCommandName)).getPath()
+        ndkBuildJobsCount = Runtime.getRuntime().availableProcessors()
+        ndkIntermediatesReleaseObjDir = (new File(ndkIntermediatesBaseDir, 'release/obj')).getPath()
+        ndkIntermediatesReleaseLibDir = (new File(ndkIntermediatesBaseDir, 'release/lib')).getPath()
+        ndkIntermediatesDebugObjDir = (new File(ndkIntermediatesBaseDir, 'debug/obj')).getPath()
+        ndkIntermediatesDebugLibDir = (new File(ndkIntermediatesBaseDir, 'debug/lib')).getPath()
+
+        // NOTE: The 'ndkProjectCodeRootDir' property have to be declared before applying this file
+    }
+
+    sourceSets.main {
+        jni.srcDirs = [] //disable automatic ndk-build call
+    }
+
+    task ndkBuildReleaseNonJniDebuggable(type: Exec) {
+        def objDir = ndkIntermediatesReleaseObjDir
+        def libDir = ndkIntermediatesReleaseLibDir
+
+        executable ndkBuildCommandFullPath
+        args '-j', ndkBuildJobsCount.toString(), '-C', ndkProjectCodeRootDir, 'APP_OPTIM=release', "NDK_OUT=${objDir}", "NDK_LIBS_OUT=${libDir}"
+    }
+
+    task ndkBuildReleaseJniDebuggable(type: Exec) {
+        def objDir = ndkIntermediatesReleaseObjDir
+        def libDir = ndkIntermediatesReleaseLibDir
+
+        executable ndkBuildCommandFullPath
+        args '-j', ndkBuildJobsCount.toString(), '-C', ndkProjectCodeRootDir, 'APP_OPTIM=release', 'NDK_DEBUG=1', "NDK_OUT=${objDir}", "NDK_LIBS_OUT=${libDir}"
+    }
+
+    task ndkBuildDebugNonJniDebuggable(type: Exec) {
+        def objDir = ndkIntermediatesDebugObjDir
+        def libDir = ndkIntermediatesDebugLibDir
+
+        executable ndkBuildCommandFullPath
+        args '-j', ndkBuildJobsCount.toString(), '-C', ndkProjectCodeRootDir, 'APP_OPTIM=debug', "NDK_OUT=${objDir}", "NDK_LIBS_OUT=${libDir}"
+    }
+
+    task ndkBuildDebugJniDebuggable(type: Exec) {
+        def objDir = ndkIntermediatesDebugObjDir
+        def libDir = ndkIntermediatesDebugLibDir
+
+        executable ndkBuildCommandFullPath
+        args '-j', ndkBuildJobsCount.toString(), '-C', ndkProjectCodeRootDir, 'APP_OPTIM=debug', 'NDK_DEBUG=1', "NDK_OUT=${objDir}", "NDK_LIBS_OUT=${libDir}"
+    }
+
+    task ndkBuildReleaseClean(type: Exec) {
+        def objDir = ndkIntermediatesDebugObjDir
+        def libDir = ndkIntermediatesDebugLibDir
+
+        executable ndkBuildCommandFullPath
+        args '-C', ndkProjectCodeRootDir, 'clean', "NDK_OUT=${objDir}", "NDK_LIBS_OUT=${libDir}"
+    }
+
+    task ndkBuildDebugClean(type: Exec) {
+        def objDir = ndkIntermediatesDebugObjDir
+        def libDir = ndkIntermediatesDebugLibDir
+
+        executable ndkBuildCommandFullPath
+        args '-C', ndkProjectCodeRootDir, 'clean', "NDK_OUT=${objDir}", "NDK_LIBS_OUT=${libDir}"
+    }
+
+    tasks.withType(JavaCompile) {
+        compileTask -> 
+            if (getName() =~ /^.*Release.*$/) {
+                if (android.buildTypes.release.jniDebuggable) {
+                    compileTask.dependsOn ndkBuildReleaseJniDebuggable
+                } else {
+                    compileTask.dependsOn ndkBuildReleaseNonJniDebuggable
+                }
+            } else {
+                if (android.buildTypes.debug.jniDebuggable) {
+                    compileTask.dependsOn ndkBuildDebugJniDebuggable
+                } else {
+                    compileTask.dependsOn ndkBuildDebugNonJniDebuggable
+                }
+            }
+    }
+
+    clean {
+        dependsOn ndkBuildReleaseClean
+        dependsOn ndkBuildDebugClean
+    }
+}
