@@ -37,7 +37,7 @@ Features
 ### Misc.
 
 - Highly compatibility with standard [`MediaPlayer`](http://developer.android.com/reference/android/media/MediaPlayer.html) and [`audio effect classes`](http://developer.android.com/reference/android/media/audiofx/package-summary.html)
-- Implements a lot of workarounds, more better behavior and well-tested ([`Standard*` prefixed API classes](wiki/api_overview_standard))
+- Implements a lot of workarounds, more better behavior and well-tested ([`Standard*` prefixed API classes](../../wiki/OpenSL-prefixed-API-classes))
 - Provides some compatibility class or methods for older devices
 - NEON/SSE optimized
 
@@ -79,7 +79,7 @@ Getting started
 
 ### Build from source
 
-If you want to build from source or want to build with ADT (Eclipse), please refer to [this article](wiki/build_from_source).
+If you want to build from source or want to build with ADT (Eclipse), please refer to [this article](../../wiki/Build-From-Source).
 
 Documentation
 ---
