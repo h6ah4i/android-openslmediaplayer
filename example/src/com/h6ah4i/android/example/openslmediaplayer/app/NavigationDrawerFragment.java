@@ -280,9 +280,10 @@ public class NavigationDrawerFragment extends AppBaseFragment {
     }
 
     @Override
-    public void onAttach(Activity activity) {
-        super.onAttach(activity);
+    public void onActivityCreated(Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
 
+        Activity activity = getActivity();
         setUp((DrawerLayout) activity.findViewById(R.id.drawer_layout),
                 (ViewGroup) activity.findViewById(R.id.drawer_container));
     }
@@ -311,10 +312,6 @@ public class NavigationDrawerFragment extends AppBaseFragment {
         mDrawerLayout = drawerLayout;
 
         // set up the drawer's list view with items and click listener
-
-        ActionBar actionBar = getActionBar();
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setHomeButtonEnabled(true);
 
         // ActionBarDrawerToggle ties together the the proper interactions
         // between the navigation drawer and the action bar app icon.
