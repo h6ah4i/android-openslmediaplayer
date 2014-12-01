@@ -43,8 +43,12 @@ android {
         applicationId "com.h6ah4i.android.media"
         minSdkVersion 14
         targetSdkVersion 21
-        versionCode 1
-        versionName "1.0"
+
+        def dataProps = new Properties()
+        dataProps.load(project.file(project.mavenPublishDataFile).newDataInputStream())
+
+        versionCode dataProps.VERSION_CODE.toInteger()
+        versionName dataProps.VERSION_NAME
     }
 
     buildTypes {
