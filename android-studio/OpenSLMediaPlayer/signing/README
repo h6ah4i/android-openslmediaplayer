@@ -10,4 +10,4 @@ cp library-maven-publish-signing.properties.template library-maven-publish-signi
 DO NOT ADD THESE FILES TO THE REPOSITORY
 
 - 'keystore' files 
-- '*.properties' files which contain sensitive infomation
+- '*.properties' files which contain sensitive information
