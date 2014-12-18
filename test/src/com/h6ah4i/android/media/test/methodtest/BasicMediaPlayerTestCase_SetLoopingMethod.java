@@ -27,6 +27,7 @@ import com.h6ah4i.android.media.test.base.BasicMediaPlayerStateTestCaseBase;
 import com.h6ah4i.android.media.test.base.BasicMediaPlayerTestCaseBase;
 import com.h6ah4i.android.media.test.utils.CompletionListenerObject;
 import com.h6ah4i.android.media.test.utils.ErrorListenerObject;
+import com.h6ah4i.android.media.test.utils.SeekCompleteListenerObject;
 import com.h6ah4i.android.testing.ParameterizedTestArgs;
 
 public class BasicMediaPlayerTestCase_SetLoopingMethod
@@ -176,4 +177,56 @@ public class BasicMediaPlayerTestCase_SetLoopingMethod
     protected void onTestStateEnd(IBasicMediaPlayer player, Object args) throws Throwable {
         expectsIllegalStateException(player);
     }
+
+    // "NextPlayer is preferred than setLooping(true) "
+    // https://github.com/h6ah4i/android-openslmediaplayer/issues/1
+    public void testLoopingIsMorePreferredThanNextPlayer() throws Throwable {
+        IBasicMediaPlayer player = createWrappedPlayerInstance();
+        IBasicMediaPlayer nextPlayer = createWrappedPlayerInstance();
+        Object args = getTestParams();
+
+        try {
+            Object syncObj = new Object();
+            CompletionListenerObject comp = new CompletionListenerObject(syncObj);
+            SeekCompleteListenerObject seek = new SeekCompleteListenerObject(syncObj);
+            ErrorListenerObject error = new ErrorListenerObject(syncObj, false);
+
+            // prepare
+            transitStateToPrepared(player, args);
+            transitStateToPrepared(nextPlayer, args);
+
+            // set listeners
+            player.setOnCompletionListener(comp);
+            player.setOnSeekCompleteListener(seek);
+            player.setOnErrorListener(error);
+
+            // set next player
+            player.setNextMediaPlayerCompat(unwrap(nextPlayer));
+
+            // setLooping(true)
+            player.setLooping(true);
+
+            // start
+            player.start();
+
+            assertTrue(player.isPlaying());
+            assertFalse(nextPlayer.isPlaying());
+
+            // wait for looping
+            int duration = player.getDuration();
+            Thread.sleep(duration + 2000);
+
+            // check conditions
+            assertTrue(player.isPlaying());         // still playing
+            assertFalse(nextPlayer.isPlaying());    // not started (looping is preferred)
+
+            assertTrue(seek.occurred());    // onSeekCompletion() callback occurs when looping
+            assertFalse(comp.occurred());   // check Lollipop bug with NuPlayer
+            assertFalse(error.occurred());  // no error occurred
+        } finally {
+            releaseQuietly(nextPlayer);
+            releaseQuietly(player);
+        }
+    }
+
 }
