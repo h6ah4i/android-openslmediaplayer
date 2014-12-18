@@ -40,7 +40,6 @@ useLegacyLayoutFiles(android.sourceSets.main, projectBasePath)
 
 android {
     defaultConfig {
-        applicationId "com.h6ah4i.android.media"
         minSdkVersion 14
         targetSdkVersion 21
 
