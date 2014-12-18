@@ -44,6 +44,7 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
     private boolean mIsIdleOrInitializedState = true;
     private boolean mReleased;
     private int mDuration;
+    private boolean mUsingNuPlayer;
 
     private android.media.MediaPlayer.OnCompletionListener mHookOnCompletionListener = new android.media.MediaPlayer.OnCompletionListener() {
         @Override
@@ -89,6 +90,8 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
 
     public StandardMediaPlayer() {
         super();
+
+        mUsingNuPlayer = NuPlayerDetector.isUsingNuPlayer();
 
         super.setOnCompletionListener(mHookOnCompletionListener);
         super.setOnPreparedListener(mHookOnPreparedListener);
@@ -271,9 +274,7 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
 
         mNextMediaPlayerRef = new WeakReference<StandardMediaPlayer>(next);
 
-        if (MediaPlayerCompat.supportsSetNextMediaPlayer()) {
-            MediaPlayerCompat.setNextMediaPlayer(this, next);
-        }
+        applyNextMediaPlayer();
     }
 
     @Override
@@ -306,6 +307,7 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
         } else {
             super.setLooping(looping);
             mIsLooping = looping;
+            applyNextMediaPlayer();
         }
     }
 
@@ -318,22 +320,28 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
         }
     }
 
+    private void applyNextMediaPlayer() {
+        if (MediaPlayerCompat.supportsSetNextMediaPlayer()) {
+            StandardMediaPlayer next = mNextMediaPlayerRef.get();
+
+            if (mUsingNuPlayer && mIsLooping) {
+                // To avoid the bug of NuPlayer (next player is preferred than looping setting)
+                next = null;
+            }
+
+            MediaPlayerCompat.setNextMediaPlayer(this, next);
+        }
+    }
+
     private void applyLoopingState() {
         mIsIdleOrInitializedState = false;
         super.setLooping(mIsLooping);
     }
 
     protected void handleOnCompletion(StandardMediaPlayer mp) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // [Workaround]
-            // Since Android 5.0, OnCompletion callback is fired in wrong state
-            // https://code.google.com/p/android/issues/detail?id=77860
-
-            if (mIsLooping) {
-                return;
-            } else if (mNextMediaPlayerRef.get() != null) {
-                return;
-            }
+        if (isCompletionOnLoopPointSupported() && mIsLooping) {
+            onNotifyLoopPoint();
+            return;
         }
 
         // Emulate setNextMediaPlayer() behavior
@@ -351,6 +359,12 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
 
         if (mUserOnCompletionListener != null) {
             mUserOnCompletionListener.onCompletion(mp);
+        }
+    }
+
+    private void onNotifyLoopPoint() {
+        if (mUserOnSeekCompleteListener != null) {
+            mUserOnSeekCompleteListener.onSeekComplete(this);
         }
     }
 
@@ -394,5 +408,9 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
     private static void throwUseIMediaPlayerVersionMethod() {
         throw new IllegalStateException(
                 "This method is not supported, please use IMediaPlayer version");
+    }
+
+    private boolean isCompletionOnLoopPointSupported() {
+        return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) && (mUsingNuPlayer);
     }
 }
