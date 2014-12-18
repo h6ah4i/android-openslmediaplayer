@@ -40,7 +40,7 @@ useLegacyLayoutFiles(android.sourceSets.main, projectBasePath)
 
 android {
     defaultConfig {
-        minSdkVersion 14
+        minSdkVersion 9
         targetSdkVersion 21
 
         def dataProps = new Properties()
