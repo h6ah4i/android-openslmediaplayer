@@ -17,10 +17,12 @@
 
 package com.h6ah4i.android.media.standard;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
 import android.content.Context;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
@@ -29,11 +31,12 @@ import com.h6ah4i.android.media.IBasicMediaPlayer;
 import com.h6ah4i.android.media.compat.AudioAttributes;
 import com.h6ah4i.android.media.compat.MediaPlayerCompat;
 
-public class StandardMediaPlayer extends android.media.MediaPlayer implements IBasicMediaPlayer {
+public class StandardMediaPlayer implements IBasicMediaPlayer {
     private static final String TAG = "StandardMediaPlayer";
 
     private static final boolean LOCAL_LOGV = false;
 
+    private MediaPlayer mPlayer;
     private WeakReference<StandardMediaPlayer> mNextMediaPlayerRef;
     private IBasicMediaPlayer.OnCompletionListener mUserOnCompletionListener;
     private IBasicMediaPlayer.OnPreparedListener mUserOnPreparedListener;
@@ -51,42 +54,42 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
     private android.media.MediaPlayer.OnCompletionListener mHookOnCompletionListener = new android.media.MediaPlayer.OnCompletionListener() {
         @Override
         public void onCompletion(android.media.MediaPlayer mp) {
-            StandardMediaPlayer.this.handleOnCompletion((StandardMediaPlayer) mp);
+            StandardMediaPlayer.this.handleOnCompletion(mp);
         }
     };
 
     private android.media.MediaPlayer.OnPreparedListener mHookOnPreparedListener = new android.media.MediaPlayer.OnPreparedListener() {
         @Override
         public void onPrepared(android.media.MediaPlayer mp) {
-            StandardMediaPlayer.this.handleOnPrepared((StandardMediaPlayer) mp);
+            StandardMediaPlayer.this.handleOnPrepared(mp);
         }
     };
 
     private android.media.MediaPlayer.OnSeekCompleteListener mHookOnSeekCompeleteListener = new android.media.MediaPlayer.OnSeekCompleteListener() {
         @Override
         public void onSeekComplete(android.media.MediaPlayer mp) {
-            StandardMediaPlayer.this.handleOnSeekComplete((StandardMediaPlayer) mp);
+            StandardMediaPlayer.this.handleOnSeekComplete(mp);
         }
     };
 
     private android.media.MediaPlayer.OnBufferingUpdateListener mHookOnBufferingUpdateListener = new android.media.MediaPlayer.OnBufferingUpdateListener() {
         @Override
         public void onBufferingUpdate(android.media.MediaPlayer mp, int percent) {
-            StandardMediaPlayer.this.handleOnBufferingUpdate((StandardMediaPlayer) mp, percent);
+            StandardMediaPlayer.this.handleOnBufferingUpdate(mp, percent);
         }
     };
 
     private android.media.MediaPlayer.OnInfoListener mHookOnInfoListner = new android.media.MediaPlayer.OnInfoListener() {
         @Override
         public boolean onInfo(android.media.MediaPlayer mp, int what, int extra) {
-            return StandardMediaPlayer.this.handleOnInfo((StandardMediaPlayer) mp, what, extra);
+            return StandardMediaPlayer.this.handleOnInfo(mp, what, extra);
         }
     };
 
     private android.media.MediaPlayer.OnErrorListener mHookOnErrorListener = new android.media.MediaPlayer.OnErrorListener() {
         @Override
         public boolean onError(android.media.MediaPlayer mp, int what, int extra) {
-            return StandardMediaPlayer.this.handleOnError((StandardMediaPlayer) mp, what, extra);
+            return StandardMediaPlayer.this.handleOnError(mp, what, extra);
         }
     };
 
@@ -95,26 +98,37 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
 
         mUsingNuPlayer = NuPlayerDetector.isUsingNuPlayer();
 
-        super.setOnCompletionListener(mHookOnCompletionListener);
-        super.setOnPreparedListener(mHookOnPreparedListener);
-        super.setOnSeekCompleteListener(mHookOnSeekCompeleteListener);
-        super.setOnBufferingUpdateListener(mHookOnBufferingUpdateListener);
-        super.setOnInfoListener(mHookOnInfoListner);
-        super.setOnErrorListener(mHookOnErrorListener);
+        mPlayer = new MediaPlayer();
+        mPlayer.setOnCompletionListener(mHookOnCompletionListener);
+        mPlayer.setOnPreparedListener(mHookOnPreparedListener);
+        mPlayer.setOnSeekCompleteListener(mHookOnSeekCompeleteListener);
+        mPlayer.setOnBufferingUpdateListener(mHookOnBufferingUpdateListener);
+        mPlayer.setOnInfoListener(mHookOnInfoListner);
+        mPlayer.setOnErrorListener(mHookOnErrorListener);
 
         mNextMediaPlayerRef = new WeakReference<StandardMediaPlayer>(null);
     }
 
+    /**
+     * Get underlying MediaPlayer instance.
+     *
+     * @return underlying MediaPlayer instance.
+     */
+    public MediaPlayer getMediaPlayer() {
+        return mPlayer;
+    }
+
     @Override
     public void release() {
-        mIsPrepared = false;
-
-        super.setOnCompletionListener(null);
-        super.setOnPreparedListener(null);
-        super.setOnSeekCompleteListener(null);
-        super.setOnBufferingUpdateListener(null);
-        super.setOnInfoListener(null);
-        super.setOnErrorListener(null);
+        if (mPlayer != null) {
+            mPlayer.setOnCompletionListener(null);
+            mPlayer.setOnPreparedListener(null);
+            mPlayer.setOnSeekCompleteListener(null);
+            mPlayer.setOnBufferingUpdateListener(null);
+            mPlayer.setOnInfoListener(null);
+            mPlayer.setOnErrorListener(null);
+            mPlayer.release();
+        }
 
         mHookOnCompletionListener = null;
         mHookOnPreparedListener = null;
@@ -131,29 +145,54 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
 
         mNextMediaPlayerRef.clear();
 
+        mIsPrepared = false;
         mReleased = true;
-
-        super.release();
     }
 
     @Override
     public void reset() {
-        super.reset();
+        if (mPlayer != null) {
+            mPlayer.reset();
+        }
         mIsPrepared = false;
         mIsIdleOrInitializedState = true;
         mIsLooping = false;
     }
 
     @Override
+    public int getAudioSessionId() {
+        if (mPlayer == null) {
+            return 0;
+        }
+        return mPlayer.getAudioSessionId();
+    }
+
+    @Override
+    public void setAudioSessionId(int sessionId) throws IllegalArgumentException, IllegalStateException {
+        checkIsNotReleased();
+
+        mPlayer.setAudioSessionId(sessionId);
+    }
+
+    @Override
+    public void start() throws IllegalStateException {
+        checkIsNotReleased();
+
+        mPlayer.start();
+    }
+
+    @Override
     public void stop() throws IllegalStateException {
-        super.stop();
+        checkIsNotReleased();
+
+        mPlayer.stop();
         mIsPrepared = false;
     }
 
     @Override
     public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
         try {
-            super.setDataSource(context, uri);
+            mPlayer.setDataSource(context, uri);
         } catch (NullPointerException e) {
             // NOTE:
             // Maybe, passing a wrong context.
@@ -164,16 +203,64 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
     }
 
     @Override
+    public void setDataSource(FileDescriptor fd) throws IOException, IllegalArgumentException, IllegalStateException {
+        checkIsNotReleased();
+
+        mPlayer.setDataSource(fd);
+    }
+
+    @Override
+    public void setDataSource(FileDescriptor fd, long offset, long length) throws IOException, IllegalArgumentException, IllegalStateException {
+        checkIsNotReleased();
+
+        mPlayer.setDataSource(fd, offset, length);
+    }
+
+    @Override
+    public void setDataSource(String path) throws IOException, IllegalArgumentException, IllegalStateException {
+        checkIsNotReleased();
+
+        mPlayer.setDataSource(path);
+    }
+
+    @Override
+    public void pause() throws IllegalStateException {
+        checkIsNotReleased();
+
+        mPlayer.pause();
+    }
+
+    @Override
     public void prepare() throws IOException, IllegalStateException {
-        super.prepare();
-        mDuration = super.getDuration();
+        checkIsNotReleased();
+
+        mPlayer.prepare();
+        mDuration = mPlayer.getDuration();
         mIsPrepared = true;
         applyLoopingState();
     }
 
     @Override
+    public void prepareAsync() throws IllegalStateException {
+        checkIsNotReleased();
+
+        mPlayer.prepareAsync();
+    }
+
+    @Override
+    public void seekTo(int msec) throws IllegalStateException {
+        checkIsNotReleased();
+
+        mPlayer.seekTo(msec);
+    }
+
+    @Override
     public int getDuration() {
-        int duration = super.getDuration();
+        if (mPlayer == null) {
+            return 0;
+        }
+
+        int duration = mPlayer.getDuration();
         if (!mIsPrepared) {
             // [Workaround]
             // super.getDuration() may returns invalid (uninitialized ?) value
@@ -185,7 +272,11 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
 
     @Override
     public int getCurrentPosition() {
-        int position = super.getCurrentPosition();
+        if (mPlayer == null) {
+            return 0;
+        }
+
+        int position = mPlayer.getCurrentPosition();
         if (!mIsPrepared) {
             // [Workaround]
             // super.getCurrentPosition() may returns invalid (uninitialized ?)
@@ -200,63 +291,50 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
 
     @Override
     public void setOnCompletionListener(IBasicMediaPlayer.OnCompletionListener listener) {
+        if (mReleased) {
+            return;
+        }
         mUserOnCompletionListener = listener;
     }
 
     @Override
     public void setOnPreparedListener(IBasicMediaPlayer.OnPreparedListener listener) {
+        if (mReleased) {
+            return;
+        }
         mUserOnPreparedListener = listener;
     }
 
     @Override
     public void setOnSeekCompleteListener(IBasicMediaPlayer.OnSeekCompleteListener listener) {
+        if (mReleased) {
+            return;
+        }
         mUserOnSeekCompleteListener = listener;
     }
 
     @Override
     public void setOnBufferingUpdateListener(IBasicMediaPlayer.OnBufferingUpdateListener listener) {
+        if (mReleased) {
+            return;
+        }
         mUserOnBufferingUpdateListener = listener;
     }
 
     @Override
     public void setOnInfoListener(IBasicMediaPlayer.OnInfoListener listener) {
+        if (mReleased) {
+            return;
+        }
         mUserOnInfoListener = listener;
     }
 
     @Override
     public void setOnErrorListener(IBasicMediaPlayer.OnErrorListener listener) {
+        if (mReleased) {
+            return;
+        }
         mUserOnErrorListener = listener;
-    }
-
-    @Override
-    public void setOnCompletionListener(android.media.MediaPlayer.OnCompletionListener listener) {
-        throwUseIMediaPlayerVersionMethod();
-    }
-
-    @Override
-    public void setOnPreparedListener(android.media.MediaPlayer.OnPreparedListener listener) {
-        throwUseIMediaPlayerVersionMethod();
-    }
-
-    @Override
-    public void setOnSeekCompleteListener(android.media.MediaPlayer.OnSeekCompleteListener listener) {
-        throwUseIMediaPlayerVersionMethod();
-    }
-
-    @Override
-    public void setOnBufferingUpdateListener(
-            android.media.MediaPlayer.OnBufferingUpdateListener listener) {
-        throwUseIMediaPlayerVersionMethod();
-    }
-
-    @Override
-    public void setOnInfoListener(android.media.MediaPlayer.OnInfoListener listener) {
-        throwUseIMediaPlayerVersionMethod();
-    }
-
-    @Override
-    public void setOnErrorListener(android.media.MediaPlayer.OnErrorListener listener) {
-        throwUseIMediaPlayerVersionMethod();
     }
 
     @Override
@@ -266,19 +344,18 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
         if (Float.isNaN(level) || level < 0.0f)
             level = Float.POSITIVE_INFINITY;
 
-        super.setAuxEffectSendLevel(level);
+        mPlayer.setAuxEffectSendLevel(level);
+    }
+
+    @Override
+    public void setWakeMode(Context context, int mode) {
+        if (mPlayer != null) {
+            mPlayer.setWakeMode(context, mode);
+        }
     }
 
     @Override
     public void setNextMediaPlayerCompat(IBasicMediaPlayer next) {
-        if (next != null && !(next instanceof StandardMediaPlayer)) {
-            throw new IllegalArgumentException("Not StandardMediaPlayer instance");
-        }
-        
-        setNextMediaPlayer((StandardMediaPlayer) next);
-    }
-
-    public void setNextMediaPlayer(StandardMediaPlayer next) {
         if (next != null && !(next instanceof StandardMediaPlayer)) {
             throw new IllegalArgumentException("Not StandardMediaPlayer instance");
         }
@@ -287,7 +364,7 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
             throw new IllegalArgumentException();
         }
 
-        mNextMediaPlayerRef = new WeakReference<StandardMediaPlayer>(next);
+        mNextMediaPlayerRef = new WeakReference<StandardMediaPlayer>((StandardMediaPlayer) next);
 
         applyNextMediaPlayer();
     }
@@ -299,7 +376,7 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
         }
 
         if (MediaPlayerCompat.supportsSetAudioAttributes()) {
-            MediaPlayerCompat.setAudioAttributes(this, attributes);
+            MediaPlayerCompat.setAudioAttributes(mPlayer, attributes);
         } else {
             if (mReleased) {
                 throw new IllegalStateException(
@@ -320,7 +397,7 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
         if (!mReleased && mIsIdleOrInitializedState) {
             mIsLooping = looping;
         } else {
-            super.setLooping(looping);
+            mPlayer.setLooping(looping);
             mIsLooping = looping;
             applyNextMediaPlayer();
         }
@@ -331,29 +408,61 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
         if (!mReleased && mIsIdleOrInitializedState) {
             return mIsLooping;
         } else {
-            return super.isLooping();
+            return mPlayer.isLooping();
         }
+    }
+
+    @Override
+    public boolean isPlaying() throws IllegalStateException {
+        checkIsNotReleased();
+
+        return mPlayer.isPlaying();
+    }
+
+    @Override
+    public void attachAuxEffect(int effectId) {
+        if (mPlayer == null) {
+            return;
+        }
+        mPlayer.attachAuxEffect(effectId);
+    }
+
+    @Override
+    public void setVolume(float leftVolume, float rightVolume) {
+        if (mPlayer == null) {
+            return;
+        }
+        mPlayer.setVolume(leftVolume, rightVolume);
+    }
+
+    @Override
+    public void setAudioStreamType(int streamtype) {
+        if (mPlayer == null) {
+            return;
+        }
+        mPlayer.setAudioStreamType(streamtype);
     }
 
     private void applyNextMediaPlayer() {
         if (MediaPlayerCompat.supportsSetNextMediaPlayer()) {
-            StandardMediaPlayer next = mNextMediaPlayerRef.get();
+            StandardMediaPlayer nextStandardMediaPlayer = mNextMediaPlayerRef.get();
+            MediaPlayer next = (nextStandardMediaPlayer != null) ? nextStandardMediaPlayer.mPlayer : null;
 
             if (mUsingNuPlayer && mIsLooping) {
                 // To avoid the bug of NuPlayer (next player is preferred than looping setting)
                 next = null;
             }
 
-            MediaPlayerCompat.setNextMediaPlayer(this, next);
+            MediaPlayerCompat.setNextMediaPlayer(mPlayer, next);
         }
     }
 
     private void applyLoopingState() {
         mIsIdleOrInitializedState = false;
-        super.setLooping(mIsLooping);
+        mPlayer.setLooping(mIsLooping);
     }
 
-    protected void handleOnCompletion(StandardMediaPlayer mp) {
+    protected void handleOnCompletion(MediaPlayer mp) {
         if (isCompletionOnLoopPointSupported() && mIsLooping) {
             onNotifyLoopPoint();
             return;
@@ -373,7 +482,7 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
         }
 
         if (mUserOnCompletionListener != null) {
-            mUserOnCompletionListener.onCompletion(mp);
+            mUserOnCompletionListener.onCompletion(this);
         }
     }
 
@@ -383,46 +492,48 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
         }
     }
 
-    protected void handleOnPrepared(StandardMediaPlayer mp) {
-        mDuration = super.getDuration();
+    protected void handleOnPrepared(MediaPlayer mp) {
+        mDuration = mPlayer.getDuration();
         mIsPrepared = true;
         applyLoopingState();
         if (mUserOnPreparedListener != null) {
-            mUserOnPreparedListener.onPrepared(mp);
+            mUserOnPreparedListener.onPrepared(this);
         }
     }
 
-    protected void handleOnSeekComplete(StandardMediaPlayer mp) {
+    protected void handleOnSeekComplete(MediaPlayer mp) {
         if (mUserOnSeekCompleteListener != null) {
-            mUserOnSeekCompleteListener.onSeekComplete(mp);
+            mUserOnSeekCompleteListener.onSeekComplete(this);
         }
     }
 
-    protected void handleOnBufferingUpdate(StandardMediaPlayer mp, int percent) {
+    protected void handleOnBufferingUpdate(MediaPlayer mp, int percent) {
         if (mUserOnBufferingUpdateListener != null) {
-            mUserOnBufferingUpdateListener.onBufferingUpdate(mp, percent);
+            mUserOnBufferingUpdateListener.onBufferingUpdate(this, percent);
         }
     }
 
-    protected boolean handleOnError(StandardMediaPlayer mp, int what, int extra) {
+    protected boolean handleOnError(MediaPlayer mp, int what, int extra) {
         if (mUserOnErrorListener != null) {
-            return mUserOnErrorListener.onError(mp, what, extra);
+            return mUserOnErrorListener.onError(this, what, extra);
         }
 
         return false;
     }
 
-    protected boolean handleOnInfo(StandardMediaPlayer mp, int what, int extra) {
+    protected boolean handleOnInfo(MediaPlayer mp, int what, int extra) {
         if (mUserOnInfoListener != null) {
-            return mUserOnInfoListener.onInfo(mp, what, extra);
+            return mUserOnInfoListener.onInfo(this, what, extra);
         }
 
         return false;
     }
 
-    private static void throwUseIMediaPlayerVersionMethod() {
-        throw new IllegalStateException(
-                "This method is not supported, please use IMediaPlayer version");
+    private void checkIsNotReleased() throws IllegalStateException {
+        if (mReleased) {
+            throw new IllegalStateException(
+                    "The media player instance has already released");
+        }
     }
 
     private boolean isCompletionOnLoopPointSupported() {
