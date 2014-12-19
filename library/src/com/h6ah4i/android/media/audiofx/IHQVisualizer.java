@@ -257,7 +257,7 @@ public interface IHQVisualizer extends IReleasable {
     /**
      * Returns the capture size range.
      *
-     * @return the mininum capture size is returned in first array element and
+     * @return the minimum capture size is returned in first array element and
      *         the maximum in second array element.
      */
     int[] getCaptureSizeRange() throws IllegalStateException;
