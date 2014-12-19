@@ -182,7 +182,7 @@ public class StandardMediaPlayerFactory implements IMediaPlayerFactory {
     }
 
     protected StandardLoudnessEnhancer onCreateLoudnessEnhancer(int audioSession) {
-        final StandardLoudnessEnhancer effect = StandardLoudnessEnhancer.craete(audioSession);
+        final StandardLoudnessEnhancer effect = new StandardLoudnessEnhancer(audioSession);
         if (effect == null) {
             throw new UnsupportedOperationException("StandardLoudnessEnhancer is not supported");
         }
@@ -190,8 +190,7 @@ public class StandardMediaPlayerFactory implements IMediaPlayerFactory {
     }
 
     protected StandardLoudnessEnhancer onCreateLoudnessEnhancer(StandardMediaPlayer player) {
-        final StandardLoudnessEnhancer effect = StandardLoudnessEnhancer.craete(
-                player.getAudioSessionId());
+        final StandardLoudnessEnhancer effect = new StandardLoudnessEnhancer(player.getAudioSessionId());
         if (effect == null) {
             throw new UnsupportedOperationException("StandardLoudnessEnhancer is not supported");
         }
