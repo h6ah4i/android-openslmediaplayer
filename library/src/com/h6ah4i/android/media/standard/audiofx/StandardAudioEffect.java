@@ -77,7 +77,7 @@ class StandardAudioEffect implements IAudioEffect {
             if (methodName == null) {
                 throw new IllegalStateException("Audio effect instance has already been released");
             } else {
-                throw new IllegalStateException("Audio effect instance has already been released. (method = " + methodName +")");
+                throw new IllegalStateException("Audio effect instance has already been released. ; method = " + methodName);
             }
         }
     }
