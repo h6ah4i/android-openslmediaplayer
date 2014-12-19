@@ -298,12 +298,12 @@ public class HQVisualizerFragment
                 // capturing enabled
 
                 // use maximum rate & size
-                int rate = visualizer.getMaxCaptureRateCompat();
+                int rate = visualizer.getMaxCaptureRate();
                 int size = 4096;
 
                 // NOTE: min = 128, max = 32768
-                size = Math.max(visualizer.getCaptureSizeRangeCompat()[0], size);
-                size = Math.min(visualizer.getCaptureSizeRangeCompat()[1], size);
+                size = Math.max(visualizer.getCaptureSizeRange()[0], size);
+                size = Math.min(visualizer.getCaptureSizeRange()[1], size);
 
                 visualizer.setWindowFunction(state.getWindowType());
                 visualizer.setCaptureSize(size);

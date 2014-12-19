@@ -149,7 +149,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
 
     private void setUnwrappedtNextPlayer(IBasicMediaPlayer player,
             IBasicMediaPlayer next) {
-        player.setNextMediaPlayerCompat(unwrap(next));
+        player.setNextMediaPlayer(unwrap(next));
     }
 
     private IBasicMediaPlayer createNextPlayer(IBasicMediaPlayer player,

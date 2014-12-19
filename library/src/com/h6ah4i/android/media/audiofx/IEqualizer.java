@@ -42,7 +42,7 @@ public interface IEqualizer extends IAudioEffect {
 
     /**
      * The Settings class regroups all equalizer parameters. It is used in
-     * conjuntion with getPropertiesCompat() and setPropertiesCompat() methods
+     * conjuntion with getProperties() and setProperties() methods
      * to backup and restore all parameters in a single call.
      */
     public static class Settings implements Cloneable {
@@ -333,7 +333,7 @@ public interface IEqualizer extends IAudioEffect {
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    IEqualizer.Settings getPropertiesCompat()
+    IEqualizer.Settings getProperties()
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException;
 
     /**
@@ -346,7 +346,7 @@ public interface IEqualizer extends IAudioEffect {
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    void setPropertiesCompat(IEqualizer.Settings settings)
+    void setProperties(IEqualizer.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException;
 
     /**

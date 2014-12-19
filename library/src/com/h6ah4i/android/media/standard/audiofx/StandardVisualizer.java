@@ -25,19 +25,22 @@ import android.util.Log;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
 import com.h6ah4i.android.media.utils.AudioSystemUtils;
 
-public class StandardVisualizer extends android.media.audiofx.Visualizer implements IVisualizer {
+import java.lang.ref.WeakReference;
+
+public class StandardVisualizer implements IVisualizer {
     private static final String TAG = "StandardVisualizer";
     private static final boolean mIsDebuggable = false;
 
     private static final int MIN_CAPTURE_RATE;
     private static final int MAX_CAPTURE_RATE;
+
+    private Visualizer mVisualizer;
     private OnDataCaptureListenerWrapper mCaptureListenerWrapper;
     private int mCaptureRate = 0;
     private boolean mCaptureWaveform = false;
     private boolean mCaptureFft = false;
     private boolean mNeedToSetCaptureListener = false;
     private int mCaptureSize;
-    private boolean mReleased;
     private int mCorrectSamplingRate;
 
     private static final VisualizerCompatBase COMPAT_HELPER;
@@ -55,8 +58,16 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
         MAX_CAPTURE_RATE = Visualizer.getMaxCaptureRate();
     }
 
+    public static int[] sGetCaptureSizeRange() {
+        return Visualizer.getCaptureSizeRange();
+    }
+
+    public static int sGetMaxCaptureRate() {
+        return Visualizer.getMaxCaptureRate();
+    }
+
     public StandardVisualizer(Context context, int audioSession) {
-        super(audioSession);
+        mVisualizer = new Visualizer(audioSession);
 
         getCaptureSizeAndUpdateField();
 
@@ -68,7 +79,8 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
 
     @Override
     public synchronized boolean getEnabled() {
-        return super.getEnabled();
+        throwIllegalStateExceptionIfReleased();
+        return mVisualizer.getEnabled();
     }
 
     @Override
@@ -78,7 +90,7 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
         result = onSetEnabled(enabled);
 
         if (mIsDebuggable) {
-            boolean actual = super.getEnabled();
+            boolean actual = mVisualizer.getEnabled();
             Log.i(TAG, "setEnabled(" + enabled + ") - actual = " + actual +
                     " (tid= " + Thread.currentThread().getId() + ")");
             if (enabled != actual) {
@@ -103,7 +115,7 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
             return Visualizer.ERROR_BAD_VALUE;
 
         // workaround: Fix mState variable
-        super.setEnabled(super.getEnabled());
+        mVisualizer.setEnabled(mVisualizer.getEnabled());
 
         getCaptureSizeAndUpdateField();
 
@@ -112,7 +124,7 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
             return IVisualizer.ERROR_BAD_VALUE;
         }
 
-        return super.getWaveForm(waveform);
+        return mVisualizer.getWaveForm(waveform);
     }
 
     @Override
@@ -121,7 +133,7 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
             return Visualizer.ERROR_BAD_VALUE;
 
         // workaround: Fix mState variable
-        super.setEnabled(super.getEnabled());
+        mVisualizer.setEnabled(mVisualizer.getEnabled());
 
         getCaptureSizeAndUpdateField();
 
@@ -130,7 +142,7 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
             return IVisualizer.ERROR_BAD_VALUE;
         }
 
-        return super.getFft(fft);
+        return mVisualizer.getFft(fft);
     }
 
     @Override
@@ -140,7 +152,7 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
 
     @Override
     public synchronized int setCaptureSize(int size) throws IllegalStateException {
-        int result = super.setCaptureSize(size);
+        int result = mVisualizer.setCaptureSize(size);
 
         if (result == IVisualizer.SUCCESS) {
             mCaptureSize = size;
@@ -170,14 +182,14 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
 
         if (wrapper == null || (wrapper != null && wrapper.getInternalListener() != listener)) {
             if (listener != null) {
-                wrapper = new OnDataCaptureListenerWrapper(listener, mCorrectSamplingRate);
+                wrapper = new OnDataCaptureListenerWrapper(this, listener, mCorrectSamplingRate);
             } else {
                 wrapper = null;
             }
         }
 
         try {
-            result = super.setDataCaptureListener(wrapper, rate, waveform, fft);
+            result = mVisualizer.setDataCaptureListener(wrapper, rate, waveform, fft);
         } finally {
             if (result == IVisualizer.SUCCESS) {
                 mCaptureListenerWrapper = wrapper;
@@ -199,44 +211,49 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
     }
 
     @Override
-    public synchronized int[] getCaptureSizeRangeCompat() throws IllegalStateException {
-        throwIllegalStateExcepthinIfReleased();
+    public synchronized int[] getCaptureSizeRange() throws IllegalStateException {
+        throwIllegalStateExceptionIfReleased();
         return android.media.audiofx.Visualizer.getCaptureSizeRange();
     }
 
     @Override
-    public synchronized int getMaxCaptureRateCompat() throws IllegalStateException {
-        throwIllegalStateExcepthinIfReleased();
+    public synchronized int getMaxCaptureRate() throws IllegalStateException {
+        throwIllegalStateExceptionIfReleased();
         return android.media.audiofx.Visualizer.getMaxCaptureRate();
     }
 
     @Override
-    public synchronized int getScalingModeCompat() throws IllegalStateException {
-        return COMPAT_HELPER.getScalingModeCompat(this);
+    public synchronized int getScalingMode() throws IllegalStateException {
+        throwIllegalStateExceptionIfReleased();
+        return COMPAT_HELPER.getScalingModeCompat(mVisualizer);
     }
 
     @Override
-    public synchronized int setScalingModeCompat(int mode) throws IllegalStateException {
-        return COMPAT_HELPER.setScalingModeCompat(this, mode);
+    public synchronized int setScalingMode(int mode) throws IllegalStateException {
+        throwIllegalStateExceptionIfReleased();
+        return COMPAT_HELPER.setScalingModeCompat(mVisualizer, mode);
     }
 
     @Override
-    public synchronized int getMeasurementModeCompat() throws IllegalStateException {
-        return COMPAT_HELPER.getMeasurementModeCompat(this);
+    public synchronized int getMeasurementMode() throws IllegalStateException {
+        throwIllegalStateExceptionIfReleased();
+        return COMPAT_HELPER.getMeasurementModeCompat(mVisualizer);
     }
 
     @Override
-    public synchronized int setMeasurementModeCompat(int mode) throws IllegalStateException {
-        return COMPAT_HELPER.setMeasurementModeCompat(this, mode);
+    public synchronized int setMeasurementMode(int mode) throws IllegalStateException {
+        throwIllegalStateExceptionIfReleased();
+        return COMPAT_HELPER.setMeasurementModeCompat(mVisualizer, mode);
     }
 
     @Override
-    public synchronized int getMeasurementPeakRmsCompat(IVisualizer.MeasurementPeakRms measurement) {
+    public synchronized int getMeasurementPeakRms(IVisualizer.MeasurementPeakRms measurement) {
         if (measurement == null) {
             return IVisualizer.ERROR_BAD_VALUE;
         }
 
-        return COMPAT_HELPER.getMeasurementPeakRmsCompat(this, measurement);
+        throwIllegalStateExceptionIfReleased();
+        return COMPAT_HELPER.getMeasurementPeakRmsCompat(mVisualizer, measurement);
     }
 
     private static void throwUseIVisualizerVersionMethod() {
@@ -249,27 +266,37 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
      * http://code.google.com/p/android/issues/detail?id=37999.
      */
     private static class OnDataCaptureListenerWrapper implements Visualizer.OnDataCaptureListener {
+        private WeakReference<StandardVisualizer> mHolder;
         private IVisualizer.OnDataCaptureListener mListener;
         private final int mCorrectSamplingRate;
 
-        public OnDataCaptureListenerWrapper(IVisualizer.OnDataCaptureListener listener,
+        public OnDataCaptureListenerWrapper(StandardVisualizer holder, IVisualizer.OnDataCaptureListener listener,
                 int correctSamplingRate) {
+            if (holder == null)
+                throw new IllegalArgumentException("holder must not be null");
             if (listener == null)
-                throw new IllegalArgumentException("listener must be not null");
+                throw new IllegalArgumentException("listener must not be null");
+            mHolder = new WeakReference<StandardVisualizer>(holder);
             mListener = listener;
             mCorrectSamplingRate = correctSamplingRate;
         }
 
         @Override
         public void onWaveFormDataCapture(Visualizer visualizer, byte[] waveform, int samplingRate) {
-            mListener.onWaveFormDataCapture(
-                    (StandardVisualizer) visualizer, waveform, mCorrectSamplingRate);
+            final StandardVisualizer holder = mHolder.get();
+
+            if (holder != null) {
+                mListener.onWaveFormDataCapture(holder, waveform, mCorrectSamplingRate);
+            }
         }
 
         @Override
         public void onFftDataCapture(Visualizer visualizer, byte[] fft, int samplingRate) {
-            mListener.onFftDataCapture(
-                    (StandardVisualizer) visualizer, fft, mCorrectSamplingRate);
+            final StandardVisualizer holder = mHolder.get();
+
+            if (holder != null) {
+                mListener.onFftDataCapture(holder, fft, mCorrectSamplingRate);
+            }
         }
 
         public IVisualizer.OnDataCaptureListener getInternalListener() {
@@ -282,13 +309,15 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
     }
 
     private int onSetEnabled(boolean enabled) {
-        final boolean currentEnabledState = super.getEnabled();
+        throwIllegalStateExceptionIfReleased();
+
+        final boolean currentEnabledState = mVisualizer.getEnabled();
 
         int result = IVisualizer.ERROR;
 
         if (enabled && !currentEnabledState) {
             if (mNeedToSetCaptureListener) {
-                int result2 = super.setDataCaptureListener(
+                int result2 = mVisualizer.setDataCaptureListener(
                         mCaptureListenerWrapper,
                         mCaptureRate, mCaptureWaveform, mCaptureFft);
 
@@ -299,7 +328,7 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
         }
 
         try {
-            result = super.setEnabled(enabled);
+            result = mVisualizer.setEnabled(enabled);
         } catch (IllegalStateException ex) {
             throw ex;
         } finally {
@@ -308,12 +337,12 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
                     // need to unregister capture listener to avoid
                     // deadlock!
                     mNeedToSetCaptureListener = true;
-                    super.setDataCaptureListener(null, 0, false, false);
+                    mVisualizer.setDataCaptureListener(null, 0, false, false);
                 }
             }
         }
 
-        final boolean actual = super.getEnabled();
+        final boolean actual = mVisualizer.getEnabled();
 
         if ((result == IVisualizer.SUCCESS) && (enabled != actual)) {
             result = IVisualizer.ERROR;
@@ -324,14 +353,6 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
     }
 
     @Override
-    public int setDataCaptureListener(
-            android.media.audiofx.Visualizer.OnDataCaptureListener listener, int rate,
-            boolean waveform, boolean fft) {
-        throwUseIVisualizerVersionMethod();
-        return IVisualizer.ERROR;
-    }
-
-    @Override
     public synchronized void release() {
         if (mIsDebuggable) {
             Log.i(TAG, "release()");
@@ -339,7 +360,9 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
 
         try {
             // Unregister the listener to avoid NullPointerException
-            super.setDataCaptureListener(null, 0, false, false);
+            if (mVisualizer != null) {
+                mVisualizer.setDataCaptureListener(null, 0, false, false);
+            }
         } catch (Exception e) {
         }
 
@@ -347,14 +370,10 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
             mCaptureListenerWrapper.release();
             mCaptureListenerWrapper = null;
         }
-
-        mReleased = true;
-
-        super.release();
     }
 
     private int getCaptureSizeAndUpdateField() {
-        int size = super.getCaptureSize();
+        int size = mVisualizer.getCaptureSize();
 
         if (size > 0 && isPowOfTwo(size)) {
             mCaptureSize = size;
@@ -363,8 +382,8 @@ public class StandardVisualizer extends android.media.audiofx.Visualizer impleme
         return size;
     }
 
-    private void throwIllegalStateExcepthinIfReleased() {
-        if (mReleased) {
+    private void throwIllegalStateExceptionIfReleased() {
+        if (mVisualizer == null) {
             throw new IllegalStateException();
         }
     }

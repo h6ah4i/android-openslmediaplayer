@@ -139,7 +139,7 @@ public class PresetReverbTestCase
             reverb.setEnabled(params.getPreconditionEnabled());
 
             assertEquals(IPresetReverb.PRESET_NONE, reverb.getPreset());
-            assertEquals(IPresetReverb.PRESET_NONE, reverb.getPropertiesCompat().preset);
+            assertEquals(IPresetReverb.PRESET_NONE, reverb.getProperties().preset);
         } finally {
             releaseQuietly(reverb);
         }
@@ -157,7 +157,7 @@ public class PresetReverbTestCase
             for (short preset : PRESETS) {
                 reverb.setPreset(preset);
                 assertEquals(preset, reverb.getPreset());
-                assertEquals(preset, reverb.getPropertiesCompat().preset);
+                assertEquals(preset, reverb.getProperties().preset);
             }
         } finally {
             releaseQuietly(reverb);
@@ -204,10 +204,10 @@ public class PresetReverbTestCase
 
                 settings.preset = preset;
 
-                reverb.setPropertiesCompat(settings);
+                reverb.setProperties(settings);
 
                 assertEquals(preset, reverb.getPreset());
-                assertEquals(preset, reverb.getPropertiesCompat().preset);
+                assertEquals(preset, reverb.getProperties().preset);
             }
         } finally {
             releaseQuietly(reverb);
@@ -364,7 +364,7 @@ public class PresetReverbTestCase
         }
 
         try {
-            createReleasedPresetReverb().getPropertiesCompat();
+            createReleasedPresetReverb().getProperties();
             fail();
         } catch (IllegalStateException e) {
             // expected
@@ -374,7 +374,7 @@ public class PresetReverbTestCase
             IPresetReverb.Settings settings = new IPresetReverb.Settings();
             settings.preset = IPresetReverb.PRESET_NONE;
 
-            createReleasedPresetReverb().setPropertiesCompat(settings);
+            createReleasedPresetReverb().setProperties(settings);
             fail();
         } catch (IllegalStateException e) {
             // expected
@@ -445,7 +445,7 @@ public class PresetReverbTestCase
         try {
             reverb = getFactory().createPresetReverb();
 
-            IPresetReverb.Settings origSettings = reverb.getPropertiesCompat();
+            IPresetReverb.Settings origSettings = reverb.getProperties();
             getFactory().release();
 
             // NOTE: The reverb object is still usable
@@ -455,8 +455,8 @@ public class PresetReverbTestCase
             assertNotEquals(0, reverb.getId());
             reverb.getPreset();
             reverb.setPreset(IPresetReverb.PRESET_NONE);
-            reverb.getPropertiesCompat();
-            reverb.setPropertiesCompat(origSettings);
+            reverb.getProperties();
+            reverb.setProperties(origSettings);
 
             reverb.release();
             reverb = null;

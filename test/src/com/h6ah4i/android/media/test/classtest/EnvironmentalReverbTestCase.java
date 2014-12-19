@@ -135,7 +135,7 @@ public class EnvironmentalReverbTestCase
             for (short value : VALUES) {
                 reverb.setRoomLevel(value);
                 assertEquals(value, reverb.getRoomLevel());
-                assertEquals(value, reverb.getPropertiesCompat().roomLevel);
+                assertEquals(value, reverb.getProperties().roomLevel);
             }
         } finally {
             releaseQuietly(reverb);
@@ -182,7 +182,7 @@ public class EnvironmentalReverbTestCase
             for (short value : VALUES) {
                 reverb.setRoomHFLevel(value);
                 assertEquals(value, reverb.getRoomHFLevel());
-                assertEquals(value, reverb.getPropertiesCompat().roomHFLevel);
+                assertEquals(value, reverb.getProperties().roomHFLevel);
             }
         } finally {
             releaseQuietly(reverb);
@@ -229,7 +229,7 @@ public class EnvironmentalReverbTestCase
             for (int value : VALUES) {
                 reverb.setDecayTime(value);
                 assertEquals(value, reverb.getDecayTime());
-                assertEquals(value, reverb.getPropertiesCompat().decayTime);
+                assertEquals(value, reverb.getProperties().decayTime);
             }
         } finally {
             releaseQuietly(reverb);
@@ -276,7 +276,7 @@ public class EnvironmentalReverbTestCase
             for (short value : VALUES) {
                 reverb.setDecayHFRatio(value);
                 assertEquals(value, reverb.getDecayHFRatio());
-                assertEquals(value, reverb.getPropertiesCompat().decayHFRatio);
+                assertEquals(value, reverb.getProperties().decayHFRatio);
             }
         } finally {
             releaseQuietly(reverb);
@@ -323,7 +323,7 @@ public class EnvironmentalReverbTestCase
             for (short value : VALUES) {
                 reverb.setReflectionsLevel(value);
                 assertEquals(value, reverb.getReflectionsLevel());
-                assertEquals(value, reverb.getPropertiesCompat().reflectionsLevel);
+                assertEquals(value, reverb.getProperties().reflectionsLevel);
             }
         } finally {
             releaseQuietly(reverb);
@@ -370,7 +370,7 @@ public class EnvironmentalReverbTestCase
             for (int value : VALUES) {
                 reverb.setReflectionsDelay(value);
                 assertEquals(value, reverb.getReflectionsDelay());
-                assertEquals(value, reverb.getPropertiesCompat().reflectionsDelay);
+                assertEquals(value, reverb.getProperties().reflectionsDelay);
             }
         } finally {
             releaseQuietly(reverb);
@@ -417,7 +417,7 @@ public class EnvironmentalReverbTestCase
             for (short value : VALUES) {
                 reverb.setReverbLevel(value);
                 assertEquals(value, reverb.getReverbLevel());
-                assertEquals(value, reverb.getPropertiesCompat().reverbLevel);
+                assertEquals(value, reverb.getProperties().reverbLevel);
             }
         } finally {
             releaseQuietly(reverb);
@@ -464,7 +464,7 @@ public class EnvironmentalReverbTestCase
             for (int value : VALUES) {
                 reverb.setReverbDelay(value);
                 assertEquals(value, reverb.getReverbDelay());
-                assertEquals(value, reverb.getPropertiesCompat().reverbDelay);
+                assertEquals(value, reverb.getProperties().reverbDelay);
             }
         } finally {
             releaseQuietly(reverb);
@@ -512,7 +512,7 @@ public class EnvironmentalReverbTestCase
                 reverb.setDiffusion(value);
                 assertEquals(value, reverb.getDiffusion());
                 // XXX HTC Evo 3D
-                assertEquals(value, reverb.getPropertiesCompat().diffusion);
+                assertEquals(value, reverb.getProperties().diffusion);
             }
         } finally {
             releaseQuietly(reverb);
@@ -559,7 +559,7 @@ public class EnvironmentalReverbTestCase
             for (short value : VALUES) {
                 reverb.setDensity(value);
                 assertEquals(value, reverb.getDensity());
-                assertEquals(value, reverb.getPropertiesCompat().density);
+                assertEquals(value, reverb.getProperties().density);
             }
         } finally {
             releaseQuietly(reverb);
@@ -603,9 +603,9 @@ public class EnvironmentalReverbTestCase
             for (int i = 0; i < PRESETS.length; i++) {
                 IEnvironmentalReverb.Settings expected = PRESETS[i];
 
-                reverb.setPropertiesCompat(expected);
+                reverb.setProperties(expected);
 
-                IEnvironmentalReverb.Settings actual = reverb.getPropertiesCompat();
+                IEnvironmentalReverb.Settings actual = reverb.getProperties();
 
                 assertEqualsExceptForNotImplementedParams(expected, actual);
             }
@@ -689,13 +689,13 @@ public class EnvironmentalReverbTestCase
             assertFalse(reverb1.getEnabled());
             assertFalse(reverb2.getEnabled());
 
-            assertEquals(reverb1.getPropertiesCompat(), reverb2.getPropertiesCompat());
+            assertEquals(reverb1.getProperties(), reverb2.getProperties());
 
             IEnvironmentalReverb.Settings expectedPreset = EnvironmentalReverbPresets.CAVE;
 
             // change states
             assertEquals(IAudioEffect.SUCCESS, reverb2.setEnabled(true));
-            reverb2.setPropertiesCompat(expectedPreset);
+            reverb2.setProperties(expectedPreset);
 
             // check post conditions
             assertFalse(reverb1.hasControl());
@@ -750,8 +750,8 @@ public class EnvironmentalReverbTestCase
             assertEquals(expectedPreset.density, reverb1.getDensity());
             assertEquals(expectedPreset.density, reverb2.getDensity());
 
-            assertEqualsExceptForNotImplementedParams(expectedPreset, reverb1.getPropertiesCompat());
-            assertEqualsExceptForNotImplementedParams(expectedPreset, reverb2.getPropertiesCompat());
+            assertEqualsExceptForNotImplementedParams(expectedPreset, reverb1.getProperties());
+            assertEqualsExceptForNotImplementedParams(expectedPreset, reverb2.getProperties());
 
             // release effect 2
             reverb2.release();
@@ -924,14 +924,14 @@ public class EnvironmentalReverbTestCase
         }
 
         try {
-            createReleasedEnvironmentalReverb().getPropertiesCompat();
+            createReleasedEnvironmentalReverb().getProperties();
             fail();
         } catch (IllegalStateException e) {
             // expected
         }
 
         try {
-            createReleasedEnvironmentalReverb().setPropertiesCompat(PRESETS[0]);
+            createReleasedEnvironmentalReverb().setProperties(PRESETS[0]);
             fail();
         } catch (IllegalStateException e) {
             // expected
@@ -996,7 +996,7 @@ public class EnvironmentalReverbTestCase
         try {
             reverb = getFactory().createEnvironmentalReverb();
 
-            IEnvironmentalReverb.Settings origSettings = reverb.getPropertiesCompat();
+            IEnvironmentalReverb.Settings origSettings = reverb.getProperties();
             getFactory().release();
 
             // NOTE: The reverb object is still usable
@@ -1020,8 +1020,8 @@ public class EnvironmentalReverbTestCase
             reverb.setDiffusion(DIFFUSION_MIN);
             reverb.getDensity();
             reverb.setDensity(DENSITY_MIN);
-            reverb.getPropertiesCompat();
-            reverb.setPropertiesCompat(origSettings);
+            reverb.getProperties();
+            reverb.setProperties(origSettings);
 
             reverb.release();
             reverb = null;

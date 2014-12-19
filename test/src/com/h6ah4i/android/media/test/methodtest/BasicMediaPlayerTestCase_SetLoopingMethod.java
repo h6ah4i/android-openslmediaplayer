@@ -201,7 +201,7 @@ public class BasicMediaPlayerTestCase_SetLoopingMethod
             player.setOnErrorListener(error);
 
             // set next player
-            player.setNextMediaPlayerCompat(unwrap(nextPlayer));
+            player.setNextMediaPlayer(unwrap(nextPlayer));
 
             // setLooping(true)
             player.setLooping(true);

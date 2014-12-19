@@ -307,11 +307,11 @@ public class VisualizerFragment
                 // capturing enabled
 
                 // use maximum rate & size
-                int rate = visualizer.getMaxCaptureRateCompat();
-                int size = visualizer.getCaptureSizeRangeCompat()[1];
+                int rate = visualizer.getMaxCaptureRate();
+                int size = visualizer.getCaptureSizeRange()[1];
 
                 visualizer.setCaptureSize(size);
-                visualizer.setScalingModeCompat(scalingMode);
+                visualizer.setScalingMode(scalingMode);
                 visualizer.setDataCaptureListener(
                         mOnDataCaptureListener, rate, captureWaveform, captureFft);
             } else {
@@ -337,10 +337,10 @@ public class VisualizerFragment
 
             if (measurePeak || measureRms) {
                 // measurements enabled
-                visualizer.setMeasurementModeCompat(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
+                visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS);
             } else {
                 // measurements disabled
-                visualizer.setMeasurementModeCompat(IVisualizer.MEASUREMENT_MODE_NONE);
+                visualizer.setMeasurementMode(IVisualizer.MEASUREMENT_MODE_NONE);
             }
 
             // start visualizer
@@ -466,7 +466,7 @@ public class VisualizerFragment
                     int result;
 
                     try {
-                        result = visualizer.getMeasurementPeakRmsCompat(measurement);
+                        result = visualizer.getMeasurementPeakRms(measurement);
                     } catch (IllegalStateException e) {
                         result = IVisualizer.ERROR_INVALID_OPERATION;
                     }

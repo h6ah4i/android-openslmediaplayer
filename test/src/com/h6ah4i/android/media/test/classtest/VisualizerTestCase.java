@@ -834,7 +834,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         try {
             visualizer = createVisualizer(player);
 
-            int[] range = visualizer.getCaptureSizeRangeCompat();
+            int[] range = visualizer.getCaptureSizeRange();
 
             assertEquals(128, range[0]);
             assertEquals(1024, range[1]);
@@ -848,7 +848,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
         try {
             visualizer = createVisualizer(player);
-            assertEquals(20000, visualizer.getMaxCaptureRateCompat());
+            assertEquals(20000, visualizer.getMaxCaptureRate());
         } finally {
             releaseQuietly(visualizer);
         }
@@ -860,7 +860,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         try {
             visualizer = createVisualizer(player);
             assertEquals(IVisualizer.SCALING_MODE_NORMALIZED,
-                    visualizer.getScalingModeCompat());
+                    visualizer.getScalingMode());
         } finally {
             releaseQuietly(visualizer);
         }
@@ -946,7 +946,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         try {
             visualizer = createVisualizer(player);
             assertEquals(IVisualizer.MEASUREMENT_MODE_NONE,
-                    visualizer.getMeasurementModeCompat());
+                    visualizer.getMeasurementMode());
         } finally {
             releaseQuietly(visualizer);
         }
@@ -1086,7 +1086,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         try {
             visualizer = createVisualizer(player);
 
-            int[] sizeRange = visualizer.getCaptureSizeRangeCompat();
+            int[] sizeRange = visualizer.getCaptureSizeRange();
             int validSize = visualizer.getCaptureSize();
             int[] sizeList = new int[] {
                     -1, // null
@@ -1115,7 +1115,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         try {
             visualizer = createVisualizer(player);
 
-            int[] sizeRange = visualizer.getCaptureSizeRangeCompat();
+            int[] sizeRange = visualizer.getCaptureSizeRange();
             int validSize = visualizer.getCaptureSize();
             int[] sizeList = new int[] {
                     -1, // null
@@ -1195,7 +1195,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         try {
             visualizer = createVisualizer(player);
 
-            int[] sizeRange = visualizer.getCaptureSizeRangeCompat();
+            int[] sizeRange = visualizer.getCaptureSizeRange();
             int validSize = visualizer.getCaptureSize();
             int[] sizeList = new int[] {
                     -1, // null
@@ -1224,7 +1224,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         try {
             visualizer = createVisualizer(player);
 
-            int[] sizeRange = visualizer.getCaptureSizeRangeCompat();
+            int[] sizeRange = visualizer.getCaptureSizeRange();
             int validSize = visualizer.getCaptureSize();
             int[] sizeList = new int[] {
                     -1, // null
@@ -1284,7 +1284,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             visualizer = createVisualizer(player);
 
-            int rate = visualizer.getMaxCaptureRateCompat();
+            int rate = visualizer.getMaxCaptureRate();
             int expectedDataLen = visualizer.getCaptureSize();
             int expectedSamplingRate = getExpectedSamplingRate(getContext());
 
@@ -1315,7 +1315,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             visualizer = createVisualizer(player);
 
-            int rate = visualizer.getMaxCaptureRateCompat();
+            int rate = visualizer.getMaxCaptureRate();
             int expectedDataLen = visualizer.getCaptureSize();
             int expectedSamplingRate = getExpectedSamplingRate(getContext());
 
@@ -1347,7 +1347,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             visualizer = createVisualizer(player);
 
-            int rate = visualizer.getMaxCaptureRateCompat();
+            int rate = visualizer.getMaxCaptureRate();
             int expectedDataLen = visualizer.getCaptureSize();
             int expectedSamplingRate = getExpectedSamplingRate(getContext());
 
@@ -1377,7 +1377,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             visualizer = createVisualizer(player);
 
             final int minRate = MIN_CAPTURE_RATE;
-            final int maxRate = visualizer.getMaxCaptureRateCompat();
+            final int maxRate = visualizer.getMaxCaptureRate();
             IVisualizer.OnDataCaptureListener listener = new EmptyOnDataCaptureListenerObj();
 
             assertEquals(IVisualizer.SUCCESS,
@@ -1404,7 +1404,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             visualizer = createVisualizer(player);
 
             final int minRate = MIN_CAPTURE_RATE;
-            final int maxRate = visualizer.getMaxCaptureRateCompat();
+            final int maxRate = visualizer.getMaxCaptureRate();
             IVisualizer.OnDataCaptureListener listener = new EmptyOnDataCaptureListenerObj();
 
             assertEquals(IVisualizer.ERROR_BAD_VALUE,
@@ -1436,7 +1436,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(IVisualizer.SUCCESS, visualizer.setEnabled(true));
             assertTrue(visualizer.getEnabled());
 
-            final int maxRate = visualizer.getMaxCaptureRateCompat();
+            final int maxRate = visualizer.getMaxCaptureRate();
             IVisualizer.OnDataCaptureListener listener = new EmptyOnDataCaptureListenerObj();
 
             // with valid params
@@ -1471,7 +1471,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             visualizer = createVisualizer(player);
 
             DataCaptureRateMeasure measure = new DataCaptureRateMeasure();
-            int maxRate = visualizer.getMaxCaptureRateCompat();
+            int maxRate = visualizer.getMaxCaptureRate();
 
             {
                 // @ max. rate
@@ -1505,7 +1505,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             visualizer = createVisualizer(player);
 
             DataCaptureRateMeasure measure = new DataCaptureRateMeasure();
-            int maxRate = visualizer.getMaxCaptureRateCompat();
+            int maxRate = visualizer.getMaxCaptureRate();
 
             {
                 // @ max. rate
@@ -1537,8 +1537,8 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             visualizer = createVisualizer(player);
 
-            int range[] = visualizer.getCaptureSizeRangeCompat();
-            int rate = visualizer.getMaxCaptureRateCompat();
+            int range[] = visualizer.getCaptureSizeRange();
+            int rate = visualizer.getMaxCaptureRate();
 
             for (int size = range[0]; size <= range[1]; size *= 2) {
                 visualizer.setCaptureSize(size);
@@ -1567,7 +1567,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             IVisualizer.MeasurementPeakRms measurement = null;
 
             assertEquals(IVisualizer.ERROR_BAD_VALUE,
-                    visualizer.getMeasurementPeakRmsCompat(measurement));
+                    visualizer.getMeasurementPeakRms(measurement));
         } finally {
             releaseQuietly(visualizer);
         }
@@ -1586,7 +1586,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             IVisualizer.MeasurementPeakRms measurement = null;
 
             assertEquals(IVisualizer.ERROR_BAD_VALUE,
-                    visualizer.getMeasurementPeakRmsCompat(measurement));
+                    visualizer.getMeasurementPeakRms(measurement));
         } finally {
             releaseQuietly(visualizer);
         }
@@ -1602,7 +1602,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(
                     IVisualizer.SUCCESS,
                     visualizer
-                            .setMeasurementModeCompat(IVisualizer.MEASUREMENT_MODE_NONE));
+                            .setMeasurementMode(IVisualizer.MEASUREMENT_MODE_NONE));
 
             assertEquals(IVisualizer.SUCCESS, visualizer.setEnabled(true));
             assertTrue(visualizer.getEnabled());
@@ -1610,7 +1610,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             IVisualizer.MeasurementPeakRms measurement = new IVisualizer.MeasurementPeakRms();
 
             assertEquals(IVisualizer.ERROR_INVALID_OPERATION,
-                    visualizer.getMeasurementPeakRmsCompat(measurement));
+                    visualizer.getMeasurementPeakRms(measurement));
         } finally {
             releaseQuietly(visualizer);
         }
@@ -1628,7 +1628,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(
                     IVisualizer.SUCCESS,
                     visualizer
-                            .setMeasurementModeCompat(IVisualizer.MEASUREMENT_MODE_PEAK_RMS));
+                            .setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS));
 
             assertEquals(IVisualizer.SUCCESS, visualizer.setEnabled(true));
             assertTrue(visualizer.getEnabled());
@@ -1638,7 +1638,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             Thread.sleep(GET_MEASUREMENTS_DELAY);
 
             assertEquals(IVisualizer.SUCCESS,
-                    visualizer.getMeasurementPeakRmsCompat(measurement));
+                    visualizer.getMeasurementPeakRms(measurement));
 
             // -9600: -96 dB
             if (player.isPlaying()) {
@@ -1723,36 +1723,21 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             }
 
             try {
-                visualizer.getCaptureSizeRangeCompat();
+                visualizer.getCaptureSizeRange();
                 fail();
             } catch (IllegalStateException e) {
                 // expected
             }
 
             try {
-                visualizer.getMaxCaptureRateCompat();
+                visualizer.getMaxCaptureRate();
                 fail();
             } catch (IllegalStateException e) {
                 // expected
             }
 
             try {
-                visualizer.getScalingModeCompat();
-                fail();
-            } catch (IllegalStateException e) {
-                // expected
-            }
-
-            try {
-                visualizer
-                        .setScalingModeCompat(IVisualizer.SCALING_MODE_NORMALIZED);
-                fail();
-            } catch (IllegalStateException e) {
-                // expected
-            }
-
-            try {
-                visualizer.getMeasurementModeCompat();
+                visualizer.getScalingMode();
                 fail();
             } catch (IllegalStateException e) {
                 // expected
@@ -1760,7 +1745,22 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             try {
                 visualizer
-                        .setMeasurementModeCompat(IVisualizer.MEASUREMENT_MODE_NONE);
+                        .setScalingMode(IVisualizer.SCALING_MODE_NORMALIZED);
+                fail();
+            } catch (IllegalStateException e) {
+                // expected
+            }
+
+            try {
+                visualizer.getMeasurementMode();
+                fail();
+            } catch (IllegalStateException e) {
+                // expected
+            }
+
+            try {
+                visualizer
+                        .setMeasurementMode(IVisualizer.MEASUREMENT_MODE_NONE);
                 fail();
             } catch (IllegalStateException e) {
                 // expected
@@ -1768,7 +1768,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             try {
                 IVisualizer.MeasurementPeakRms measurement = new IVisualizer.MeasurementPeakRms();
-                visualizer.getMeasurementPeakRmsCompat(measurement);
+                visualizer.getMeasurementPeakRms(measurement);
                 fail();
             } catch (IllegalStateException e) {
                 // expected
@@ -1835,7 +1835,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(
                     IVisualizer.SUCCESS,
                     visualizer1.setDataCaptureListener(listener1,
-                            visualizer1.getMaxCaptureRateCompat(), true, true));
+                            visualizer1.getMaxCaptureRate(), true, true));
 
             // create visualizer 2
             visualizer2 = createVisualizer(player);
@@ -1843,9 +1843,9 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(
                     IVisualizer.SUCCESS,
                     visualizer2.setDataCaptureListener(listener2,
-                            visualizer2.getMaxCaptureRateCompat(), true, true));
+                            visualizer2.getMaxCaptureRate(), true, true));
 
-            int[] sizeRange = visualizer2.getCaptureSizeRangeCompat();
+            int[] sizeRange = visualizer2.getCaptureSizeRange();
             int size2 = sizeRange[0] * 2;
 
             assertNotEquals(DEFAULT_CAPTURE_SIZE, size2);
@@ -1933,14 +1933,14 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             visualizer.setEnabled(true);
             visualizer.getSamplingRate();
             visualizer.getCaptureSize();
-            visualizer.getCaptureSizeRangeCompat();
-            visualizer.getMaxCaptureRateCompat();
-            visualizer.getScalingModeCompat();
+            visualizer.getCaptureSizeRange();
+            visualizer.getMaxCaptureRate();
+            visualizer.getScalingMode();
             visualizer
-                    .setScalingModeCompat(IVisualizer.SCALING_MODE_NORMALIZED);
-            visualizer.getMeasurementModeCompat();
+                    .setScalingMode(IVisualizer.SCALING_MODE_NORMALIZED);
+            visualizer.getMeasurementMode();
             visualizer
-                    .setMeasurementModeCompat(IVisualizer.MEASUREMENT_MODE_NONE);
+                    .setMeasurementMode(IVisualizer.MEASUREMENT_MODE_NONE);
             try {
                 byte[] fft = new byte[origSize];
                 visualizer.getFft(fft);
@@ -1957,7 +1957,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             }
             try {
                 IVisualizer.MeasurementPeakRms measurement = new IVisualizer.MeasurementPeakRms();
-                visualizer.getMeasurementPeakRmsCompat(measurement);
+                visualizer.getMeasurementPeakRms(measurement);
                 fail();
             } catch (IllegalStateException e) {
                 // expected
@@ -2019,11 +2019,11 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             final int origSize = visualizer1.getCaptureSize();
             final int origSamplingRate = visualizer1.getSamplingRate();
-            final int[] origRange = visualizer1.getCaptureSizeRangeCompat();
-            final int origMaxCapRate = visualizer1.getMaxCaptureRateCompat();
-            final int origScalingMode = visualizer1.getScalingModeCompat();
+            final int[] origRange = visualizer1.getCaptureSizeRange();
+            final int origMaxCapRate = visualizer1.getMaxCaptureRate();
+            final int origScalingMode = visualizer1.getScalingMode();
             final int origMeasurementMode = visualizer1
-                    .getMeasurementModeCompat();
+                    .getMeasurementMode();
             final byte[] buffer = new byte[origSize];
 
             // create instance 2
@@ -2033,13 +2033,13 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(true, visualizer1.getEnabled());
             assertEquals(origSamplingRate, visualizer1.getSamplingRate());
             assertEquals(origRange[0],
-                    visualizer1.getCaptureSizeRangeCompat()[0]);
+                    visualizer1.getCaptureSizeRange()[0]);
             assertEquals(origRange[1],
-                    visualizer1.getCaptureSizeRangeCompat()[1]);
-            assertEquals(origMaxCapRate, visualizer1.getMaxCaptureRateCompat());
-            assertEquals(origScalingMode, visualizer1.getScalingModeCompat());
+                    visualizer1.getCaptureSizeRange()[1]);
+            assertEquals(origMaxCapRate, visualizer1.getMaxCaptureRate());
+            assertEquals(origScalingMode, visualizer1.getScalingMode());
             assertEquals(origMeasurementMode,
-                    visualizer1.getMeasurementModeCompat());
+                    visualizer1.getMeasurementMode());
             assertEquals(origSize, visualizer1.getCaptureSize());
 
             // XXX StandardVisualizer returns SUCCESS when enabled == true
@@ -2058,17 +2058,17 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(
                     IVisualizer.ERROR_INVALID_OPERATION,
                     visualizer1
-                            .setScalingModeCompat(IVisualizer.SCALING_MODE_NORMALIZED));
+                            .setScalingMode(IVisualizer.SCALING_MODE_NORMALIZED));
 
             assertEquals(
                     IVisualizer.ERROR_INVALID_OPERATION,
                     visualizer1
-                            .setMeasurementModeCompat(IVisualizer.MEASUREMENT_MODE_NONE));
+                            .setMeasurementMode(IVisualizer.MEASUREMENT_MODE_NONE));
 
             {
                 IVisualizer.MeasurementPeakRms measurement = new IVisualizer.MeasurementPeakRms();
                 assertEquals(IVisualizer.ERROR_INVALID_OPERATION,
-                        visualizer1.getMeasurementPeakRmsCompat(measurement));
+                        visualizer1.getMeasurementPeakRms(measurement));
             }
 
             assertEquals(IVisualizer.ERROR_INVALID_OPERATION,
@@ -2094,8 +2094,8 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         public VisualizerStatus(IVisualizer visualizer) {
             enabled = visualizer.getEnabled();
             captureSize = visualizer.getCaptureSize();
-            scalingMode = visualizer.getScalingModeCompat();
-            measurementMode = visualizer.getMeasurementModeCompat();
+            scalingMode = visualizer.getScalingMode();
+            measurementMode = visualizer.getMeasurementMode();
         }
 
         @Override
@@ -2153,7 +2153,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(
                     IVisualizer.SUCCESS,
                     visualizer
-                            .setMeasurementModeCompat(IVisualizer.MEASUREMENT_MODE_PEAK_RMS));
+                            .setMeasurementMode(IVisualizer.MEASUREMENT_MODE_PEAK_RMS));
             assertEquals(
                     IVisualizer.SUCCESS,
                     visualizer.setDataCaptureListener(
@@ -2169,7 +2169,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
                                         IVisualizer visualizer, byte[] fft,
                                         int samplingRate) {
                                 }
-                            }, visualizer.getMaxCaptureRateCompat(), true, true));
+                            }, visualizer.getMaxCaptureRate(), true, true));
             assertEquals(IVisualizer.SUCCESS, visualizer.setEnabled(true));
 
             VisualizerStatus expectedStatus = new VisualizerStatus(visualizer);
@@ -2279,31 +2279,31 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
     private static void checkSetScalingModeCompatSUCCESS(
             IVisualizer visualizer, int mode) {
-        assertEquals(IVisualizer.SUCCESS, visualizer.setScalingModeCompat(mode));
-        assertEquals(mode, visualizer.getScalingModeCompat());
+        assertEquals(IVisualizer.SUCCESS, visualizer.setScalingMode(mode));
+        assertEquals(mode, visualizer.getScalingMode());
     }
 
     private static void checkSetScalingModeCompatERROR_BAD_VALUE(
             IVisualizer visualizer, int mode) {
-        int origMode = visualizer.getScalingModeCompat();
+        int origMode = visualizer.getScalingMode();
         assertEquals(IVisualizer.ERROR_BAD_VALUE,
-                visualizer.setScalingModeCompat(mode));
-        assertEquals(origMode, visualizer.getScalingModeCompat());
+                visualizer.setScalingMode(mode));
+        assertEquals(origMode, visualizer.getScalingMode());
     }
 
     private static void checkSetMeasurementModeCompatSUCCESS(
             IVisualizer visualizer, int mode) {
         assertEquals(IVisualizer.SUCCESS,
-                visualizer.setMeasurementModeCompat(mode));
-        assertEquals(mode, visualizer.getMeasurementModeCompat());
+                visualizer.setMeasurementMode(mode));
+        assertEquals(mode, visualizer.getMeasurementMode());
     }
 
     private static void checkSetMeasurementModeCompatERROR_BAD_VALUE(
             IVisualizer visualizer, int mode) {
-        int origMode = visualizer.getMeasurementModeCompat();
+        int origMode = visualizer.getMeasurementMode();
         assertEquals(IVisualizer.ERROR_BAD_VALUE,
-                visualizer.setMeasurementModeCompat(mode));
-        assertEquals(origMode, visualizer.getMeasurementModeCompat());
+                visualizer.setMeasurementMode(mode));
+        assertEquals(origMode, visualizer.getMeasurementMode());
     }
 
     private static interface BasicMediaPlayerTestRunnable {

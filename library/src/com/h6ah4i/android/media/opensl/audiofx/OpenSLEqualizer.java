@@ -315,7 +315,7 @@ public class OpenSLEqualizer extends OpenSLAudioEffect implements IEqualizer {
     }
 
     @Override
-    public IEqualizer.Settings getPropertiesCompat() throws
+    public IEqualizer.Settings getProperties() throws
             IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException
@@ -341,7 +341,7 @@ public class OpenSLEqualizer extends OpenSLAudioEffect implements IEqualizer {
     }
 
     @Override
-    public void setPropertiesCompat(IEqualizer.Settings settings) throws
+    public void setProperties(IEqualizer.Settings settings) throws
             IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException

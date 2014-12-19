@@ -245,7 +245,7 @@ public class BassBoostTestCase
             assertEquals(IAudioEffect.SUCCESS, effect.setEnabled(true));
             effect.setStrength((short) 123);
 
-            final IBassBoost.Settings expectedSettings = effect.getPropertiesCompat();
+            final IBassBoost.Settings expectedSettings = effect.getProperties();
 
             // player: idle
 
@@ -253,25 +253,25 @@ public class BassBoostTestCase
             setDataSourceForCommonTests(player, null);
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: prepared
             player.prepare();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: started
             player.start();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: paused
             player.pause();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: playback completed
             player.seekTo(player.getDuration());
@@ -284,26 +284,26 @@ public class BassBoostTestCase
             }
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: stop
             player.stop();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: idle
             player.reset();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: end
             player.release();
             player = null;
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
         } finally {
             releaseQuietly(player);
             releaseQuietly(effect);
@@ -396,7 +396,7 @@ public class BassBoostTestCase
         try {
             effect = getFactory().createBassBoost(player);
             try {
-                effect.setPropertiesCompat(null);
+                effect.setProperties(null);
                 fail();
             } catch (IllegalArgumentException e) {
                 // expected
@@ -461,14 +461,14 @@ public class BassBoostTestCase
         }
 
         try {
-            createReleasedBassBoost(player).getPropertiesCompat();
+            createReleasedBassBoost(player).getProperties();
             fail();
         } catch (IllegalStateException e) {
             // expected
         }
 
         try {
-            createReleasedBassBoost(player).setPropertiesCompat(createSettings((short) 0));
+            createReleasedBassBoost(player).setProperties(createSettings((short) 0));
             fail();
         } catch (IllegalStateException e) {
             // expected
@@ -588,7 +588,7 @@ public class BassBoostTestCase
             effect2 = getFactory().createBassBoost(player);
 
             final boolean initialEnabledState = effect2.getEnabled();
-            final IBassBoost.Settings initialSettings = effect2.getPropertiesCompat();
+            final IBassBoost.Settings initialSettings = effect2.getProperties();
 
             assertFalse(effect1.hasControl());
             assertTrue(effect2.hasControl());
@@ -598,7 +598,7 @@ public class BassBoostTestCase
             assertEquals(effect2.getId(), effect1.getId());
             assertEquals(effect2.getStrengthSupported(), effect1.getStrengthSupported());
             assertEquals(effect2.getRoundedStrength(), effect1.getRoundedStrength());
-            assertEquals(effect2.getPropertiesCompat(), effect1.getPropertiesCompat());
+            assertEquals(effect2.getProperties(), effect1.getProperties());
 
             // setEnabled() should return IAudioEffect.ERROR_INVALID_OPERATION
             assertEquals(IAudioEffect.ERROR_INVALID_OPERATION, effect1.setEnabled(false));
@@ -612,7 +612,7 @@ public class BassBoostTestCase
                 // expected
             }
             try {
-                effect1.setPropertiesCompat(createSettings((short) 100));
+                effect1.setProperties(createSettings((short) 100));
                 fail();
             } catch (UnsupportedOperationException e) {
                 // expected
@@ -620,7 +620,7 @@ public class BassBoostTestCase
 
             // confirm object state
             assertEquals(initialEnabledState, effect1.getEnabled());
-            assertEquals(initialSettings, effect1.getPropertiesCompat());
+            assertEquals(initialSettings, effect1.getProperties());
         } finally {
             releaseQuietly(effect1);
             effect1 = null;
@@ -658,7 +658,7 @@ public class BassBoostTestCase
             assertEquals(DEFAULT_STRENGTH, effect1.getRoundedStrength());
 
             try {
-                effect1.setPropertiesCompat(createSettings((short) 123));
+                effect1.setProperties(createSettings((short) 123));
                 fail();
             } catch (UnsupportedOperationException e) {
                 // expected
@@ -735,14 +735,14 @@ public class BassBoostTestCase
         bassBoost.setStrength((short) 1000);
         assertStrengthEquals((short) 1000, bassBoost);
 
-        // by setPropertiesCompat()
-        bassBoost.setPropertiesCompat(createSettings((short) 0));
+        // by setProperties()
+        bassBoost.setProperties(createSettings((short) 0));
         assertStrengthEquals((short) 0, bassBoost);
 
-        bassBoost.setPropertiesCompat(createSettings((short) 500));
+        bassBoost.setProperties(createSettings((short) 500));
         assertStrengthEquals((short) 500, bassBoost);
 
-        bassBoost.setPropertiesCompat(createSettings((short) 1000));
+        bassBoost.setProperties(createSettings((short) 1000));
         assertStrengthEquals((short) 1000, bassBoost);
     }
 
@@ -769,9 +769,9 @@ public class BassBoostTestCase
         }
         assertStrengthEquals(expected, bassBoost);
 
-        // by setPropertiesCompat()
+        // by setProperties()
         try {
-            bassBoost.setPropertiesCompat(createSettings((short) -1));
+            bassBoost.setProperties(createSettings((short) -1));
             fail();
         } catch (IllegalArgumentException e) {
             // expected
@@ -779,7 +779,7 @@ public class BassBoostTestCase
         assertStrengthEquals(expected, bassBoost);
 
         try {
-            bassBoost.setPropertiesCompat(createSettings((short) 1001));
+            bassBoost.setProperties(createSettings((short) 1001));
             fail();
         } catch (IllegalArgumentException e) {
             // expected
@@ -793,7 +793,7 @@ public class BassBoostTestCase
 
     static void assertStrengthEquals(short expected, IBassBoost bassBoost) {
         assertEquals(expected, bassBoost.getRoundedStrength());
-        assertEquals(expected, bassBoost.getPropertiesCompat().strength);
+        assertEquals(expected, bassBoost.getProperties().strength);
     }
 
     static IBassBoost.Settings createSettings(short strength) {

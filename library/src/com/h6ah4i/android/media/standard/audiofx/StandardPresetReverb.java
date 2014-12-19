@@ -17,14 +17,13 @@
 
 package com.h6ah4i.android.media.standard.audiofx;
 
-import com.h6ah4i.android.media.audiofx.IAudioEffect;
+import android.media.audiofx.PresetReverb;
+
 import com.h6ah4i.android.media.audiofx.IPresetReverb;
 import com.h6ah4i.android.media.utils.AudioEffectSettingsConverter;
 
-public class StandardPresetReverb extends android.media.audiofx.PresetReverb implements
-        IPresetReverb {
+public class StandardPresetReverb extends StandardAudioEffect implements IPresetReverb {
 
-    private Object mOnParameterChangeListenerLock = new Object();
     private IPresetReverb.OnParameterChangeListener mUserOnParameterChangeListener;
 
     private android.media.audiofx.PresetReverb.OnParameterChangeListener mOnParameterChangeListener = new android.media.audiofx.PresetReverb.OnParameterChangeListener() {
@@ -37,69 +36,58 @@ public class StandardPresetReverb extends android.media.audiofx.PresetReverb imp
 
     public StandardPresetReverb(int priority, int audioSession) throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException, RuntimeException {
-        super(priority, audioSession);
-        super.setParameterListener(mOnParameterChangeListener);
+        super(new PresetReverb(priority, audioSession));
+        getPresetReverb().setParameterListener(mOnParameterChangeListener);
+    }
+
+    /**
+     * Get underlying PresetReverb instance.
+     *
+     * @return underlying PresetReverb instance.
+     */
+    public PresetReverb getPresetReverb() {
+        return (PresetReverb) super.getGetAudioEffect();
     }
 
     @Override
-    public void setPropertiesCompat(IPresetReverb.Settings settings)
+    public void setProperties(IPresetReverb.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
-        super.setProperties(AudioEffectSettingsConverter.convert(settings));
+         checkIsNotReleased("setProperties()");
+        getPresetReverb().setProperties(AudioEffectSettingsConverter.convert(settings));
     }
 
     @Override
     public void release() {
-        mUserOnParameterChangeListener = null;
         super.release();
+        mOnParameterChangeListener = null;
+        mUserOnParameterChangeListener = null;
     }
 
     @Override
-    public IPresetReverb.Settings getPropertiesCompat() throws IllegalStateException,
-            IllegalArgumentException,
-            UnsupportedOperationException {
-        return AudioEffectSettingsConverter.convert(super.getProperties());
+    public short getPreset() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getPreset()");
+        return getPresetReverb().getPreset();
     }
 
     @Override
-    public void setProperties(android.media.audiofx.PresetReverb.Settings settings)
-            throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        throwUseIPresetReverbVersionMethod();
-    };
-
-    @Override
-    public android.media.audiofx.PresetReverb.Settings getProperties()
-            throws IllegalStateException,
+    public IPresetReverb.Settings getProperties() throws IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
-        throwUseIPresetReverbVersionMethod();
-        return null;
+        checkIsNotReleased("getProperties()");
+        return AudioEffectSettingsConverter.convert(getPresetReverb().getProperties());
+    }
+
+    @Override
+    public void setPreset(short preset) throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("setPreset()");
+        getPresetReverb().setPreset(preset);
     }
 
     @Override
     public void setParameterListener(
             IPresetReverb.OnParameterChangeListener listener) {
-        synchronized (mOnParameterChangeListenerLock) {
-            mUserOnParameterChangeListener = listener;
-        }
-    }
-    
-    @Override
-    public void setControlStatusListener(IAudioEffect.OnControlStatusChangeListener listener)
-            throws IllegalStateException {
-        super.setControlStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-    
-    @Override
-    public void setEnableStatusListener(IAudioEffect.OnEnableStatusChangeListener listener)
-            throws IllegalStateException {
-        super.setEnableStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-
-    @Override
-    public void setParameterListener(
-            android.media.audiofx.PresetReverb.OnParameterChangeListener listener) {
-        throwUseIPresetReverbVersionMethod();
+        checkIsNotReleased("setParameterListener()");
+        mUserOnParameterChangeListener = listener;
     }
 
     /* package */void onParameterChange(
@@ -107,17 +95,10 @@ public class StandardPresetReverb extends android.media.audiofx.PresetReverb imp
             int status, int param, short value) {
         IPresetReverb.OnParameterChangeListener listener = null;
 
-        synchronized (mOnParameterChangeListenerLock) {
-            listener = mUserOnParameterChangeListener;
-        }
+        listener = mUserOnParameterChangeListener;
 
         if (listener != null) {
-            listener.onParameterChange((StandardPresetReverb) effect, status, param, value);
+            listener.onParameterChange(this, status, param, value);
         }
-    }
-
-    private static void throwUseIPresetReverbVersionMethod() {
-        throw new IllegalStateException(
-                "This method is not supported, please use IPresetReverb version");
     }
 }

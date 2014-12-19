@@ -501,8 +501,8 @@ public class GlobalAppController implements IReleasable {
             IBasicMediaPlayer player0 = getPlayer(0);
             IBasicMediaPlayer player1 = getPlayer(1);
 
-            player0.setNextMediaPlayerCompat(player1);
-            player1.setNextMediaPlayerCompat(player0);
+            player0.setNextMediaPlayer(player1);
+            player1.setNextMediaPlayer(player0);
 
             mNextPlayerPrepared = true;
         }
@@ -1079,7 +1079,7 @@ public class GlobalAppController implements IReleasable {
 
                 // apply
                 if (envreverb != null) {
-                    envreverb.setPropertiesCompat(state.getSettings());
+                    envreverb.setProperties(state.getSettings());
                 }
 
                 // notify preset changed
@@ -1471,7 +1471,7 @@ public class GlobalAppController implements IReleasable {
         if (bassboost == null)
             return;
 
-        bassboost.setPropertiesCompat(states.getSettings());
+        bassboost.setProperties(states.getSettings());
         bassboost.setEnabled(states.isEnabled());
     }
 
@@ -1480,7 +1480,7 @@ public class GlobalAppController implements IReleasable {
         if (virtualizer == null)
             return;
 
-        virtualizer.setPropertiesCompat(states.getSettings());
+        virtualizer.setProperties(states.getSettings());
         virtualizer.setEnabled(states.isEnabled());
     }
 
@@ -1489,7 +1489,7 @@ public class GlobalAppController implements IReleasable {
         if (equalizer == null)
             return;
 
-        equalizer.setPropertiesCompat(states.getSettings());
+        equalizer.setProperties(states.getSettings());
         equalizer.setEnabled(states.isEnabled());
     }
 
@@ -1498,7 +1498,7 @@ public class GlobalAppController implements IReleasable {
         if (loudnessEnhancer == null)
             return;
 
-        loudnessEnhancer.setPropertiesCompat(states.getSettings());
+        loudnessEnhancer.setProperties(states.getSettings());
         loudnessEnhancer.setEnabled(states.isEnabled());
     }
 
@@ -1507,7 +1507,7 @@ public class GlobalAppController implements IReleasable {
         if (presetreverb == null)
             return;
 
-        presetreverb.setPropertiesCompat(states.getSettings());
+        presetreverb.setProperties(states.getSettings());
         presetreverb.setEnabled(states.isEnabled());
     }
 
@@ -1516,7 +1516,7 @@ public class GlobalAppController implements IReleasable {
         if (envreverb == null)
             return;
 
-        envreverb.setPropertiesCompat(states.getSettings());
+        envreverb.setProperties(states.getSettings());
         envreverb.setEnabled(states.isEnabled());
     }
 
@@ -1525,7 +1525,7 @@ public class GlobalAppController implements IReleasable {
         if (equalizer == null)
             return;
 
-        equalizer.setPropertiesCompat(states.getSettings());
+        equalizer.setProperties(states.getSettings());
         equalizer.setEnabled(states.isEnabled());
     }
 

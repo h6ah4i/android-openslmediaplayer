@@ -517,7 +517,7 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
     }
 
     @Override
-    public void setNextMediaPlayerCompat(IBasicMediaPlayer next) {
+    public void setNextMediaPlayer(IBasicMediaPlayer next) {
         if (next != null && !(next instanceof OpenSLMediaPlayer)) {
             throw new IllegalArgumentException("Not OpenSLMediaPlayer instance");
         }
