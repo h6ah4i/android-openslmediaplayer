@@ -20,6 +20,8 @@ package com.h6ah4i.android.media.standard;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
 
+import android.content.Context;
+import android.net.Uri;
 import android.os.Build;
 import android.util.Log;
 
@@ -146,6 +148,19 @@ public class StandardMediaPlayer extends android.media.MediaPlayer implements IB
     public void stop() throws IllegalStateException {
         super.stop();
         mIsPrepared = false;
+    }
+
+    @Override
+    public void setDataSource(Context context, Uri uri) throws IOException, IllegalArgumentException, SecurityException, IllegalStateException {
+        try {
+            super.setDataSource(context, uri);
+        } catch (NullPointerException e) {
+            // NOTE:
+            // Maybe, passing a wrong context.
+            // If running on InstrumentationTestCase, getInstrumentation().getTargetContext() method should be used.
+            Log.w(TAG, "setDataSource()", e);
+            throw new IllegalStateException(e);
+        }
     }
 
     @Override

@@ -213,7 +213,7 @@ public abstract class BasicMediaPlayerTestCaseBase
     }
 
     protected Context getContext() {
-        return getInstrumentation().getContext();
+        return getInstrumentation().getTargetContext();
     }
 
     protected File getTempDir() {
