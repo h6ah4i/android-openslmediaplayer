@@ -20,14 +20,12 @@ package com.h6ah4i.android.media.standard.audiofx;
 import android.media.audiofx.BassBoost;
 import android.util.Log;
 
-import com.h6ah4i.android.media.audiofx.IAudioEffect;
 import com.h6ah4i.android.media.audiofx.IBassBoost;
 import com.h6ah4i.android.media.utils.AudioEffectSettingsConverter;
 
-public class StandardBassBoost implements IBassBoost {
+public class StandardBassBoost extends StandardAudioEffect implements IBassBoost {
     private static final String TAG = "StandardBassBoost";
 
-    private BassBoost mBassBoost;
     private IBassBoost.OnParameterChangeListener mUserOnParameterChangeListener;
 
     private android.media.audiofx.BassBoost.OnParameterChangeListener mOnParameterChangeListener = new android.media.audiofx.BassBoost.OnParameterChangeListener() {
@@ -40,99 +38,67 @@ public class StandardBassBoost implements IBassBoost {
 
     public StandardBassBoost(int priority, int audioSession) throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException, RuntimeException {
-        mBassBoost = new BassBoost(priority, audioSession);
-        mBassBoost.setParameterListener(mOnParameterChangeListener);
+        super(new BassBoost(priority, audioSession));
+        getBassBoost().setParameterListener(mOnParameterChangeListener);
         initializeForCompat();
     }
 
-    @Override
-    public int setEnabled(boolean enabled) throws IllegalStateException {
-        checkIsNotReleased();
-        return mBassBoost.setEnabled(enabled);
-    }
-
-    @Override
-    public boolean getEnabled() throws IllegalStateException {
-        checkIsNotReleased();
-        return mBassBoost.getEnabled();
-    }
-
-    @Override
-    public int getId() throws IllegalStateException {
-        checkIsNotReleased();
-        return mBassBoost.getId();
-    }
-
-    @Override
-    public boolean hasControl() throws IllegalStateException {
-        checkIsNotReleased();
-        return mBassBoost.hasControl();
+    /**
+     * Get underlying BassBoost instance.
+     *
+     * @return underlying BassBoost instance.
+     */
+    public BassBoost getBassBoost() {
+        return (BassBoost) super.getGetAudioEffect();
     }
 
     @Override
     public void release() {
+        super.release();
+        mOnParameterChangeListener = null;
         mUserOnParameterChangeListener = null;
-
-        if (mBassBoost != null) {
-            mBassBoost.release();
-            mBassBoost = null;
-        }
     }
 
     @Override
     public void setPropertiesCompat(IBassBoost.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
-        checkIsNotReleased();
+        checkIsNotReleased("setPropertiesCompat()");
         verifySettings(settings);
-        mBassBoost.setProperties(AudioEffectSettingsConverter.convert(settings));
+        getBassBoost().setProperties(AudioEffectSettingsConverter.convert(settings));
     }
 
     @Override
     public boolean getStrengthSupported() {
-        if (mBassBoost == null) {
+        if (getBassBoost() == null) {
             return false;
         }
-        return mBassBoost.getStrengthSupported();
+        return getBassBoost().getStrengthSupported();
     }
 
     @Override
     public void setStrength(short strength) throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
-        checkIsNotReleased();
+        checkIsNotReleased("setStrength()");
         verifyStrengthParameterRange(strength);
-        mBassBoost.setStrength(strength);
+        getBassBoost().setStrength(strength);
     }
 
     @Override
     public short getRoundedStrength() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
-        checkIsNotReleased();
-        return mBassBoost.getRoundedStrength();
+        checkIsNotReleased("getRoundedStrength()");
+        return getBassBoost().getRoundedStrength();
     }
 
     @Override
     public IBassBoost.Settings getPropertiesCompat() throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException {
-        checkIsNotReleased();
-        return AudioEffectSettingsConverter.convert(mBassBoost.getProperties());
+        checkIsNotReleased("getPropertiesCompat()");
+        return AudioEffectSettingsConverter.convert(getBassBoost().getProperties());
     }
 
     @Override
     public void setParameterListener(IBassBoost.OnParameterChangeListener listener) {
-        checkIsNotReleased();
+        checkIsNotReleased("setParameterListener()");
         mUserOnParameterChangeListener = listener;
-    }
-    
-    @Override
-    public void setControlStatusListener(IAudioEffect.OnControlStatusChangeListener listener)
-            throws IllegalStateException {
-        checkIsNotReleased();
-        mBassBoost.setControlStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-    
-    @Override
-    public void setEnableStatusListener(IAudioEffect.OnEnableStatusChangeListener listener)
-            throws IllegalStateException {
-        checkIsNotReleased();
-        mBassBoost.setEnableStatusListener(StandardAudioEffect.wrap(this, listener));
     }
 
     /* package */void onParameterChange(
@@ -147,12 +113,6 @@ public class StandardBassBoost implements IBassBoost {
         }
     }
 
-    private void checkIsNotReleased() {
-        if (mBassBoost == null) {
-            throw new IllegalStateException("The bassboost instance has already released");
-        }
-    }
-
     // === Fix unwanted behaviors ===
     private static final short STRENGTH_MIN = 0;
     private static final short STRENGTH_MAX = 1000;
@@ -160,7 +120,7 @@ public class StandardBassBoost implements IBassBoost {
 
     void initializeForCompat() {
         try {
-            mBassBoost.setStrength(DEFAULT_STRENGTH);
+            getBassBoost().setStrength(DEFAULT_STRENGTH);
         } catch (IllegalStateException e) {
             Log.e(TAG, "initializeForCompat()", e);
         }

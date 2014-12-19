@@ -20,14 +20,12 @@ package com.h6ah4i.android.media.standard.audiofx;
 import android.media.audiofx.Virtualizer;
 import android.util.Log;
 
-import com.h6ah4i.android.media.audiofx.IAudioEffect;
 import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.utils.AudioEffectSettingsConverter;
 
-public class StandardVirtualizer implements IVirtualizer {
+public class StandardVirtualizer extends StandardAudioEffect implements IVirtualizer {
     private static final String TAG = "StandardVirtualizer";
 
-    private Virtualizer mVirtualizer;
     private IVirtualizer.OnParameterChangeListener mUserOnParameterChangeListener;
 
     private android.media.audiofx.Virtualizer.OnParameterChangeListener mOnParameterChangeListener = new android.media.audiofx.Virtualizer.OnParameterChangeListener() {
@@ -40,66 +38,47 @@ public class StandardVirtualizer implements IVirtualizer {
 
     public StandardVirtualizer(int priority, int audioSession) throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException, RuntimeException {
-        mVirtualizer = new Virtualizer(priority, audioSession);
-        mVirtualizer.setParameterListener(mOnParameterChangeListener);
+        super(new Virtualizer(priority, audioSession));
+        getVirtualizer().setParameterListener(mOnParameterChangeListener);
         initializeForCompat();
     }
-
-    @Override
-    public int setEnabled(boolean enabled) throws IllegalStateException {
-        checkIsNotReleased();
-        return mVirtualizer.setEnabled(enabled);
-    }
-
-    @Override
-    public boolean getEnabled() throws IllegalStateException {
-        checkIsNotReleased();
-        return mVirtualizer.getEnabled();
-    }
-
-    @Override
-    public int getId() throws IllegalStateException {
-        checkIsNotReleased();
-        return mVirtualizer.getId();
-    }
-
-    @Override
-    public boolean hasControl() throws IllegalStateException {
-        checkIsNotReleased();
-        return mVirtualizer.hasControl();
+    /**
+     * Get underlying Virtualizer instance.
+     *
+     * @return underlying Virtualizer instance.
+     */
+    public Virtualizer getVirtualizer() {
+        return (Virtualizer) super.getGetAudioEffect();
     }
 
     @Override
     public void release() {
+        super.release();
+        mOnParameterChangeListener = null;
         mUserOnParameterChangeListener = null;
-
-        if (mVirtualizer != null) {
-            mVirtualizer.release();
-            mVirtualizer = null;
-        }
     }
 
     @Override
     public boolean getStrengthSupported() {
-        if (mVirtualizer == null) {
+        if (getVirtualizer() == null) {
             return false;
         }
 
-        return mVirtualizer.getStrengthSupported();
+        return getVirtualizer().getStrengthSupported();
     }
 
     @Override
     public void setStrength(short strength) throws IllegalStateException, IllegalArgumentException,
             UnsupportedOperationException {
-        checkIsNotReleased();
+        checkIsNotReleased("setStrength()");
         verifyStrengthParameterRange(strength);
-        mVirtualizer.setStrength(strength);
+        getVirtualizer().setStrength(strength);
     }
 
     @Override
     public short getRoundedStrength() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
-        checkIsNotReleased();
-        return mVirtualizer.getRoundedStrength();
+        checkIsNotReleased("getRoundedStrength()");
+        return getVirtualizer().getRoundedStrength();
     }
 
     @Override
@@ -107,20 +86,20 @@ public class StandardVirtualizer implements IVirtualizer {
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
         checkIsNotReleased();
         verifySettings(settings);
-        mVirtualizer.setProperties(AudioEffectSettingsConverter.convert(settings));
+        getVirtualizer().setProperties(AudioEffectSettingsConverter.convert(settings));
     }
 
     @Override
     public IVirtualizer.Settings getPropertiesCompat() throws IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
-        checkIsNotReleased();
-        return AudioEffectSettingsConverter.convert(mVirtualizer.getProperties());
+        checkIsNotReleased("getPropertiesCompat()");
+        return AudioEffectSettingsConverter.convert(getVirtualizer().getProperties());
     }
 
     @Override
     public void setParameterListener(IVirtualizer.OnParameterChangeListener listener) {
-        checkIsNotReleased();
+        checkIsNotReleased("setParameterListener()");
         mUserOnParameterChangeListener = listener;
     }
 
@@ -135,26 +114,6 @@ public class StandardVirtualizer implements IVirtualizer {
             listener.onParameterChange(this, status, param, value);
         }
     }
-    
-    @Override
-    public void setControlStatusListener(IAudioEffect.OnControlStatusChangeListener listener)
-            throws IllegalStateException {
-        checkIsNotReleased();
-        mVirtualizer.setControlStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-    
-    @Override
-    public void setEnableStatusListener(IAudioEffect.OnEnableStatusChangeListener listener)
-            throws IllegalStateException {
-        checkIsNotReleased();
-        mVirtualizer.setEnableStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-
-    private void checkIsNotReleased() {
-        if (mVirtualizer == null) {
-            throw new IllegalStateException("The virtualizer instance has already released");
-        }
-    }
 
     // === Fix unwanted behaviors ===
     private static final short STRENGTH_MIN = 0;
@@ -163,7 +122,7 @@ public class StandardVirtualizer implements IVirtualizer {
 
     void initializeForCompat() {
         try {
-            mVirtualizer.setStrength(DEFAULT_STRENGTH);
+            getVirtualizer().setStrength(DEFAULT_STRENGTH);
         } catch (IllegalStateException e) {
             Log.e(TAG, "initializeForCompat()", e);
         }
