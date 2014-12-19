@@ -60,17 +60,17 @@ public class StandardLoudnessEnhancer extends StandardAudioEffect implements ILo
     }
 
     @Override
-    public void setPropertiesCompat(Settings settings) throws IllegalStateException,
+    public void setProperties(Settings settings) throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException {
-        checkIsNotReleased("setPropertiesCompat()");
+        checkIsNotReleased("setProperties()");
         verifySettings(settings);
         setTargetGain(settings.targetGainmB);
     }
 
     @Override
-    public Settings getPropertiesCompat() throws IllegalStateException, IllegalArgumentException,
+    public Settings getProperties() throws IllegalStateException, IllegalArgumentException,
             UnsupportedOperationException {
-        checkIsNotReleased("getPropertiesCompat()");
+        checkIsNotReleased("getProperties()");
         Settings settings = new Settings();
         
         settings.targetGainmB = (int) getTargetGain();

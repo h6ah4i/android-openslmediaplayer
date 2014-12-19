@@ -127,7 +127,6 @@ public class StandardMediaPlayerTest extends TestCase {
         suite.addTest(BassBoostTestCase.buildTestSuite(factory));
         suite.addTest(VirtualizerTestCase.buildTestSuite(factory));
         suite.addTest(EqualizerTestCase.buildTestSuite(factory));
-        /* NOTE: This method is not supported */
         suite.addTest(LoudnessEnhancerTestCase.buildTestSuite(factory));
         suite.addTest(PresetReverbTestCase.buildTestSuite(factory));
         suite.addTest(EnvironmentalReverbTestCase.buildTestSuite(factory));

@@ -244,7 +244,7 @@ public class LoudnessEnhancerTestCase
             assertEquals(IAudioEffect.SUCCESS, effect.setEnabled(true));
             effect.setTargetGain((short) 123);
 
-            final ILoudnessEnhancer.Settings expectedSettings = effect.getPropertiesCompat();
+            final ILoudnessEnhancer.Settings expectedSettings = effect.getProperties();
 
             // player: idle
 
@@ -252,25 +252,25 @@ public class LoudnessEnhancerTestCase
             setDataSourceForCommonTests(player, null);
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: prepared
             player.prepare();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: started
             player.start();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: paused
             player.pause();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: playback completed
             player.seekTo(player.getDuration());
@@ -285,26 +285,26 @@ public class LoudnessEnhancerTestCase
             }
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: stop
             player.stop();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: idle
             player.reset();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: end
             player.release();
             player = null;
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
         } finally {
             releaseQuietly(player);
             releaseQuietly(effect);
@@ -379,7 +379,7 @@ public class LoudnessEnhancerTestCase
         try {
             effect = getFactory().createLoudnessEnhancer(player);
             try {
-                effect.setPropertiesCompat(null);
+                effect.setProperties(null);
                 fail();
             } catch (IllegalArgumentException e) {
                 // expected
@@ -455,14 +455,14 @@ public class LoudnessEnhancerTestCase
         }
 
         try {
-            createReleasedLoudnessEnhancer(player).getPropertiesCompat();
+            createReleasedLoudnessEnhancer(player).getProperties();
             fail();
         } catch (IllegalStateException e) {
             // expected
         }
 
         try {
-            createReleasedLoudnessEnhancer(player).setPropertiesCompat(createSettings((short) 0));
+            createReleasedLoudnessEnhancer(player).setProperties(createSettings((short) 0));
             fail();
         } catch (IllegalStateException e) {
             // expected
@@ -581,7 +581,7 @@ public class LoudnessEnhancerTestCase
             effect2 = getFactory().createLoudnessEnhancer(player);
 
             final boolean initialEnabledState = effect2.getEnabled();
-            final ILoudnessEnhancer.Settings initialSettings = effect2.getPropertiesCompat();
+            final ILoudnessEnhancer.Settings initialSettings = effect2.getProperties();
 
             assertFalse(effect1.hasControl());
             assertTrue(effect2.hasControl());
@@ -590,7 +590,7 @@ public class LoudnessEnhancerTestCase
             assertEquals(effect2.getEnabled(), effect1.getEnabled());
             assertEquals(effect2.getId(), effect1.getId());
             assertEquals(effect2.getTargetGain(), effect1.getTargetGain());
-            assertEquals(effect2.getPropertiesCompat(), effect1.getPropertiesCompat());
+            assertEquals(effect2.getProperties(), effect1.getProperties());
 
             // setEnabled() should return IAudioEffect.ERROR_INVALID_OPERATION
             assertEquals(IAudioEffect.ERROR_INVALID_OPERATION, effect1.setEnabled(false));
@@ -604,7 +604,7 @@ public class LoudnessEnhancerTestCase
                 // expected
             }
             try {
-                effect1.setPropertiesCompat(createSettings((short) 100));
+                effect1.setProperties(createSettings((short) 100));
                 fail();
             } catch (UnsupportedOperationException e) {
                 // expected
@@ -612,7 +612,7 @@ public class LoudnessEnhancerTestCase
 
             // confirm object state
             assertEquals(initialEnabledState, effect1.getEnabled());
-            assertEquals(initialSettings, effect1.getPropertiesCompat());
+            assertEquals(initialSettings, effect1.getProperties());
         } finally {
             releaseQuietly(effect1);
             effect1 = null;
@@ -650,7 +650,7 @@ public class LoudnessEnhancerTestCase
             assertEquals((float) DEFAULT_TARGET_GAIN_MB, effect1.getTargetGain());
 
             try {
-                effect1.setPropertiesCompat(createSettings((short) 123));
+                effect1.setProperties(createSettings((short) 123));
                 fail();
             } catch (UnsupportedOperationException e) {
                 // expected
@@ -726,17 +726,17 @@ public class LoudnessEnhancerTestCase
         loudnessEnhancer.setTargetGain(2000);
         assertTargetGainEquals(2000, loudnessEnhancer);
 
-        // by setPropertiesCompat()
-        loudnessEnhancer.setPropertiesCompat(createSettings(-1000));
+        // by setProperties()
+        loudnessEnhancer.setProperties(createSettings(-1000));
         assertTargetGainEquals(-1000, loudnessEnhancer);
 
-        loudnessEnhancer.setPropertiesCompat(createSettings(0));
+        loudnessEnhancer.setProperties(createSettings(0));
         assertTargetGainEquals(0, loudnessEnhancer);
 
-        loudnessEnhancer.setPropertiesCompat(createSettings(1000));
+        loudnessEnhancer.setProperties(createSettings(1000));
         assertTargetGainEquals(1000, loudnessEnhancer);
 
-        loudnessEnhancer.setPropertiesCompat(createSettings(2000));
+        loudnessEnhancer.setProperties(createSettings(2000));
         assertTargetGainEquals(2000, loudnessEnhancer);
     }
 
@@ -755,9 +755,9 @@ public class LoudnessEnhancerTestCase
         }
         assertTargetGainEquals(expected, loudnessEnhancer);
 
-        // by setPropertiesCompat()
+        // by setProperties()
         try {
-            loudnessEnhancer.setPropertiesCompat(createSettings(2001));
+            loudnessEnhancer.setProperties(createSettings(2001));
             fail();
         } catch (IllegalArgumentException e) {
             // expected
@@ -771,7 +771,7 @@ public class LoudnessEnhancerTestCase
 
     static void assertTargetGainEquals(int expected, ILoudnessEnhancer loudnessEnhancer) {
         assertEquals((float) expected, loudnessEnhancer.getTargetGain());
-        assertEquals(expected, loudnessEnhancer.getPropertiesCompat().targetGainmB);
+        assertEquals(expected, loudnessEnhancer.getProperties().targetGainmB);
     }
 
     static ILoudnessEnhancer.Settings createSettings(int targetGainMb) {

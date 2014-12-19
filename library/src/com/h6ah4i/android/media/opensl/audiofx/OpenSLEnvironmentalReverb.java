@@ -191,7 +191,7 @@ public class OpenSLEnvironmentalReverb extends OpenSLAudioEffect implements IEnv
     }
 
     @Override
-    public IEnvironmentalReverb.Settings getPropertiesCompat() throws
+    public IEnvironmentalReverb.Settings getProperties() throws
             IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
@@ -363,7 +363,7 @@ public class OpenSLEnvironmentalReverb extends OpenSLAudioEffect implements IEnv
     // }
 
     @Override
-    public void setPropertiesCompat(IEnvironmentalReverb.Settings settings) throws
+    public void setProperties(IEnvironmentalReverb.Settings settings) throws
             IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {

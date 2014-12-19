@@ -58,18 +58,18 @@ public class StandardEnvironmentalReverb extends StandardAudioEffect implements 
     }
 
     @Override
-    public IEnvironmentalReverb.Settings getPropertiesCompat() throws IllegalStateException,
+    public IEnvironmentalReverb.Settings getProperties() throws IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
-        checkIsNotReleased("getPropertiesCompat()");
+        checkIsNotReleased("getProperties()");
         return AudioEffectSettingsConverter.convert(getEnvironmentalReverb().getProperties());
     }
 
     @Override
-    public void setPropertiesCompat(IEnvironmentalReverb.Settings settings)
+    public void setProperties(IEnvironmentalReverb.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
         verifySettings(settings);
-        checkIsNotReleased("setPropertiesCompat()");
+        checkIsNotReleased("setProperties()");
         getEnvironmentalReverb().setProperties(AudioEffectSettingsConverter.convert(settings));
     }
 

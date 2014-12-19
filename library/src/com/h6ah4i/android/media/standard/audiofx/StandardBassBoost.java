@@ -60,9 +60,9 @@ public class StandardBassBoost extends StandardAudioEffect implements IBassBoost
     }
 
     @Override
-    public void setPropertiesCompat(IBassBoost.Settings settings)
+    public void setProperties(IBassBoost.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
-        checkIsNotReleased("setPropertiesCompat()");
+        checkIsNotReleased("setProperties()");
         verifySettings(settings);
         getBassBoost().setProperties(AudioEffectSettingsConverter.convert(settings));
     }
@@ -89,9 +89,9 @@ public class StandardBassBoost extends StandardAudioEffect implements IBassBoost
     }
 
     @Override
-    public IBassBoost.Settings getPropertiesCompat() throws IllegalStateException,
+    public IBassBoost.Settings getProperties() throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException {
-        checkIsNotReleased("getPropertiesCompat()");
+        checkIsNotReleased("getProperties()");
         return AudioEffectSettingsConverter.convert(getBassBoost().getProperties());
     }
 

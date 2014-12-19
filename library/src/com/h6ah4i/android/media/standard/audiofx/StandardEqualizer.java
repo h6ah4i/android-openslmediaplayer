@@ -64,7 +64,7 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
     }
 
     @Override
-    public void setPropertiesCompat(IEqualizer.Settings settings)
+    public void setProperties(IEqualizer.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
         verifySettings(settings);
 
@@ -78,15 +78,15 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
     }
 
     @Override
-    public IEqualizer.Settings getPropertiesCompat() throws IllegalStateException,
+    public IEqualizer.Settings getProperties() throws IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
 
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
-            checkIsNotReleased("getPropertiesCompat()");
+            checkIsNotReleased("getProperties()");
             return workaroundGalaxyS4GetPropertiesCompat();
         } else if (mIsCyanogenModWorkaroundEnabled) {
-            checkIsNotReleased("getPropertiesCompat()");
+            checkIsNotReleased("getProperties()");
             return workaroundCyanogenModGetPropertiesCompat();
         } else {
             return AudioEffectSettingsConverter.convert(getEqualizer().getProperties());

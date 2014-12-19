@@ -42,7 +42,7 @@ public interface IVirtualizer extends IAudioEffect {
 
     /**
      * The Settings class regroups all virtualizer parameters. It is used in
-     * conjuntion with getPropertiesCompat() and setPropertiesCompat() methods
+     * conjuntion with getProperties() and setProperties() methods
      * to backup and restore all parameters in a single call.
      */
     public static class Settings implements Cloneable {
@@ -178,7 +178,7 @@ public interface IVirtualizer extends IAudioEffect {
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    IVirtualizer.Settings getPropertiesCompat()
+    IVirtualizer.Settings getProperties()
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException;
 
     /**
@@ -191,7 +191,7 @@ public interface IVirtualizer extends IAudioEffect {
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    void setPropertiesCompat(IVirtualizer.Settings settings)
+    void setProperties(IVirtualizer.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException;
 
     /**

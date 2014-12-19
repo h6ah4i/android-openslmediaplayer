@@ -41,6 +41,26 @@ public class OpenSLHQVisualizer implements IHQVisualizer {
         HAS_NATIVE = OpenSLMediaPlayerNativeLibraryLoader.loadLibraries();
     }
 
+    public static int[] sGetCaptureSizeRange() {
+        int[] range = new int[2];
+
+        int result = getCaptureSizeRangeImplNative(range);
+
+        throwIllegalStateExceptionIfNeeded(result);
+
+        return range;
+    }
+
+    public static int sGetMaxCaptureRate() {
+        int[] rate = new int[1];
+
+        int result = getMaxCaptureRateImplNative(rate);
+
+        throwIllegalStateExceptionIfNeeded(result);
+
+        return rate[0];
+    }
+
     public OpenSLHQVisualizer(OpenSLMediaPlayerContext context) {
         if (context == null)
             throw new IllegalArgumentException("The argument 'context' cannot be null");
@@ -205,36 +225,16 @@ public class OpenSLHQVisualizer implements IHQVisualizer {
         return translateErrorCode(result);
     }
 
-    public static int[] getCaptureSizeRange() {
-        int[] range = new int[2];
-
-        int result = getCaptureSizeRangeImplNative(range);
-
-        throwIllegalStateExceptionIfNeeded(result);
-
-        return range;
+    @Override
+    public int[] getCaptureSizeRange() throws IllegalStateException {
+        checkNativeImplIsAvailable();
+        return sGetCaptureSizeRange();
     }
 
     @Override
-    public int[] getCaptureSizeRangeCompat() throws IllegalStateException {
+    public int getMaxCaptureRate() throws IllegalStateException {
         checkNativeImplIsAvailable();
-        return getCaptureSizeRange();
-    }
-
-    public static int getMaxCaptureRate() {
-        int[] rate = new int[1];
-
-        int result = getMaxCaptureRateImplNative(rate);
-
-        throwIllegalStateExceptionIfNeeded(result);
-
-        return rate[0];
-    }
-
-    @Override
-    public int getMaxCaptureRateCompat() throws IllegalStateException {
-        checkNativeImplIsAvailable();
-        return getMaxCaptureRate();
+        return sGetMaxCaptureRate();
     }
 
     //

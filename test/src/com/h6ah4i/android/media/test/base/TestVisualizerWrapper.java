@@ -177,13 +177,13 @@ public class TestVisualizerWrapper
     }
 
     @Override
-    public int[] getCaptureSizeRangeCompat() throws IllegalStateException {
+    public int[] getCaptureSizeRange() throws IllegalStateException {
         final ObjHolder<int[]> result = new ObjHolder<int[]>();
 
         invoke(new Runnable() {
             @Override
             public void run() {
-                result.value = mVisualizer.getCaptureSizeRangeCompat();
+                result.value = mVisualizer.getCaptureSizeRange();
             }
         });
 
@@ -191,13 +191,13 @@ public class TestVisualizerWrapper
     }
 
     @Override
-    public int getMaxCaptureRateCompat() throws IllegalStateException {
+    public int getMaxCaptureRate() throws IllegalStateException {
         final IntHolder result = new IntHolder();
 
         invoke(new Runnable() {
             @Override
             public void run() {
-                result.value = mVisualizer.getMaxCaptureRateCompat();
+                result.value = mVisualizer.getMaxCaptureRate();
             }
         });
 
@@ -205,13 +205,13 @@ public class TestVisualizerWrapper
     }
 
     @Override
-    public int getScalingModeCompat() throws IllegalStateException {
+    public int getScalingMode() throws IllegalStateException {
         final IntHolder result = new IntHolder();
 
         invoke(new Runnable() {
             @Override
             public void run() {
-                result.value = mVisualizer.getScalingModeCompat();
+                result.value = mVisualizer.getScalingMode();
             }
         });
 
@@ -219,13 +219,13 @@ public class TestVisualizerWrapper
     }
 
     @Override
-    public int setScalingModeCompat(final int mode) throws IllegalStateException {
+    public int setScalingMode(final int mode) throws IllegalStateException {
         final IntHolder result = new IntHolder();
 
         invoke(new Runnable() {
             @Override
             public void run() {
-                result.value = mVisualizer.setScalingModeCompat(mode);
+                result.value = mVisualizer.setScalingMode(mode);
             }
         });
 
@@ -233,13 +233,13 @@ public class TestVisualizerWrapper
     }
 
     @Override
-    public int getMeasurementModeCompat() throws IllegalStateException {
+    public int getMeasurementMode() throws IllegalStateException {
         final IntHolder result = new IntHolder();
 
         invoke(new Runnable() {
             @Override
             public void run() {
-                result.value = mVisualizer.getMeasurementModeCompat();
+                result.value = mVisualizer.getMeasurementMode();
             }
         });
 
@@ -247,13 +247,13 @@ public class TestVisualizerWrapper
     }
 
     @Override
-    public int setMeasurementModeCompat(final int mode) throws IllegalStateException {
+    public int setMeasurementMode(final int mode) throws IllegalStateException {
         final IntHolder result = new IntHolder();
 
         invoke(new Runnable() {
             @Override
             public void run() {
-                result.value = mVisualizer.setMeasurementModeCompat(mode);
+                result.value = mVisualizer.setMeasurementMode(mode);
             }
         });
 
@@ -261,13 +261,13 @@ public class TestVisualizerWrapper
     }
 
     @Override
-    public int getMeasurementPeakRmsCompat(final MeasurementPeakRms measurement) {
+    public int getMeasurementPeakRms(final MeasurementPeakRms measurement) {
         final IntHolder result = new IntHolder();
 
         invoke(new Runnable() {
             @Override
             public void run() {
-                result.value = mVisualizer.getMeasurementPeakRmsCompat(measurement);
+                result.value = mVisualizer.getMeasurementPeakRms(measurement);
             }
         });
 

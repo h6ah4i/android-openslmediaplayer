@@ -170,7 +170,7 @@ public class OpenSLVirtualizer extends OpenSLAudioEffect implements IVirtualizer
     }
 
     @Override
-    public IVirtualizer.Settings getPropertiesCompat() throws
+    public IVirtualizer.Settings getProperties() throws
             IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
@@ -190,7 +190,7 @@ public class OpenSLVirtualizer extends OpenSLAudioEffect implements IVirtualizer
     }
 
     @Override
-    public void setPropertiesCompat(IVirtualizer.Settings settings) throws
+    public void setProperties(IVirtualizer.Settings settings) throws
             IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {

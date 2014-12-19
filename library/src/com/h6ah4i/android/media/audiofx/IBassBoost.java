@@ -42,7 +42,7 @@ public interface IBassBoost extends IAudioEffect {
 
     /**
      * The Settings class regroups all bass boost parameters. It is used in
-     * conjuntion with getPropertiesCompat() and setPropertiesCompat() methods
+     * conjuntion with getProperties() and setProperties() methods
      * to backup and restore all parameters in a single call.
      */
     public static class Settings implements Cloneable {
@@ -179,7 +179,7 @@ public interface IBassBoost extends IAudioEffect {
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    IBassBoost.Settings getPropertiesCompat()
+    IBassBoost.Settings getProperties()
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException;
 
     /**
@@ -192,7 +192,7 @@ public interface IBassBoost extends IAudioEffect {
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    void setPropertiesCompat(IBassBoost.Settings settings)
+    void setProperties(IBassBoost.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException;
 
     /**

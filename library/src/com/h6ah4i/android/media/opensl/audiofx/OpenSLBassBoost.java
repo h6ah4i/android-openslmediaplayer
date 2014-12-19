@@ -169,7 +169,7 @@ public class OpenSLBassBoost extends OpenSLAudioEffect implements IBassBoost {
     }
 
     @Override
-    public IBassBoost.Settings getPropertiesCompat() throws
+    public IBassBoost.Settings getProperties() throws
             IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
@@ -189,7 +189,7 @@ public class OpenSLBassBoost extends OpenSLAudioEffect implements IBassBoost {
     }
 
     @Override
-    public void setPropertiesCompat(IBassBoost.Settings settings) throws
+    public void setProperties(IBassBoost.Settings settings) throws
             IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {

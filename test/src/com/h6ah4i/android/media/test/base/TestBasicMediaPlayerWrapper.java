@@ -553,12 +553,12 @@ public final class TestBasicMediaPlayerWrapper
     }
 
     @Override
-    public void setNextMediaPlayerCompat(final IBasicMediaPlayer next) {
+    public void setNextMediaPlayer(final IBasicMediaPlayer next) {
         try {
             invoke(new ThrowableRunnable() {
                 @Override
                 public void run() {
-                    mPlayer.setNextMediaPlayerCompat(next);
+                    mPlayer.setNextMediaPlayer(next);
                 }
             });
         } catch (IllegalArgumentException e) {

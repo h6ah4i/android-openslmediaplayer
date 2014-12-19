@@ -44,6 +44,26 @@ public class OpenSLVisualizer implements IVisualizer {
         HAS_NATIVE = OpenSLMediaPlayerNativeLibraryLoader.loadLibraries();
     }
 
+    public static int[] sGetCaptureSizeRange() {
+        int[] range = new int[2];
+
+        int result = getCaptureSizeRangeImplNative(range);
+
+        throwIllegalStateExceptionIfNeeded(result);
+
+        return range;
+    }
+
+    public static int sGetMaxCaptureRate() {
+        int[] rate = new int[1];
+
+        int result = getMaxCaptureRateImplNative(rate);
+
+        throwIllegalStateExceptionIfNeeded(result);
+
+        return rate[0];
+    }
+
     public OpenSLVisualizer(OpenSLMediaPlayerContext context) {
         if (context == null)
             throw new IllegalArgumentException("The argument 'context' cannot be null");
@@ -200,40 +220,20 @@ public class OpenSLVisualizer implements IVisualizer {
         return translateErrorCode(result);
     }
 
-    public static int[] getCaptureSizeRange() {
-        int[] range = new int[2];
-
-        int result = getCaptureSizeRangeImplNative(range);
-
-        throwIllegalStateExceptionIfNeeded(result);
-
-        return range;
-    }
-
     @Override
-    public int[] getCaptureSizeRangeCompat() throws IllegalStateException {
+    public int[] getCaptureSizeRange() throws IllegalStateException {
         checkNativeImplIsAvailable();
-        return getCaptureSizeRange();
-    }
-
-    public static int getMaxCaptureRate() {
-        int[] rate = new int[1];
-
-        int result = getMaxCaptureRateImplNative(rate);
-
-        throwIllegalStateExceptionIfNeeded(result);
-
-        return rate[0];
+        return sGetCaptureSizeRange();
     }
 
     @Override
-    public int getMaxCaptureRateCompat() throws IllegalStateException {
+    public int getMaxCaptureRate() throws IllegalStateException {
         checkNativeImplIsAvailable();
-        return getMaxCaptureRate();
+        return sGetMaxCaptureRate();
     }
 
     @Override
-    public int getScalingModeCompat() throws IllegalStateException {
+    public int getScalingMode() throws IllegalStateException {
         checkNativeImplIsAvailable();
 
         int[] mode = mParamIntBuff;
@@ -246,7 +246,7 @@ public class OpenSLVisualizer implements IVisualizer {
     }
 
     @Override
-    public int setScalingModeCompat(int mode) throws IllegalStateException {
+    public int setScalingMode(int mode) throws IllegalStateException {
         checkNativeImplIsAvailable();
 
         int result = setScalingModeImplNative(mNativeHandle, mode);
@@ -257,7 +257,7 @@ public class OpenSLVisualizer implements IVisualizer {
     }
 
     @Override
-    public int getMeasurementModeCompat() throws IllegalStateException {
+    public int getMeasurementMode() throws IllegalStateException {
         checkNativeImplIsAvailable();
 
         int[] mode = mParamIntBuff;
@@ -270,7 +270,7 @@ public class OpenSLVisualizer implements IVisualizer {
     }
 
     @Override
-    public int setMeasurementModeCompat(int mode) throws IllegalStateException {
+    public int setMeasurementMode(int mode) throws IllegalStateException {
         checkNativeImplIsAvailable();
 
         int result = setMeasurementModeImplNative(mNativeHandle, mode);
@@ -281,7 +281,7 @@ public class OpenSLVisualizer implements IVisualizer {
     }
 
     @Override
-    public int getMeasurementPeakRmsCompat(MeasurementPeakRms measurement) {
+    public int getMeasurementPeakRms(MeasurementPeakRms measurement) {
         checkNativeImplIsAvailable();
 
         if (measurement == null)

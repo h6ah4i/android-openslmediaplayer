@@ -58,6 +58,14 @@ public class StandardVisualizer implements IVisualizer {
         MAX_CAPTURE_RATE = Visualizer.getMaxCaptureRate();
     }
 
+    public static int[] sGetCaptureSizeRange() {
+        return Visualizer.getCaptureSizeRange();
+    }
+
+    public static int sGetMaxCaptureRate() {
+        return Visualizer.getMaxCaptureRate();
+    }
+
     public StandardVisualizer(Context context, int audioSession) {
         mVisualizer = new Visualizer(audioSession);
 
@@ -203,43 +211,43 @@ public class StandardVisualizer implements IVisualizer {
     }
 
     @Override
-    public synchronized int[] getCaptureSizeRangeCompat() throws IllegalStateException {
+    public synchronized int[] getCaptureSizeRange() throws IllegalStateException {
         throwIllegalStateExceptionIfReleased();
         return android.media.audiofx.Visualizer.getCaptureSizeRange();
     }
 
     @Override
-    public synchronized int getMaxCaptureRateCompat() throws IllegalStateException {
+    public synchronized int getMaxCaptureRate() throws IllegalStateException {
         throwIllegalStateExceptionIfReleased();
         return android.media.audiofx.Visualizer.getMaxCaptureRate();
     }
 
     @Override
-    public synchronized int getScalingModeCompat() throws IllegalStateException {
+    public synchronized int getScalingMode() throws IllegalStateException {
         throwIllegalStateExceptionIfReleased();
         return COMPAT_HELPER.getScalingModeCompat(mVisualizer);
     }
 
     @Override
-    public synchronized int setScalingModeCompat(int mode) throws IllegalStateException {
+    public synchronized int setScalingMode(int mode) throws IllegalStateException {
         throwIllegalStateExceptionIfReleased();
         return COMPAT_HELPER.setScalingModeCompat(mVisualizer, mode);
     }
 
     @Override
-    public synchronized int getMeasurementModeCompat() throws IllegalStateException {
+    public synchronized int getMeasurementMode() throws IllegalStateException {
         throwIllegalStateExceptionIfReleased();
         return COMPAT_HELPER.getMeasurementModeCompat(mVisualizer);
     }
 
     @Override
-    public synchronized int setMeasurementModeCompat(int mode) throws IllegalStateException {
+    public synchronized int setMeasurementMode(int mode) throws IllegalStateException {
         throwIllegalStateExceptionIfReleased();
         return COMPAT_HELPER.setMeasurementModeCompat(mVisualizer, mode);
     }
 
     @Override
-    public synchronized int getMeasurementPeakRmsCompat(IVisualizer.MeasurementPeakRms measurement) {
+    public synchronized int getMeasurementPeakRms(IVisualizer.MeasurementPeakRms measurement) {
         if (measurement == null) {
             return IVisualizer.ERROR_BAD_VALUE;
         }

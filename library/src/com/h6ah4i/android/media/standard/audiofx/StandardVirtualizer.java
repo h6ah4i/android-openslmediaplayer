@@ -82,7 +82,7 @@ public class StandardVirtualizer extends StandardAudioEffect implements IVirtual
     }
 
     @Override
-    public void setPropertiesCompat(IVirtualizer.Settings settings)
+    public void setProperties(IVirtualizer.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
         checkIsNotReleased();
         verifySettings(settings);
@@ -90,10 +90,10 @@ public class StandardVirtualizer extends StandardAudioEffect implements IVirtual
     }
 
     @Override
-    public IVirtualizer.Settings getPropertiesCompat() throws IllegalStateException,
+    public IVirtualizer.Settings getProperties() throws IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
-        checkIsNotReleased("getPropertiesCompat()");
+        checkIsNotReleased("getProperties()");
         return AudioEffectSettingsConverter.convert(getVirtualizer().getProperties());
     }
 

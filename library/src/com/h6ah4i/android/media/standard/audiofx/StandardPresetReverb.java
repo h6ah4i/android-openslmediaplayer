@@ -50,9 +50,9 @@ public class StandardPresetReverb extends StandardAudioEffect implements IPreset
     }
 
     @Override
-    public void setPropertiesCompat(IPresetReverb.Settings settings)
+    public void setProperties(IPresetReverb.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
-         checkIsNotReleased("setPropertiesCompat()");
+         checkIsNotReleased("setProperties()");
         getPresetReverb().setProperties(AudioEffectSettingsConverter.convert(settings));
     }
 
@@ -70,10 +70,10 @@ public class StandardPresetReverb extends StandardAudioEffect implements IPreset
     }
 
     @Override
-    public IPresetReverb.Settings getPropertiesCompat() throws IllegalStateException,
+    public IPresetReverb.Settings getProperties() throws IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
-        checkIsNotReleased("getPropertiesCompat()");
+        checkIsNotReleased("getProperties()");
         return AudioEffectSettingsConverter.convert(getPresetReverb().getProperties());
     }
 

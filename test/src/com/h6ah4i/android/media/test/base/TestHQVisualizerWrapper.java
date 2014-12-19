@@ -147,13 +147,13 @@ public class TestHQVisualizerWrapper
     }
 
     @Override
-    public int[] getCaptureSizeRangeCompat() throws IllegalStateException {
+    public int[] getCaptureSizeRange() throws IllegalStateException {
         final ObjHolder<int[]> result = new ObjHolder<int[]>();
 
         invoke(new Runnable() {
             @Override
             public void run() {
-                result.value = mVisualizer.getCaptureSizeRangeCompat();
+                result.value = mVisualizer.getCaptureSizeRange();
             }
         });
 
@@ -161,13 +161,13 @@ public class TestHQVisualizerWrapper
     }
 
     @Override
-    public int getMaxCaptureRateCompat() throws IllegalStateException {
+    public int getMaxCaptureRate() throws IllegalStateException {
         final IntHolder result = new IntHolder();
 
         invoke(new Runnable() {
             @Override
             public void run() {
-                result.value = mVisualizer.getMaxCaptureRateCompat();
+                result.value = mVisualizer.getMaxCaptureRate();
             }
         });
 

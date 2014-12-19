@@ -355,7 +355,7 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
     }
 
     @Override
-    public void setNextMediaPlayerCompat(IBasicMediaPlayer next) {
+    public void setNextMediaPlayer(IBasicMediaPlayer next) {
         if (next != null && !(next instanceof StandardMediaPlayer)) {
             throw new IllegalArgumentException("Not StandardMediaPlayer instance");
         }
