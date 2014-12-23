@@ -518,30 +518,35 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
 
     @Override
     public void setNextMediaPlayer(IBasicMediaPlayer next) {
+        checkNativeImplIsAvailable();
+
         if (next != null && !(next instanceof OpenSLMediaPlayer)) {
             throw new IllegalArgumentException("Not OpenSLMediaPlayer instance");
         }
 
-        setNextMediaPlayer((OpenSLMediaPlayer) next);
-    }
+        OpenSLMediaPlayer next2 = (OpenSLMediaPlayer) next;
 
-    public void setNextMediaPlayer(OpenSLMediaPlayer next) {
-        if (next == this)
+        if (next2 == this) {
             throw new IllegalArgumentException("Can't assign the self instance as a next player");
+        }
 
-        long nextHandle = (next == null) ? 0 : (next.mNativeHandle);
+        if ((next2 != null) && next2.mNativeHandle == 0) {
+            throw new IllegalStateException("The next player has already been released.");
+        }
 
-        if (mNativeHandle != 0) {
-            try {
-                final int result = setNextMediaPlayerImplNative(mNativeHandle, nextHandle);
+        final long nextHandle = (next2 == null) ? 0 : (next2.mNativeHandle);
 
-                parseResultAndThrowNoExceptions(result);
-            } catch (IllegalArgumentException e) {
-                throw e;
-            } catch (Exception e) {
-                Log.e(TAG, "An error occurred in setNextMediaPlayer(nextHandle = "
-                        + nextHandle + ")");
-            }
+        try {
+            final int result = setNextMediaPlayerImplNative(mNativeHandle, nextHandle);
+
+            parseResultAndThrowExceptForIOExceptions(result);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            Log.e(TAG, "An error occurred in setNextMediaPlayer(nextHandle = "
+                    + nextHandle + ")");
         }
     }
 

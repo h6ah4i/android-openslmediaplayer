@@ -1197,12 +1197,22 @@ void OpenSLMediaPlayer::Impl::onHandleMessage(const void *msg_) noexcept
     case MSG_SET_NEXT_MEDIA_PLAYER: {
         typedef msg_blob_set_next_media_player blob_t;
         const blob_t &blob = GET_MSG_BLOB(*msg);
-        const int state_mask = STATE_MASK_ANY;
+        const int state_mask =
+            SMASK(INITIALIZED) | SMASK(PREPARING_SYNC) |
+            SMASK(PREPARING_ASYNC) | SMASK(PREPARED) | SMASK(STARTED) |
+            SMASK(PAUSED) | SMASK(PLAYBACK_COMPLETED) | SMASK(STOPPED);
+        const int next_state_mask =
+            SMASK(PREPARED) | SMASK(PAUSED) | SMASK(PLAYBACK_COMPLETED);
+        Impl *next_player = static_cast<Impl *>(blob.next_player);
 
         if (checkCurrentState(state_mask)) {
-            Impl *next_player = static_cast<Impl *>(blob.next_player);
-
-            result = player_->setNextMediaPlayer((next_player) ? (next_player->player_.get()) : (nullptr));
+            if (!next_player) {
+                result = player_->setNextMediaPlayer(nullptr);
+            } else if (next_player->checkCurrentState(next_state_mask)) {
+                result = player_->setNextMediaPlayer(next_player->player_.get());
+            } else {
+                result = OSLMP_RESULT_ILLEGAL_STATE;
+            }
         } else {
             result = OSLMP_RESULT_ILLEGAL_STATE;
         }
