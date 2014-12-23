@@ -563,6 +563,8 @@ public final class TestBasicMediaPlayerWrapper
             });
         } catch (IllegalArgumentException e) {
             throw e;
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (Throwable th) {
             failUnexpectedThrowable(th);
         }

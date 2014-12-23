@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import junit.framework.TestSuite;
+
 import android.util.Log;
 
 import com.h6ah4i.android.media.IBasicMediaPlayer;
@@ -37,6 +38,8 @@ import com.h6ah4i.android.testing.ParameterizedTestSuiteBuilder;
 
 public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
         BasicMediaPlayerStateTestCaseBase {
+
+    private static final boolean SKIP_HANGUP_SUSPECTED_TEST_CASE = true;
 
     public static TestSuite buildTestSuite(
             Class<? extends IMediaPlayerFactory> factoryClazz) {
@@ -67,6 +70,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
                             ParameterizedTestSuiteBuilder.notMatches(testsWithBasicTestParams),
                             true));
         }
+
 
         {
 
@@ -147,6 +151,19 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
         fail(failmsg);
     }
 
+
+    private void expectsIllegalStateException(IBasicMediaPlayer player,
+                                                 IBasicMediaPlayer next, NextPlayerType type) {
+        final String failmsg = "NextPlayerType = " + type;
+        try {
+            setUnwrappedtNextPlayer(player, next);
+        } catch (IllegalStateException e) {
+            // expected
+            return;
+        }
+        fail(failmsg);
+    }
+
     private void setUnwrappedtNextPlayer(IBasicMediaPlayer player,
             IBasicMediaPlayer next) {
         player.setNextMediaPlayer(unwrap(next));
@@ -221,87 +238,141 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
         }
     }
 
-    private void check(IBasicMediaPlayer player, Object args)
+    private void checkValidState(IBasicMediaPlayer player, Object args)
             throws IOException {
         TestParams params = (TestParams) args;
         NextPlayerType type = params.getNextPlayerType();
         IBasicMediaPlayer next = createNextPlayer(player, type);
 
-        switch (type) {
-            case THIS:
-            case MOCK_CLASS:
-                expectsIllegalArgumentException(player, next, type);
-                break;
-            default:
-                expectsNoErrors(player, next, type);
-                break;
+        try {
+            switch (type) {
+                case THIS:
+                case MOCK_CLASS:
+                    expectsIllegalArgumentException(player, next, type);
+                    break;
+                case NULL:
+                case PREPARED:
+                case PAUSED:
+                case PLAYBACK_COMPLETED:
+                    expectsNoErrors(player, next, type);
+                    break;
+                case IDLE:
+                case INITIALIZED:
+                case PREPARING:
+                case STARTED:
+                case STOPPED:
+                case ERROR_BEFORE_PREPARED:
+                case ERROR_AFTER_PREPARED:
+                case END:
+                    expectsIllegalStateException(player, next, type);
+                    break;
+                default:
+                    fail();
+                    break;
+            }
+        } finally {
+            releaseQuietly(next);
+        }
+    }
+
+    private void checkInvalidState(IBasicMediaPlayer player, Object args)
+            throws IOException {
+        TestParams params = (TestParams) args;
+        NextPlayerType type = params.getNextPlayerType();
+        IBasicMediaPlayer next = createNextPlayer(player, type);
+
+        try {
+            switch (type) {
+                case THIS:
+                case MOCK_CLASS:
+                    expectsIllegalArgumentException(player, next, type);
+                    break;
+                default:
+                    expectsIllegalStateException(player, next, type);
+                    break;
+            }
+        } finally {
+            releaseQuietly(next);
+        }
+    }
+
+    private void checkEndState(IBasicMediaPlayer player, Object args)
+            throws IOException {
+        TestParams params = (TestParams) args;
+        NextPlayerType type = params.getNextPlayerType();
+        IBasicMediaPlayer next = createNextPlayer(player, type);
+
+        try {
+            expectsIllegalStateException(player, next, type);
+        } finally {
+            releaseQuietly(next);
         }
     }
 
     @Override
     protected void onTestStateIdle(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        check(player, args);
+        checkInvalidState(player, args);
     }
 
     @Override
     protected void onTestStateInitialized(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        check(player, args);
+        checkValidState(player, args);
     }
 
     @Override
     protected void onTestStatePreparing(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        check(player, args);
+        checkValidState(player, args);
     }
 
     @Override
     protected void onTestStatePrepared(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        check(player, args);
+        checkValidState(player, args);
     }
 
     @Override
     protected void onTestStateStarted(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        check(player, args);
+        checkValidState(player, args);
     }
 
     @Override
     protected void onTestStatePaused(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        check(player, args);
+        checkValidState(player, args);
     }
 
     @Override
     protected void onTestStateStopped(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        check(player, args);
+        checkValidState(player, args);
     }
 
     @Override
     protected void onTestStatePlaybackCompleted(IBasicMediaPlayer player,
             Object args) throws Throwable {
-        check(player, args);
+        checkValidState(player, args);
     }
 
     @Override
     protected void onTestStateErrorBeforePrepared(IBasicMediaPlayer player,
             Object args) throws Throwable {
-        check(player, args);
+        checkInvalidState(player, args);
     }
 
     @Override
     protected void onTestStateErrorAfterPrepared(IBasicMediaPlayer player,
             Object args) throws Throwable {
-        check(player, args);
+        checkInvalidState(player, args);
     }
 
     @Override
     protected void onTestStateEnd(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        check(player, args);
+        checkEndState(player, args);
     }
 
     public void testIsPlayingTransition() throws Throwable {
@@ -330,13 +401,15 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
             assertFalse(nextPlayer.isPlaying());
 
             // wait for the next player started
-            Thread.sleep(player.getDuration());
+            int duration1 = player.getDuration();
+            Thread.sleep(duration1);
 
             assertFalse(player.isPlaying());
             assertTrue(nextPlayer.isPlaying());
 
             // wait for the next player completion
-            Thread.sleep(nextPlayer.getDuration() + SHORT_EVENT_WAIT_DURATION);
+            int duration2 = nextPlayer.getDuration();
+            Thread.sleep(duration2 + SHORT_EVENT_WAIT_DURATION);
 
             assertFalse(player.isPlaying());
             assertFalse(nextPlayer.isPlaying());
@@ -356,14 +429,23 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
         // player.
 
         try {
+            SeekCompleteListenerObject seekComp = new SeekCompleteListenerObject();
+
             // prepare
             transitStateToPrepared(player, args);
             nextPlayer = createNextPlayer(player, NextPlayerType.PREPARED);
+
+            nextPlayer.setOnSeekCompleteListener(seekComp);
 
             // seek
             int seekPosition = nextPlayer.getDuration() / 2;
 
             nextPlayer.seekTo(seekPosition);
+
+            if (!seekComp.await(DEFAULT_EVENT_WAIT_DURATION)) {
+                fail();
+            }
+
             // NOTE: valid position is returned
             assertEquals(seekPosition, nextPlayer.getCurrentPosition());
 
@@ -386,6 +468,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
             // wait for the next player started
             Thread.sleep(player.getDuration());
 
+            // NOTE: StandardMediaPlayer fails on this assertion if using NuPlayer
             assertEquals(player.getDuration(), player.getCurrentPosition());
             assertFalse(player.isPlaying());
             assertTrue(nextPlayer.isPlaying());
@@ -466,6 +549,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
             // wait for the next player started
             Thread.sleep(player.getDuration());
 
+            // NOTE: StandardMediaPlayer fails on this assertion if using NuPlayer
             assertEquals(player.getDuration(), player.getCurrentPosition());
             assertFalse(player.isPlaying());
             assertTrue(nextPlayer.isPlaying());
@@ -517,34 +601,12 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
             nextPlayer.start();
             Thread.sleep(safeGetDuration(nextPlayer, DURATION_LIMIT) / 2);
 
-            setUnwrappedtNextPlayer(player, nextPlayer);
-
-            assertFalse(player.isPlaying());
-            assertTrue(nextPlayer.isPlaying());
-
-            // start
-            player.start();
-
-            assertTrue(player.isPlaying());
-            assertTrue(nextPlayer.isPlaying());
-
-            Thread.sleep(nextPlayer.getDuration() / 2
-                    + SHORT_EVENT_WAIT_DURATION);
-
-            assertEquals(nextPlayer.getDuration(),
-                    nextPlayer.getCurrentPosition());
-            assertTrue(player.isPlaying());
-            assertFalse(nextPlayer.isPlaying());
-
-            Thread.sleep(player.getDuration() / 2);
-
-            assertEquals(player.getDuration(), player.getCurrentPosition());
-            assertFalse(player.isPlaying());
-
-            // NOTE: Completed player will be automatically rewinded to the head
-            assertTrue(nextPlayer.isPlaying());
-            Thread.sleep(nextPlayer.getDuration() + SHORT_EVENT_WAIT_DURATION);
-            assertFalse(nextPlayer.isPlaying());
+            try {
+                setUnwrappedtNextPlayer(player, nextPlayer);
+                fail();
+            } catch (IllegalStateException e) {
+                // expected
+            }
         } finally {
             releaseQuietly(nextPlayer);
             releaseQuietly(player);
@@ -552,6 +614,10 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
     }
 
     public void testPausedStateAsNextMediaPlayer() throws Throwable {
+        if (!isOpenSL(getFactory()) && SKIP_HANGUP_SUSPECTED_TEST_CASE) {
+            fail("This test case is skipped to avoid HANGUP");
+        }
+
         IBasicMediaPlayer player = createWrappedPlayerInstance();
         IBasicMediaPlayer nextPlayer = null;
         Object args = getTestParams();
@@ -601,6 +667,8 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
             assertFalse(player.isPlaying());
             assertFalse(nextPlayer.isPlaying());
         } finally {
+            // NOTE:
+            // StandardMediaPlayer may hang while calling the release() method...
             releaseQuietly(nextPlayer);
             releaseQuietly(player);
         }
@@ -629,7 +697,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
             assertFalse(nextPlayer.isPlaying());
 
             // wait
-            Thread.sleep(player.getDuration() + SHORT_EVENT_WAIT_DURATION);
+            Thread.sleep(player.getDuration() + DEFAULT_EVENT_WAIT_DURATION);
             assertEquals(player.getDuration(), player.getCurrentPosition());
             assertFalse(player.isPlaying());
             assertFalse(nextPlayer.isPlaying());
@@ -678,6 +746,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
 
             Thread.sleep(player.getDuration() / 2 + SHORT_EVENT_WAIT_DURATION);
 
+            // NOTE: StandardMediaPlayer fails on this assertion if using NuPlayer
             assertEquals(player.getDuration(), player.getCurrentPosition());
             assertFalse(player.isPlaying());
             assertTrue(nextPlayer.isPlaying());
@@ -695,10 +764,18 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
     }
 
     public void testMultipleSetNextAudioPlayer_1() throws Throwable {
+        if (!isOpenSL(getFactory()) && SKIP_HANGUP_SUSPECTED_TEST_CASE) {
+            fail("This test case is skipped to avoid HANGUP");
+        }
+
         implMultipleSetNextAudioPlayer(0);
     }
 
     public void testMultipleSetNextAudioPlayer_2() throws Throwable {
+        if (!isOpenSL(getFactory()) && SKIP_HANGUP_SUSPECTED_TEST_CASE) {
+            fail("This test case is skipped to avoid HANGUP");
+        }
+
         implMultipleSetNextAudioPlayer(1);
     }
 
@@ -777,6 +854,8 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
             assertFalse(player2.isPlaying());
             assertFalse(nextPlayer.isPlaying());
         } finally {
+            // NOTE:
+            // StandardMediaPlayer may hang while calling the release() method...
             releaseQuietly(nextPlayer);
             releaseQuietly(player2);
             releaseQuietly(player1);
