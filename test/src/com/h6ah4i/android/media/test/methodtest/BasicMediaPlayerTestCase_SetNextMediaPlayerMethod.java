@@ -36,7 +36,7 @@ import com.h6ah4i.android.media.test.utils.SeekCompleteListenerObject;
 import com.h6ah4i.android.testing.ParameterizedTestArgs;
 import com.h6ah4i.android.testing.ParameterizedTestSuiteBuilder;
 
-public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
+public class BasicMediaPlayerTestCase_SetNextMediaPlayerMethod extends
         BasicMediaPlayerStateTestCaseBase {
 
     private static final boolean SKIP_HANGUP_SUSPECTED_TEST_CASE = true;
@@ -65,7 +65,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
             }
 
             suite.addTest(ParameterizedTestSuiteBuilder
-                    .buildDetail(BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod.class,
+                    .buildDetail(BasicMediaPlayerTestCase_SetNextMediaPlayerMethod.class,
                             params,
                             ParameterizedTestSuiteBuilder.notMatches(testsWithBasicTestParams),
                             true));
@@ -81,7 +81,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
             params.add(new BasicTestParams(factoryClazz));
 
             suite.addTest(ParameterizedTestSuiteBuilder.buildDetail(
-                    BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod.class,
+                    BasicMediaPlayerTestCase_SetNextMediaPlayerMethod.class,
                     params, filter, true));
         }
 
@@ -111,7 +111,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod extends
         }
     }
 
-    public BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod(
+    public BasicMediaPlayerTestCase_SetNextMediaPlayerMethod(
             ParameterizedTestArgs args) {
         super(args);
     }
