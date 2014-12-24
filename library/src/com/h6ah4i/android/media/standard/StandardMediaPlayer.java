@@ -20,6 +20,7 @@ package com.h6ah4i.android.media.standard;
 import java.io.FileDescriptor;
 import java.io.IOException;
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 
 import android.content.Context;
 import android.media.MediaPlayer;
@@ -27,7 +28,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
-import android.os.PowerManager;
 import android.util.Log;
 
 import com.h6ah4i.android.media.IBasicMediaPlayer;
@@ -60,6 +60,7 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
     private boolean mUsingNuPlayer;
     private int mSeekPosition = SEEK_POS_NOSET;
     private int mPendingSeekPosition = SEEK_POS_NOSET;
+    private WeakReference<Handler> mSuperEventHandler;
 
     private static abstract class SkipCondition {
         public boolean prevCheck(MediaPlayerStateManager stateManager) { return false; }
@@ -129,6 +130,7 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
             mState = new MediaPlayerStateManager();
 
             mPlayer = new MediaPlayer();
+            mSuperEventHandler = new WeakReference<Handler>(obtainSuperMediaPlayerInternalEventHandler(mPlayer));
 
             if (LOCAL_LOGD) {
                 Log.d(TAG, "[" + System.identityHashCode(mPlayer) + "] Create MediaPlayer instance");
@@ -183,6 +185,11 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
             mHandler = null;
         }
 
+        if (mSuperEventHandler != null) {
+            mSuperEventHandler.clear();
+            mSuperEventHandler = null;
+        }
+
         mHookOnCompletionListener = null;
         mHookOnPreparedListener = null;
         mHookOnSeekCompeleteListener = null;
@@ -218,6 +225,12 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
         if (mHandler != null) {
             mHandler.removeCallbacksAndMessages(null);
+        }
+
+        // Clear all messages to avoid unexpected error callback
+        Handler superEventHandler = (mSuperEventHandler != null) ? mSuperEventHandler.get() : null;
+        if (superEventHandler != null) {
+            superEventHandler.removeCallbacksAndMessages(null);
         }
 
         mIsLooping = false;
@@ -1003,6 +1016,47 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         return "Unexpected exception: " + messageName;
     }
 
+    private void handlePostedError(int prevState, int what, int extra) {
+        boolean handled = false;
+
+        // raise onError()
+        if (mUserOnErrorListener != null) {
+            handled = mUserOnErrorListener.onError(this, what, extra);
+        }
+
+        // raise onCompletion()
+        if (!handled && (mUserOnCompletionListener != null)) {
+            mUserOnCompletionListener.onCompletion(this);
+        }
+    }
+
+    private boolean isSeeking() {
+        return (mSeekPosition >= 0);
+    }
+
+    private static boolean isSetNextMediaPlayerThrowsIAE(int state) {
+        return state == MediaPlayerStateManager.STATE_IDLE ||
+                state == MediaPlayerStateManager.STATE_END ||
+                state == MediaPlayerStateManager.STATE_ERROR;
+    }
+
+    private static Handler obtainSuperMediaPlayerInternalEventHandler(MediaPlayer player) {
+        if (player == null) {
+            return null;
+        }
+
+        try {
+            Field f = MediaPlayer.class.getDeclaredField("mEventHandler");
+
+            f.setAccessible(true);
+            return (Handler) f.get(player);
+        } catch (NoSuchFieldException e) {
+        } catch (IllegalAccessException e) {
+        }
+
+        return null;
+    }
+
     private static class InternalHandler extends Handler {
         private WeakReference<StandardMediaPlayer> mRefHolder;
 
@@ -1050,30 +1104,6 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
                 this.extra = extra;
             }
         }
-    }
-
-    private void handlePostedError(int prevState, int what, int extra) {
-        boolean handled = false;
-
-        // raise onError()
-        if (mUserOnErrorListener != null) {
-            handled = mUserOnErrorListener.onError(this, what, extra);
-        }
-
-        // raise onCompletion()
-        if (!handled && (mUserOnCompletionListener != null)) {
-            mUserOnCompletionListener.onCompletion(this);
-        }
-    }
-
-    private boolean isSeeking() {
-        return (mSeekPosition >= 0);
-    }
-
-    private static boolean isSetNextMediaPlayerThrowsIAE(int state) {
-        return state == MediaPlayerStateManager.STATE_IDLE ||
-                state == MediaPlayerStateManager.STATE_END ||
-                state == MediaPlayerStateManager.STATE_ERROR;
     }
 }
 
