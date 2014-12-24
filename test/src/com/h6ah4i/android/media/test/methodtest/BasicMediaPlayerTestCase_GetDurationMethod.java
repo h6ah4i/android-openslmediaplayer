@@ -176,7 +176,7 @@ public class BasicMediaPlayerTestCase_GetDurationMethod
 
     @Override
     protected void onTestStateStopped(IBasicMediaPlayer player, Object args) throws Throwable {
-        expectsNoErrorsWithDurationZero(player);
+        expectsNoErrorsWithValidDuration(player);
     }
 
     @Override
@@ -194,7 +194,7 @@ public class BasicMediaPlayerTestCase_GetDurationMethod
     @Override
     protected void onTestStateErrorAfterPrepared(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        expectsErrorCallback(player);
+        expectsNoErrorsWithValidDuration(player);
     }
 
     @Override

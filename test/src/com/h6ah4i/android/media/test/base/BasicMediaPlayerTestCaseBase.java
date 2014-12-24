@@ -47,6 +47,7 @@ import com.h6ah4i.android.media.opensl.OpenSLMediaPlayer;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerFactory;
 import com.h6ah4i.android.media.test.utils.CommonTestCaseUtils;
 import com.h6ah4i.android.media.test.utils.CompletionListenerObject;
+import com.h6ah4i.android.media.test.utils.DebugCompat;
 import com.h6ah4i.android.media.test.utils.ErrorListenerObject;
 import com.h6ah4i.android.media.test.utils.PreparedListenerObject;
 import com.h6ah4i.android.media.test.utils.ThrowableRunnable;
@@ -184,7 +185,7 @@ public abstract class BasicMediaPlayerTestCaseBase
         System.runFinalization();
         System.gc();
 
-        mUsedMemorySize1 = Debug.getPss();
+        mUsedMemorySize1 = DebugCompat.getPss();
     }
 
     private void memoryCheckEnd() {
@@ -193,7 +194,7 @@ public abstract class BasicMediaPlayerTestCaseBase
         System.gc();
 
         final long used1 = mUsedMemorySize1;
-        final long used2 = Debug.getPss();
+        final long used2 = DebugCompat.getPss();
         final long diff = used2 - used1;
 
         final String infoText = " (increased: " + diff + " KiB, current: " + used2 + " KiB, @"

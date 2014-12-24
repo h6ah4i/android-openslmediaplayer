@@ -88,7 +88,7 @@ public:
 
     // implementations of AudioPlayer::EventHandler
     virtual void onDecoderBufferingUpdate(int32_t percent) noexcept override;
-    virtual void onPlaybackCompletion() noexcept override;
+    virtual void onPlaybackCompletion(impl::AudioPlayer::PlaybackCompletionType completion_type) noexcept override;
     virtual void onPrepareCompleted(int prepare_result) noexcept override;
     virtual void onSeekCompleted(int seek_result) noexcept override;
     virtual void onPlayerStartedAsNextPlayer() noexcept override;
@@ -123,7 +123,7 @@ private:
     int handleInternalAuxEffectSettingsChanged(const Message *msg) noexcept;
 
     void handleOnPrepareFinished(int result, bool async) noexcept;
-    int processOnCompletion() noexcept;
+    int processOnCompletion(impl::AudioPlayer::PlaybackCompletionType completion_type) noexcept;
     int translateToErrorWhat(int result) const noexcept;
 
 private:

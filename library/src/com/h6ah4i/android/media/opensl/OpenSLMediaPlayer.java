@@ -470,10 +470,10 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
 
     @Override
     public void setWakeMode(Context context, int mode) {
+        checkNativeImplIsAvailable();
+
         if (context == null) {
-            throw new NullPointerException();
-            // throw new
-            // IllegalArgumentException("The argument context cannot be null");
+            throw new IllegalArgumentException("The argument context must not be null");
         }
 
         // re-create the wake lock object
@@ -488,31 +488,49 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
 
     @Override
     public void setOnBufferingUpdateListener(OnBufferingUpdateListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnBufferingUpdateListener = listener;
     }
 
     @Override
     public void setOnCompletionListener(OnCompletionListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnCompletionListener = listener;
     }
 
     @Override
     public void setOnErrorListener(OnErrorListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnErrorListener = listener;
     }
 
     @Override
     public void setOnInfoListener(OnInfoListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnInfoListener = listener;
     }
 
     @Override
     public void setOnPreparedListener(OnPreparedListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnPreparedListener = listener;
     }
 
     @Override
     public void setOnSeekCompleteListener(OnSeekCompleteListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnSeekCompleteListener = listener;
     }
 
@@ -654,8 +672,12 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
     // Utilities
     //
 
+    private boolean isNativeImplIsAvailable()  {
+        return (mNativeHandle != 0);
+    }
+
     private void checkNativeImplIsAvailable() throws IllegalStateException {
-        if (mNativeHandle == 0) {
+        if (!isNativeImplIsAvailable()) {
             throw new IllegalStateException("Native implemenation handle is not present");
         }
     }
@@ -736,10 +758,11 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
     // Event handlers
     //
     private void handleOnCompletion() {
+        stayAwake(false);
+
         if (mOnCompletionListener != null) {
             mOnCompletionListener.onCompletion(this);
         }
-        stayAwake(false);
     }
 
     private void handleOnPrepared() {
@@ -769,6 +792,9 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
 
     private void handleOnError(int what, int extra) {
         boolean handled = false;
+
+        stayAwake(false);
+
         if (mOnErrorListener != null) {
             handled = mOnErrorListener.onError(this, what, extra);
         }
@@ -778,8 +804,6 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
                 mOnCompletionListener.onCompletion(this);
             }
         }
-
-        stayAwake(false);
     }
 
     //

@@ -68,6 +68,8 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
         verifySettings(settings);
 
+        checkIsNotReleased("setProperties()");
+
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
             workaroundGalaxyS4SetProperties(settings);
         } else if (mIsCyanogenModWorkaroundEnabled) {
@@ -82,11 +84,11 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
             IllegalArgumentException,
             UnsupportedOperationException {
 
+        checkIsNotReleased("getProperties()");
+
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
-            checkIsNotReleased("getProperties()");
             return workaroundGalaxyS4GetPropertiesCompat();
         } else if (mIsCyanogenModWorkaroundEnabled) {
-            checkIsNotReleased("getProperties()");
             return workaroundCyanogenModGetPropertiesCompat();
         } else {
             return AudioEffectSettingsConverter.convert(getEqualizer().getProperties());
@@ -95,7 +97,7 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
 
     @Override
     public void setParameterListener(IEqualizer.OnParameterChangeListener listener) {
-        checkIsNotReleased();
+        checkIsNotReleased("setParameterListener()");
         mUserOnParameterChangeListener = listener;
     }
 
@@ -413,6 +415,7 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
             UnsupportedOperationException {
         verifyPresetRange(preset);
 
+        checkIsNotReleased("usePreset()");
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
             workaroundGalaxyS4UsePreset(preset);
         } else if (mIsCyanogenModWorkaroundEnabled) {
@@ -424,6 +427,7 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
 
     @Override
     public String getPresetName(short preset) {
+        checkIsNotReleased("getPresetName()");
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
             return workaroundGalaxyS4GetPesetName(preset);
         } else {
@@ -435,8 +439,8 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
     public short getBandLevel(short band) throws IllegalStateException, IllegalArgumentException,
             UnsupportedOperationException {
         verifyBandRange(band);
+        checkIsNotReleased("getBandLevel()");
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
-            checkIsNotReleased("getBandLevel()");
             return workaroundGetBandLevel(band);
         } else {
             return getEqualizer().getBandLevel(band);
@@ -455,6 +459,8 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
         verifyBandRange(band);
         verifyBandLevelRange(level);
 
+        checkIsNotReleased("setBandLevel()");
+
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
             workaroundGalaxyS4SetBandLevel(band, level);
         } else if (mIsNegativeBandLevelWorkaroundEnabled) {
@@ -471,8 +477,9 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
         // Use getBandCompat() method instead of super.getBand(frequency),
         // because the original implementation returns wrong values.
 
+        checkIsNotReleased("getBand()");
+
         if (mCorrectedBandFreqRange != null) {
-            checkIsNotReleased("getBand()");
             return getBandCompat(mNumBands, mCorrectedBandFreqRange, frequency);
         } else {
             return getEqualizer().getBand(frequency);
@@ -488,9 +495,9 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
         // because the original implementation returns wrong values.
         verifyBandRange(band);
 
-        if (mCorrectedBandFreqRange != null) {
-            checkIsNotReleased("getBandFreqRange()");
+        checkIsNotReleased("getBandFreqRange()");
 
+        if (mCorrectedBandFreqRange != null) {
             return getBandFreqRangeCompat(mCorrectedBandFreqRange, band);
         } else {
             return getEqualizer().getBandFreqRange(band);
@@ -502,8 +509,8 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
             UnsupportedOperationException {
         verifyBandRange(band);
 
+        checkIsNotReleased("getCenterFreq()");
         if (mCorrectedCenterFreq != null) {
-            checkIsNotReleased("getCenterFreq()");
             return getCenterFreqCompat(mCorrectedCenterFreq, band);
         } else {
             return getEqualizer().getCenterFreq(band);
@@ -516,8 +523,8 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
 
         short preset;
 
+        checkIsNotReleased("getCurrentPreset()");
         if (mIsWorkaroundHTCAndGalaxyS4Enabled || mIsCyanogenModWorkaroundEnabled) {
-            checkIsNotReleased("getCurrentPreset()");
             preset = workaroundGetCurrentPreset();
         } else {
             preset = getEqualizer().getCurrentPreset();

@@ -23,6 +23,7 @@ import java.util.List;
 
 import junit.framework.TestSuite;
 
+import android.os.Build;
 import android.util.Log;
 
 import com.h6ah4i.android.media.IBasicMediaPlayer;
@@ -39,13 +40,15 @@ import com.h6ah4i.android.testing.ParameterizedTestSuiteBuilder;
 public class BasicMediaPlayerTestCase_SetNextMediaPlayerMethod extends
         BasicMediaPlayerStateTestCaseBase {
 
-    private static final boolean SKIP_HANGUP_SUSPECTED_TEST_CASE = true;
+    private static final boolean SKIP_HANGUP_SUSPECTED_TEST_CASE =
+            (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH);
 
     public static TestSuite buildTestSuite(
             Class<? extends IMediaPlayerFactory> factoryClazz) {
         TestSuite suite = new TestSuite();
 
         String[] testsWithBasicTestParams = new String[] {
+                "testCallbacksOnNextPlayerStart",
                 "testIsPlayingTransition",
                 "testSeekToBeforeAttachedAsNextMediaPlayer",
                 "testSeekToAfterAttachedAsNextMediaPlayer",
@@ -375,6 +378,79 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerMethod extends
         checkEndState(player, args);
     }
 
+    public void testCallbacksOnNextPlayerStart() throws Throwable {
+        IBasicMediaPlayer player = createWrappedPlayerInstance();
+        IBasicMediaPlayer nextPlayer = null;
+        Object args = getTestParams();
+
+        try {
+            Object syncObj1 = new Object();
+            CompletionListenerObject comp1 = new CompletionListenerObject(syncObj1);
+            SeekCompleteListenerObject seek1 = new SeekCompleteListenerObject(syncObj1);
+            ErrorListenerObject error1 = new ErrorListenerObject(syncObj1, false);
+
+            Object syncObj2 = new Object();
+            CompletionListenerObject comp2 = new CompletionListenerObject(syncObj2);
+            SeekCompleteListenerObject seek2 = new SeekCompleteListenerObject(syncObj2);
+            ErrorListenerObject error2 = new ErrorListenerObject(syncObj2, false);
+
+            // prepare
+            transitStateToPrepared(player, args);
+            nextPlayer = createNextPlayer(player, NextPlayerType.PREPARED);
+            setUnwrappedtNextPlayer(player, nextPlayer);
+
+            assertFalse(player.isPlaying());
+            assertFalse(nextPlayer.isPlaying());
+
+            // set listener objects
+            player.setOnCompletionListener(comp1);
+            player.setOnSeekCompleteListener(seek1);
+            player.setOnErrorListener(error1);
+
+            nextPlayer.setOnCompletionListener(comp2);
+            nextPlayer.setOnSeekCompleteListener(seek2);
+            nextPlayer.setOnErrorListener(error2);
+
+            // start
+            player.start();
+
+            assertTrue(player.isPlaying());
+            assertFalse(nextPlayer.isPlaying());
+
+            Thread.sleep(SHORT_EVENT_WAIT_DURATION);
+
+            assertTrue(player.isPlaying());
+            assertFalse(nextPlayer.isPlaying());
+
+            // wait for the next player started
+            int duration1 = player.getDuration();
+            Thread.sleep(duration1);
+
+            assertFalse(player.isPlaying());
+            assertTrue(nextPlayer.isPlaying());
+
+            // check listener objects
+            assertTrue(comp1.occurred());
+            assertFalse(seek1.occurred());
+            assertFalse(error1.occurred());
+
+            // wait for the next player completion
+            int duration2 = nextPlayer.getDuration();
+            Thread.sleep(duration2 + SHORT_EVENT_WAIT_DURATION);
+
+            assertFalse(player.isPlaying());
+            assertFalse(nextPlayer.isPlaying());
+
+            // check listener objects
+            assertTrue(comp2.occurred());
+            assertFalse(seek2.occurred());
+            assertFalse(error2.occurred());
+        } finally {
+            releaseQuietly(nextPlayer);
+            releaseQuietly(player);
+        }
+    }
+
     public void testIsPlayingTransition() throws Throwable {
         IBasicMediaPlayer player = createWrappedPlayerInstance();
         IBasicMediaPlayer nextPlayer = null;
@@ -419,6 +495,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerMethod extends
         }
     }
 
+    // NOTE: This test case may fails with StandardMediaPlayer (affects: ICS to JB, Lollipop with NuPlayer)
     public void testSeekToBeforeAttachedAsNextMediaPlayer() throws Throwable {
         IBasicMediaPlayer player = createWrappedPlayerInstance();
         IBasicMediaPlayer nextPlayer = null;
@@ -504,6 +581,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerMethod extends
         }
     }
 
+    // NOTE: This test case may fails with StandardMediaPlayer (affects: ICS to JB, Lollipop with NuPlayer)
     public void testSeekToAfterAttachedAsNextMediaPlayer() throws Throwable {
         IBasicMediaPlayer player = createWrappedPlayerInstance();
         IBasicMediaPlayer nextPlayer = null;

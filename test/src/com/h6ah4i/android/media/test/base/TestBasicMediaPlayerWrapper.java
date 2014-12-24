@@ -459,6 +459,8 @@ public final class TestBasicMediaPlayerWrapper
                     mPlayer.setWakeMode(context, mode);
                 }
             });
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (NullPointerException e) {

@@ -690,14 +690,16 @@ void OpenSLMediaPlayer::Impl::onDecoderBufferingUpdate(int32_t percent) noexcept
     }
 }
 
-void OpenSLMediaPlayer::Impl::onPlaybackCompletion() noexcept
+void OpenSLMediaPlayer::Impl::onPlaybackCompletion(impl::AudioPlayer::PlaybackCompletionType completion_type) noexcept
 {
+    LOGD("onPlaybackCompletion(completion_type = %d)", completion_type);
+
     const int state_mask = SMASK(STARTED) | SMASK(PAUSED);
 
     if (!checkCurrentState(state_mask))
         return;
 
-    processOnCompletion();
+    processOnCompletion(completion_type);
 }
 
 void OpenSLMediaPlayer::Impl::onPrepareCompleted(int prepare_result) noexcept
@@ -1077,7 +1079,7 @@ void OpenSLMediaPlayer::Impl::onHandleMessage(const void *msg_) noexcept
         typedef msg_blob_get_duration blob_t;
         const blob_t &blob = GET_MSG_BLOB(*msg);
         const int state_mask =
-            SMASK(PREPARED) | SMASK(STARTED) | SMASK(PAUSED) | SMASK(STOPPED) | SMASK(PLAYBACK_COMPLETED);
+            SMASK(PREPARED) | SMASK(STARTED) | SMASK(PAUSED) | SMASK(STOPPED) | SMASK(PLAYBACK_COMPLETED) | SMASK(ERROR);
 
         if (checkCurrentState(state_mask)) {
             result = player_->getDuration(blob.duration);
@@ -1229,7 +1231,7 @@ void OpenSLMediaPlayer::Impl::onHandleMessage(const void *msg_) noexcept
         } else {
             result = OSLMP_RESULT_ILLEGAL_STATE;
             if (is_error) {
-                raise_error = checkStateMask(prev_error_state_, STATE_MASK_PREPARED);
+                raise_error = false;
             } else {
                 raise_error = true;
             }
@@ -1332,7 +1334,6 @@ int OpenSLMediaPlayer::Impl::waitResult(OpenSLMediaPlayer::Impl::Message *msg) n
 
 void OpenSLMediaPlayer::Impl::notifyResult(const OpenSLMediaPlayer::Impl::Message *msg, int result) noexcept
 {
-
     utils::pt_unique_lock lock(mutex_wait_processed_);
 
     (*(msg->result)) = result;
@@ -1343,7 +1344,7 @@ void OpenSLMediaPlayer::Impl::notifyResult(const OpenSLMediaPlayer::Impl::Messag
 
 OpenSLMediaPlayer *OpenSLMediaPlayer::Impl::getHolder() const noexcept { return holder_; }
 
-int OpenSLMediaPlayer::Impl::processOnCompletion() noexcept
+int OpenSLMediaPlayer::Impl::processOnCompletion(impl::AudioPlayer::PlaybackCompletionType completion_type) noexcept
 {
 #if 0
     LOCAL_ASSERT(state_ == STATE_STARTED);
@@ -1353,13 +1354,28 @@ int OpenSLMediaPlayer::Impl::processOnCompletion() noexcept
 
     int result = OSLMP_RESULT_SUCCESS;
 
-    // update player state
-    setState(STATE_PLAYBACK_COMPLETED);
+    switch (completion_type) {
+        case AudioPlayer::kCompletionNormal:
+        case AudioPlayer::kCompletionStartNextPlayer: {
+            // update player state
+            setState(STATE_PLAYBACK_COMPLETED);
 
-    android::sp<OnCompletionListener> listener(on_completion_listener_.promote());
-
-    if (listener.get()) {
-        listener->onCompletion(getHolder());
+            android::sp<OnCompletionListener> listener(on_completion_listener_.promote());
+            if (listener.get()) {
+                listener->onCompletion(getHolder());
+            }
+        }    break;
+        case AudioPlayer::kPlaybackLooped: {
+            android::sp<OnSeekCompleteListener> listener(on_seek_complete_listener_.promote());
+            if (listener.get()) {
+                // NOTE:
+                // Emulate AwesomePlayer behavior.
+                listener->onSeekComplete(getHolder());
+            }
+        }   break;
+        default:
+            LOGE("Unexpected completion type: %d", completion_type);
+            break;
     }
 
     return result;

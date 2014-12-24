@@ -242,7 +242,7 @@ public class BasicMediaPlayerTestCase_AttachAuxEffectMethod extends
     @Override
     protected void onTestStateErrorAfterPrepared(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        expectsErrorCallback(player, (TestParams) args);
+        expectsNoErrors(player, (TestParams) args);
     }
 
     @Override

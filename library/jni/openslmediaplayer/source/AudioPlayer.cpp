@@ -44,6 +44,8 @@
 #define DEBUG_CURRENT_AUDIO_SOURCE_STATE(msg)
 #endif
 
+#define MIXING_STOP_CAUSE_INVALID   ((AudioMixer::mixing_stop_cause_t) (-1))
+
 namespace oslmp {
 namespace impl {
 
@@ -72,13 +74,14 @@ struct poll_results_info_t {
 
     bool playback_completed;
     bool playback_looped;
+    bool next_player_started;
 
     bool buffering_status_updated;
     int32_t bufferred_percentage;
 
     poll_results_info_t()
         : prepare_completed(false), prepare_result(0), seek_completed(false), seek_result(0), playback_completed(false),
-          playback_looped(false), buffering_status_updated(false), bufferred_percentage(0)
+          playback_looped(false), next_player_started(false), buffering_status_updated(false), bufferred_percentage(0)
     {
     }
 };
@@ -185,7 +188,7 @@ private:
     bool isSeeking() const noexcept;
 
     void raiseOnPlayerStartedAsNextPlayerEvent() noexcept;
-    void raiseOnPlaybackCompletionEvent() noexcept;
+    void raiseOnPlaybackCompletionEvent(AudioPlayer::PlaybackCompletionType completion_type) noexcept;
     void raiseOnDecoderBufferingUpdate(int32_t percent) noexcept;
     void raiseOnSeekCompleted(int seek_result) noexcept;
     void raiseOnPrepareCompleted(int prepare_result) noexcept;
@@ -228,6 +231,8 @@ private:
     timespec ts_last_seek_request_;
     bool seek_pending_;
     int32_t pending_seek_position_;
+
+    AudioMixer::mixing_stop_cause_t current_source_stop_cause_;
 };
 
 class TimeoutChecker {
@@ -498,7 +503,8 @@ AudioPlayer::Impl::Impl(AudioPlayer *holder)
       prepared_(false), started_(false), start_pending_(false), playback_completed_(false), last_stopped_position_(0),
       preparing_source_create_reason_(AUDIO_SOURCE_CREATE_REASON_NONE), next_player_(nullptr),
       next_player_instance_id_(0), last_buffering_update_notified_position_(0),
-      ts_last_seek_request_(utils::timespec_utils::ZERO()), seek_pending_(false), pending_seek_position_(false)
+      ts_last_seek_request_(utils::timespec_utils::ZERO()), seek_pending_(false), pending_seek_position_(false),
+      current_source_stop_cause_(MIXING_STOP_CAUSE_INVALID)
 {
 }
 
@@ -1005,12 +1011,26 @@ void AudioPlayer::Impl::pollHandlePendingSeekRequest() noexcept
 void AudioPlayer::Impl::pollHandlePlaybackCompletion(poll_results_info_t &results) noexcept
 {
     std::unique_ptr<AudioSource> &current_source = getCurrentSource();
+    const AudioMixer::mixing_stop_cause_t stop_cause = current_source_stop_cause_;
 
     if (!safeIsPlaybackCompleted(current_source))
         return;
 
+    if (!(stop_cause == AudioMixer::MIXING_STOP_CAUSE_END_OF_DATA_NO_TRIGGERED ||
+        stop_cause == AudioMixer::MIXING_STOP_CAUSE_END_OF_DATA_TRIGGERED_NO_LOOPING_SOURCE ||
+        stop_cause == AudioMixer::MIXING_STOP_CAUSE_END_OF_DATA_TRIGGERED_LOOPING_SOURCE)) {
+        return;
+    }
+
     const AudioSource::playback_completion_type_t comp_type = safeGetPlaybackCompletionType(current_source);
-    const bool looped = (comp_type == AudioSource::PLAYBACK_COMPLETED_WITH_LOOP_POINT);
+    const bool looped = (stop_cause == AudioMixer::MIXING_STOP_CAUSE_END_OF_DATA_TRIGGERED_LOOPING_SOURCE);
+    const bool next_player_started = (stop_cause == AudioMixer::MIXING_STOP_CAUSE_END_OF_DATA_TRIGGERED_NO_LOOPING_SOURCE);
+
+    if (looped || (comp_type == AudioSource::PLAYBACK_COMPLETED_WITH_LOOP_POINT)) {
+        if (!(looped && (comp_type == AudioSource::PLAYBACK_COMPLETED_WITH_LOOP_POINT))) {
+            LOGE("pollHandlePlaybackCompletion() - Unexpected condition: stop_cause = %d, comp_type = %d", stop_cause, comp_type);
+        }
+    }
 
     int32_t completed_position = 0;
     current_source->getCurrentPosition(&completed_position);
@@ -1027,7 +1047,7 @@ void AudioPlayer::Impl::pollHandlePlaybackCompletion(poll_results_info_t &result
                 moveNextSourceToReadySource(&mixer_da);
             }
 
-            if (comp_type == AudioSource::PLAYBACK_COMPLETED) {
+            if (!looped) {
                 playback_completed_ = true;
                 last_stopped_position_ = completed_position;
                 setStartedStatus(false, false);
@@ -1051,8 +1071,9 @@ void AudioPlayer::Impl::pollHandlePlaybackCompletion(poll_results_info_t &result
         createAndStartPreparingNextAudioSource(AUDIO_SOURCE_CREATE_REASON_REWINDING, 0);
     }
 
-    results.playback_completed = (playback_completed_ && !looped);
-    results.playback_looped = (playback_completed_ && looped);
+    results.playback_completed = (playback_completed_ && !looped && !next_player_started);
+    results.playback_looped = looped;
+    results.next_player_started = next_player_started;
 }
 
 bool AudioPlayer::Impl::isPreparing() const noexcept
@@ -1222,6 +1243,7 @@ int AudioPlayer::Impl::reset() noexcept
     metadata_.clear();
     prepared_ = false;
     last_stopped_position_ = 0;
+    current_source_stop_cause_ = MIXING_STOP_CAUSE_INVALID;
 
     return OSLMP_RESULT_SUCCESS;
 }
@@ -1247,7 +1269,7 @@ int AudioPlayer::Impl::getDuration(int32_t *duration) noexcept
 
     if (metadata_.duration.available()) {
         result = OSLMP_RESULT_SUCCESS;
-        (*duration) = (prepared_) ? metadata_.duration.get() : 0;
+        (*duration) = metadata_.duration.get();
     } else {
         result = OSLMP_RESULT_ILLEGAL_STATE;
         (*duration) = 0;
@@ -1488,7 +1510,13 @@ void AudioPlayer::Impl::poll() noexcept
         raiseOnSeekCompleted(results.seek_result);
     }
     if (results.playback_completed) {
-        raiseOnPlaybackCompletionEvent();
+        raiseOnPlaybackCompletionEvent(AudioPlayer::kCompletionNormal);
+    }
+    if (results.next_player_started) {
+        raiseOnPlaybackCompletionEvent(AudioPlayer::kCompletionStartNextPlayer);
+    }
+    if (results.playback_looped) {
+        raiseOnPlaybackCompletionEvent(AudioPlayer::kPlaybackLooped);
     }
 }
 
@@ -1554,6 +1582,10 @@ void AudioPlayer::Impl::onMixingStarted(AudioSourceDataPipe *pipe, AudioMixer::m
 void AudioPlayer::Impl::onMixingStopped(AudioSourceDataPipe *pipe, AudioMixer::mixing_stop_cause_t cause) noexcept
 {
     LOGD("%d onMixingStopped(pipe = %p, cause = %d)", player_instance_id_, pipe, cause);
+
+    if (safeGetPipe(getCurrentSource()) == pipe) {
+        current_source_stop_cause_ = cause;
+    }
 
     if (safeGetPipe(active_source_) == pipe) {
         active_source_->pause();
@@ -1842,10 +1874,10 @@ void AudioPlayer::Impl::raiseOnPlayerStartedAsNextPlayerEvent() noexcept
     }
 }
 
-void AudioPlayer::Impl::raiseOnPlaybackCompletionEvent() noexcept
+void AudioPlayer::Impl::raiseOnPlaybackCompletionEvent(AudioPlayer::PlaybackCompletionType completion_type) noexcept
 {
     if (event_handler_) {
-        event_handler_->onPlaybackCompletion();
+        event_handler_->onPlaybackCompletion(completion_type);
     }
 }
 

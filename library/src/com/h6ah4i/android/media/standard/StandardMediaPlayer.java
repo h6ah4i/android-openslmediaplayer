@@ -27,6 +27,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
+import android.os.PowerManager;
 import android.util.Log;
 
 import com.h6ah4i.android.media.IBasicMediaPlayer;
@@ -39,6 +40,10 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
     private static final boolean LOCAL_LOGV = false;
     private static final boolean LOCAL_LOGD = true;
+
+    // constants
+    private static final int SEEK_POS_NOSET = -1;
+
 
     private MediaPlayer mPlayer;
     private MediaPlayerStateManager mState;
@@ -53,28 +58,25 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
     private boolean mIsLooping;
     private int mDuration;
     private boolean mUsingNuPlayer;
-
+    private int mSeekPosition = SEEK_POS_NOSET;
+    private int mPendingSeekPosition = SEEK_POS_NOSET;
 
     private static abstract class SkipCondition {
-        public abstract boolean check(MediaPlayerStateManager stateManager);
+        public boolean prevCheck(MediaPlayerStateManager stateManager) { return false; }
+        public boolean postCheck(MediaPlayerStateManager stateManager) { return false; }
     }
-    private static class SkipConditionIfNotPrepared extends SkipCondition {
+    private static class SkipConditionIfErrorBeforePreparedPrepared extends SkipCondition {
         @Override
-        public boolean check(MediaPlayerStateManager stateManager) {
-            return !isPrepared(stateManager.getPrevErrorState());
-        }
-    }
-    private static class SkipConditionForPauseMethod extends SkipCondition {
-        @Override
-        public boolean check(MediaPlayerStateManager stateManager) {
-            final int s = stateManager.getPrevErrorState();
-            return !(isPrepared(s) || s == MediaPlayerStateManager.STATE_INITIALIZED || s == MediaPlayerStateManager.STATE_STOPPED);
+        public boolean prevCheck(MediaPlayerStateManager stateManager) {
+            if (stateManager.isStateError()) {
+                return !isPrepared(stateManager.getPrevErrorState());
+            }
+            return false;
         }
     }
 
     private static final SkipCondition SKIP_CONDITION_NEVER = null;
-    private static final SkipCondition SKIP_CONDITION_IF_NOT_PREPARED = new SkipConditionIfNotPrepared();
-    private static final SkipCondition SKIP_CONDITION_FOR_PAUSE_METHOD = new SkipConditionForPauseMethod();
+    private static final SkipCondition SKIP_CONDITION_ERROR_BEFORE_PREPARED = new SkipConditionIfErrorBeforePreparedPrepared();
 
     private android.media.MediaPlayer.OnCompletionListener mHookOnCompletionListener = new android.media.MediaPlayer.OnCompletionListener() {
         @Override
@@ -194,6 +196,9 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         mUserOnInfoListener = null;
         mUserOnErrorListener = null;
 
+        mSeekPosition = SEEK_POS_NOSET;
+        mPendingSeekPosition = SEEK_POS_NOSET;
+
         mNextMediaPlayerRef.clear();
 
         mState.transitToEndState();
@@ -216,15 +221,16 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         }
 
         mIsLooping = false;
+        mSeekPosition = SEEK_POS_NOSET;
+        mPendingSeekPosition = SEEK_POS_NOSET;
+        mDuration = 0;
 
         mState.transitToIdleState();
     }
 
     @Override
     public int getAudioSessionId() {
-        if (mPlayer == null) {
-            return 0;
-        }
+        checkIsNotReleased();
         return mPlayer.getAudioSessionId();
     }
 
@@ -241,7 +247,7 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         checkIsNotReleased();
 
         if (!mState.canCallStart()) {
-            transitToErrorStateAndCallback(METHOD_NAME, MEDIA_ERROR_UNKNOWN, 0, SKIP_CONDITION_IF_NOT_PREPARED);
+            transitToErrorStateAndCallback(METHOD_NAME, MEDIA_ERROR_UNKNOWN, 0, SKIP_CONDITION_NEVER);
             return;
         }
 
@@ -266,12 +272,14 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         checkIsNotReleased();
 
         if (!mState.canCallStop()) {
-            transitToErrorStateAndCallback(METHOD_NAME, MEDIA_ERROR_UNKNOWN, 0, SKIP_CONDITION_IF_NOT_PREPARED);
+            transitToErrorStateAndCallback(METHOD_NAME, MEDIA_ERROR_UNKNOWN, 0, SKIP_CONDITION_ERROR_BEFORE_PREPARED);
             return;
         }
 
         try {
             mPlayer.stop();
+            mSeekPosition = SEEK_POS_NOSET;
+            mPendingSeekPosition = SEEK_POS_NOSET;
             mState.transitToStoppedState();
         } catch (IllegalStateException e) {
             Log.w(TAG, makeUnexpectedExceptionCaughtMessage(METHOD_NAME), e);
@@ -429,7 +437,7 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         checkIsNotReleased();
 
         if (!mState.canCallPause()) {
-            transitToErrorStateAndCallback(METHOD_NAME, MEDIA_ERROR_UNKNOWN, 0, SKIP_CONDITION_FOR_PAUSE_METHOD);
+            transitToErrorStateAndCallback(METHOD_NAME, MEDIA_ERROR_UNKNOWN, 0, SKIP_CONDITION_ERROR_BEFORE_PREPARED);
             return;
         }
 
@@ -506,12 +514,17 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         checkIsNotReleased();
 
         if (!mState.canCallSeekTo()) {
-            transitToErrorStateAndCallback(METHOD_NAME, MEDIA_ERROR_UNKNOWN, 0, SKIP_CONDITION_IF_NOT_PREPARED);
+            transitToErrorStateAndCallback(METHOD_NAME, MEDIA_ERROR_UNKNOWN, 0, SKIP_CONDITION_ERROR_BEFORE_PREPARED);
             return;
         }
 
         try {
-            mPlayer.seekTo(msec);
+            if (!isSeeking()) {
+                mPlayer.seekTo(msec);
+                mSeekPosition = msec;
+            } else {
+                mPendingSeekPosition = msec;
+            }
         } catch (IllegalStateException e) {
             Log.w(TAG, makeUnexpectedExceptionCaughtMessage(METHOD_NAME), e);
             mState.transitToErrorState();
@@ -530,18 +543,13 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         checkIsNotReleased();
 
         if (!mState.canCallGetDuration()) {
-            transitToErrorStateAndCallback(METHOD_NAME, MEDIA_ERROR_UNKNOWN, 0, SKIP_CONDITION_NEVER);
-            return 0;
+            if (!isStateError()) {
+                transitToErrorStateAndCallback(METHOD_NAME, MEDIA_ERROR_UNKNOWN, 0, SKIP_CONDITION_NEVER);
+                return 0;
+            }
         }
 
-        int duration = mPlayer.getDuration();
-        if (!isPrepared()) {
-            // [Workaround]
-            // super.getDuration() may returns invalid (uninitialized ?) value
-            // before calling prepare() method
-            duration = 0;
-        }
-        return duration;
+        return mDuration;
     }
 
     @Override
@@ -616,6 +624,8 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
     @Override
     public void setAuxEffectSendLevel(float level) {
+        checkIsNotReleased();
+
         // [Workaround]
         // Hack: Can't handle some invalid values
         if (Float.isNaN(level) || level < 0.0f)
@@ -626,9 +636,13 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
     @Override
     public void setWakeMode(Context context, int mode) {
-        if (mPlayer != null) {
-            mPlayer.setWakeMode(context, mode);
+        checkIsNotReleased();
+
+        if (context == null) {
+            throw new IllegalArgumentException("The argument context must not be null");
         }
+
+        mPlayer.setWakeMode(context, mode);
     }
 
     @Override
@@ -655,10 +669,8 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         final int state = mState.getState();
 
         // NOTE:
-        // MediaPlayer.setMediaPlayer() throws IllegalArgumentsException
-        if (state == MediaPlayerStateManager.STATE_IDLE ||
-            state == MediaPlayerStateManager.STATE_END ||
-            state == MediaPlayerStateManager.STATE_ERROR) {
+        // MediaPlayer.setNextMediaPlayer() throws IllegalArgumentsException
+        if (isSetNextMediaPlayerThrowsIAE(state)) {
             final String msg = makeMethodCalledInvalidStateMessage(METHOD_NAME);
             throw new IllegalStateException(msg);
         }
@@ -687,41 +699,42 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
     @Override
     public void setLooping(boolean looping) {
+        checkIsNotReleased();
+
         // [Workaround]
         // Stock MediaPlayer doesn't support setLooping() method in idle state
-        if ((!isReleased()) && isBeforePrepared()) {
+        if (isBeforePrepared()) {
             mIsLooping = looping;
         } else {
-            mPlayer.setLooping(looping);
             mIsLooping = looping;
+            applyLoopingState();
             applyNextMediaPlayer();
         }
     }
 
     @Override
     public boolean isLooping() {
-        if ((!isReleased()) && isBeforePrepared()) {
-            return mIsLooping;
-        } else {
-            return mPlayer.isLooping();
-        }
+        checkIsNotReleased();
+
+        return mIsLooping;
     }
 
     @Override
     public boolean isPlaying() throws IllegalStateException {
         checkIsNotReleased();
 
-        return mPlayer.isPlaying();
+        if (needLoopPointCallbackEmulation()) {
+            return (mState.getState() == MediaPlayerStateManager.STATE_STARTED);
+        } else {
+            return mPlayer.isPlaying();
+        }
     }
 
     @Override
     public void attachAuxEffect(int effectId) {
-        if (mPlayer == null) {
-            return;
-        }
+        checkIsNotReleased();
 
         if (isStateError()) {
-            postError(MEDIA_ERROR_UNKNOWN, 0);
             return;
         }
 
@@ -730,15 +743,14 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
     @Override
     public void setVolume(float leftVolume, float rightVolume) {
-        if (mPlayer == null) {
-            return;
-        }
+        checkIsNotReleased();
         mPlayer.setVolume(leftVolume, rightVolume);
     }
 
     @Override
     public void setAudioStreamType(int streamtype) {
-        if (mPlayer == null) {
+        checkIsNotReleased();
+        if (isStateError()) {
             return;
         }
         mPlayer.setAudioStreamType(streamtype);
@@ -758,7 +770,9 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
                 next = null;
             }
 
-            MediaPlayerCompat.setNextMediaPlayer(mPlayer, next);
+            if (!isSetNextMediaPlayerThrowsIAE(mState.getState())) {
+                MediaPlayerCompat.setNextMediaPlayer(mPlayer, next);
+            }
         }
     }
 
@@ -774,24 +788,42 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
     }
 
     private void applyLoopingState() {
-        mPlayer.setLooping(mIsLooping);
+        if (!needLoopPointCallbackEmulation()) {
+            mPlayer.setLooping(mIsLooping);
+        }
     }
 
     protected void handleOnCompletion(MediaPlayer mp) {
-        if (isCompletionOnLoopPointSupported() && mIsLooping) {
+        mSeekPosition = SEEK_POS_NOSET;
+        mPendingSeekPosition = SEEK_POS_NOSET;
+
+        boolean looped = false;
+
+        // check whether looped
+        if (needLoopPointCallbackEmulation() && mIsLooping) {
+            try {
+                mPlayer.seekTo(0);
+                mPlayer.start();
+                looped = true;
+            } catch (Exception e) {
+                // eat all exceptions here
+                Log.e(TAG, "An exception occurred in handleOnCompletion()", e);
+            }
+        } else if (isCompletionOnLoopPointSupported() && mIsLooping && mPlayer.isPlaying()) {
+            looped = true;
+        }
+
+        if (looped) {
             onNotifyLoopPoint();
             return;
         }
 
-        boolean nextPlayerStarted = false;
-
-        // Emulate setNextMediaPlayer() behavior
         if (!MediaPlayerCompat.supportsSetNextMediaPlayer()) {
+            // emulate setNextMediaPlayer() behavior
             StandardMediaPlayer nextmp = mNextMediaPlayerRef.get();
             try {
                 if (nextmp != null) {
                     nextmp.start();
-                    nextPlayerStarted = true;
                 }
             } catch (Exception e) {
                 // eat all exceptions here
@@ -801,19 +833,21 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
         mState.transitToPlaybackCompleted();
 
-        if (!nextPlayerStarted && mUserOnCompletionListener != null) {
+        if (mUserOnCompletionListener != null) {
             mUserOnCompletionListener.onCompletion(this);
         }
     }
 
     private void onNotifyLoopPoint() {
         if (mUserOnSeekCompleteListener != null) {
+            // emulate AwesomePlayer behavior
             mUserOnSeekCompleteListener.onSeekComplete(this);
         }
     }
 
     protected void handleOnPrepared(MediaPlayer mp, boolean invokeCallback) {
         mDuration = mPlayer.getDuration();
+
         applyLoopingState();
 
         mState.transitToPreparedState();
@@ -824,8 +858,27 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
     }
 
     protected void handleOnSeekComplete(MediaPlayer mp) {
-        if (mUserOnSeekCompleteListener != null) {
-            mUserOnSeekCompleteListener.onSeekComplete(this);
+        final int seekPosition = mSeekPosition;
+        final int pendingSeekPosition = mPendingSeekPosition;
+
+        mSeekPosition = SEEK_POS_NOSET;
+        mPendingSeekPosition = SEEK_POS_NOSET;
+
+        if (pendingSeekPosition >= 0) {
+            mSeekPosition = pendingSeekPosition;
+            mp.seekTo(pendingSeekPosition);
+        }
+
+        if (pendingSeekPosition == SEEK_POS_NOSET) {
+            if (seekPosition == SEEK_POS_NOSET) {
+                if (isSeekCompletionOnLoopPointSupported()) {
+                    onNotifyLoopPoint();
+                }
+            } else {
+                if (mUserOnSeekCompleteListener != null) {
+                    mUserOnSeekCompleteListener.onSeekComplete(this);
+                }
+            }
         }
     }
 
@@ -859,14 +912,23 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
     private void transitToErrorStateAndCallback(String methodName, int what, int extra, SkipCondition skipCallback) {
         final String msg = makeMethodCalledInvalidStateMessage(methodName);
+        boolean skip = false;
 
         if (LOCAL_LOGV) {
             Log.v(TAG, msg);
         }
 
+        if (skipCallback != null) {
+            skip |= skipCallback.prevCheck(mState);
+        }
+
         mState.transitToErrorState();
 
-        if (skipCallback != null && skipCallback.check(mState)) {
+        if (!skip && (skipCallback != null)) {
+            skip |= skipCallback.postCheck(mState);
+        }
+
+        if (skip) {
             // don't raise error callback if the error has been occurred before prepared state.
             return;
         }
@@ -923,6 +985,14 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
     private boolean isCompletionOnLoopPointSupported() {
         return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) && (mUsingNuPlayer);
+    }
+
+    private boolean isSeekCompletionOnLoopPointSupported() {
+        return (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) && (!mUsingNuPlayer);
+    }
+
+    private boolean needLoopPointCallbackEmulation() {
+        return !isSeekCompletionOnLoopPointSupported() && !isCompletionOnLoopPointSupported();
     }
 
     private String makeMethodCalledInvalidStateMessage(String messageName) {
@@ -995,4 +1065,15 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
             mUserOnCompletionListener.onCompletion(this);
         }
     }
+
+    private boolean isSeeking() {
+        return (mSeekPosition >= 0);
+    }
+
+    private static boolean isSetNextMediaPlayerThrowsIAE(int state) {
+        return state == MediaPlayerStateManager.STATE_IDLE ||
+                state == MediaPlayerStateManager.STATE_END ||
+                state == MediaPlayerStateManager.STATE_ERROR;
+    }
 }
+

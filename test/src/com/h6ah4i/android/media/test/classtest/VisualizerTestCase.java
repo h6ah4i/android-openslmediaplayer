@@ -2204,7 +2204,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
                 fail();
             }
             player.start();
-            // XXX This assertion fails on Android 5.0 with StandardMediaPlayer
+            // XXX This assertion fails with StandardMediaPlayer
             if (!comp.await(SHORT_EVENT_WAIT_DURATION)) {
                 fail();
             }
