@@ -67,10 +67,6 @@ Getting started
 
 1. Add these lines to `build.gradle` of your project
     ```groovy
-    repositories {
-        maven { url 'http://h6ah4i.github.io/android-openslmediaplayer/repository/' }
-    }
-
     dependencies {
         compile 'com.h6ah4i.android:openslmediaplayer:0.5.0'
     }
