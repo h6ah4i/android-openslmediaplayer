@@ -332,11 +332,14 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
             mState.transitToErrorState();
             throw e; // re-throw
         } catch (NullPointerException e) {
-            // NOTE:
+            // NOTE-1:
+            // Some devices throws NPE when file not found.
+            throw new IOException("File not found...?", e);
+            // NOTE-2:
             // Maybe, passing a wrong context.
             // If running on InstrumentationTestCase, getInstrumentation().getTargetContext() method should be used.
-            Log.w(TAG, METHOD_NAME + ", maybe passing a wrong context object.", e);
-            throw new IllegalStateException(UNEXPECTED_EXCEPTION_MESSAGE, e);
+            // Log.w(TAG, METHOD_NAME + ", maybe passing a wrong context object.", e);
+            // throw new IllegalStateException(UNEXPECTED_EXCEPTION_MESSAGE, e);
         } catch (Exception e) {
             Log.w(TAG, makeUnexpectedExceptionCaughtMessage(METHOD_NAME), e);
             mState.transitToErrorState();
