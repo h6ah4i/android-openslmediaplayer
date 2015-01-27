@@ -3,6 +3,8 @@ OpenSLMediaPlayer
 
 Re-implementation of Android's [MediaPlayer](http://developer.android.com/reference/android/media/MediaPlayer.html) and [audio effect classes](http://developer.android.com/reference/android/media/audiofx/package-summary.html) based on OpenSL ES APIs.
 
+[![Android Arsenal](https://img.shields.io/badge/Android%20Arsenal-OpenSLMediaPlayer-brightgreen.svg?style=flat)](https://android-arsenal.com/details/1/1434)
+
 Motivation
 ---
 
