@@ -671,22 +671,19 @@ public class GlobalAppController implements IReleasable {
             case PlayerControlReqEvents.PLAYER_STOP: {
                 playerStop(0);
                 playerStop(1);
-                mSwapPlayerPending = false;
+                resetPlayerStateControlVariables();
             }
                 break;
             case PlayerControlReqEvents.PLAYER_RESET: {
                 playerReset(0);
                 playerReset(1);
-                mSwapPlayerPending = false;
+                resetPlayerStateControlVariables();
             }
                 break;
             case PlayerControlReqEvents.PLAYER_RELEASE: {
                 playerRelease(0);
                 playerRelease(1);
-
-                mActivePlayerIndex = 0;
-                mNextPlayerPrepared = false;
-                mSwapPlayerPending = false;
+                resetPlayerStateControlVariables();
             }
                 break;
             case PlayerControlReqEvents.PLAYER_SEEK_TO: {
@@ -742,6 +739,12 @@ public class GlobalAppController implements IReleasable {
             }
                 break;
         }
+    }
+
+    private void resetPlayerStateControlVariables() {
+        mActivePlayerIndex = 0;
+        mNextPlayerPrepared = false;
+        mSwapPlayerPending = false;
     }
 
     private void playerPrepare(int index) {
@@ -1692,6 +1695,7 @@ public class GlobalAppController implements IReleasable {
     private void releaseAllPlayerResources() {
         playerRelease(0);
         playerRelease(1);
+        resetPlayerStateControlVariables();
 
         safeRelease(mBassBoost);
         mBassBoost = null;
@@ -1722,10 +1726,6 @@ public class GlobalAppController implements IReleasable {
 
         safeRelease(mHQVisualizer);
         mHQVisualizer = null;
-
-        mActivePlayerIndex = 0;
-        mNextPlayerPrepared = false;
-        mSwapPlayerPending = false;
     }
 
     private void releaseFactory() {
@@ -1930,6 +1930,11 @@ public class GlobalAppController implements IReleasable {
 
         if (isPlaying) {
             final MediaMetadata metadata = getActiveMediaMetadata();
+
+            if (metadata == null) {
+                throw new IllegalStateException("Bug check (GitHub issue #5)");
+            }
+
             final Notification notification = NotificationBuilder
                     .createServiceNotification(mHolderService, metadata);
 
