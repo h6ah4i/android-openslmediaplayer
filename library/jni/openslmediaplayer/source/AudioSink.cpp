@@ -14,7 +14,7 @@
 //    limitations under the License.
 //
 
-// #define LOG_TAG "AudioSink"
+#define LOG_TAG "AudioSink"
 // #define NB_LOG_TAG "NB AudioSink"
 
 #include "oslmp/impl/AudioSink.hpp"
@@ -158,6 +158,8 @@ private:
 
     opensles::CSLPlayItf player_;
     opensles::CSLVolumeItf volume_;
+    opensles::CSLPlaybackRateItf playback_rate_;
+    opensles::CSLRatePitchItf rate_pitch_;
     opensles::CSLAndroidSimpleBufferQueueItf buffer_queue_;
 
     int block_size_in_frames_;
@@ -376,11 +378,13 @@ int AudioSink::Impl::initialize(const AudioSink::initialize_args_t &args) noexce
     CSLAndroidSimpleBufferQueueItf buffer_queue;
     CSLPlayItf player;
     CSLVolumeItf volume;
+    CSLPlaybackRateItf playback_rate;
+    CSLRatePitchItf rate_pitch;
 
     // create audio player
     {
-        SLInterfaceID ids[7];
-        SLboolean req[7];
+        SLInterfaceID ids[8];
+        SLboolean req[8];
         SLuint32 cnt = 0;
 
         ids[cnt] = config.getIID();
@@ -392,6 +396,11 @@ int AudioSink::Impl::initialize(const AudioSink::initialize_args_t &args) noexce
         ++cnt;
 
         ids[cnt] = volume.getIID();
+        req[cnt] = SL_BOOLEAN_FALSE;
+        ++cnt;
+
+        ids[cnt] = playback_rate.getIID();
+        // ids[cnt] = rate_pitch.getIID();  /// NOTE: this is not supported
         req[cnt] = SL_BOOLEAN_FALSE;
         ++cnt;
 
@@ -459,6 +468,10 @@ int AudioSink::Impl::initialize(const AudioSink::initialize_args_t &args) noexce
     if (!IS_SL_RESULT_SUCCESS(slResult))
         return TRANSLATE_RESULT(slResult);
 
+    // get the playback rate interface (optional)
+    obj_player.GetInterface(&playback_rate);
+    obj_player.GetInterface(&rate_pitch);
+
     // set pipe user
     result = args.pipe_manager->setSinkPipeOutPortUser(args.pipe, holder_, true);
     if (CXXPH_UNLIKELY(result != OSLMP_RESULT_SUCCESS))
@@ -475,6 +488,8 @@ int AudioSink::Impl::initialize(const AudioSink::initialize_args_t &args) noexce
     player_ = std::move(player);
     buffer_queue_ = std::move(buffer_queue);
     volume_ = std::move(volume);
+    playback_rate_ = std::move(playback_rate);
+    rate_pitch_ = std::move(rate_pitch);
 
     obj_player_ = std::move(obj_player);
 
@@ -498,6 +513,46 @@ int AudioSink::Impl::start() noexcept
 
     if (CXXPH_UNLIKELY(state_ != SINK_STATE_STOPPED))
         return OSLMP_RESULT_ILLEGAL_STATE;
+
+    // NOTE  SLPlaybackRate is suppored, but it doesn't take care about the pitch of sound.
+    if (playback_rate_) {
+        SLresult slResult;
+
+        SLuint32 capabilities = 0;
+        SLpermille min_rate = 0;
+        SLpermille max_rate = 0;
+        SLpermille step_size = 0;
+
+        slResult = playback_rate_.GetRateRange(
+            0, &min_rate, &max_rate, &step_size, &capabilities);
+
+        playback_rate_.SetRate(2000); // x2
+
+
+        LOGW("slResult = %d, min_rate = %d, max_rate = %d, step_size = %d, capabilities = %x",
+        slResult, min_rate, max_rate, step_size, capabilities);
+    } else {
+        LOGW("PlaybackRate interface is not available");
+    }
+
+    // NOTE  Unfortunately, SLRatePitch interface is not supported on Android.
+    if (rate_pitch_) {
+        SLresult slResult;
+
+        SLpermille min_rate = 0;
+        SLpermille max_rate = 0;
+
+        slResult = rate_pitch_.GetRatePitchCapabilities(
+            &min_rate, &max_rate);
+
+        rate_pitch_.SetRate(2000); // x2
+
+
+        LOGW("slResult = %d, min_rate = %d, max_rate = %d",
+        slResult, min_rate, max_rate);
+    } else {
+        LOGW("RatePitch interface is not available");
+    }
 
     int result = queue_binder_.beforeStart(&buffer_queue_);
     if (CXXPH_UNLIKELY(result != OSLMP_RESULT_SUCCESS))
@@ -594,6 +649,7 @@ opensles::CSLObjectItf *AudioSink::Impl::getPlayerObj() const noexcept
 
 void AudioSink::Impl::releaseOpenSLResources() noexcept
 {
+    playback_rate_.unbind();
     volume_.unbind();
     buffer_queue_.unbind();
     player_.unbind();
