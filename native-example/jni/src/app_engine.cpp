@@ -175,6 +175,10 @@ void AppEngine::terminate()
 {
     termDisplay();
     releaseOSLMPResources();
+
+    if (app_ && env_) {
+        app_->activity->vm->DetachCurrentThread();
+    }
 }
 
 bool AppEngine::isActive() const { return (active_state_counter_ > 0); }
