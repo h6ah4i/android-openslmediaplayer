@@ -134,7 +134,7 @@ These libraries are licensed under the [Apache Software License, Version 2.0](ht
 
 - [cxxdasp](https://github.com/h6ah4i/cxxdasp)
 - [cxxporthelper](https://github.com/h6ah4i/cxxporthelper)
-- [lockfreedatastructure](https://github.com/h6ah4i/lockfreedatastructure))
+- [lockfreedatastructure](https://github.com/h6ah4i/lockfreedatastructure)
 - [OpenSL ES CXX](https://github.com/h6ah4i/openslescxx)
 
 
