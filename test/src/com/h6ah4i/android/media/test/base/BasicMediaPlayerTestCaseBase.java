@@ -17,7 +17,6 @@
 
 package com.h6ah4i.android.media.test.base;
 
-import java.io.Closeable;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
@@ -39,7 +38,6 @@ import android.content.res.AssetManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Debug;
 import android.util.Log;
 
 import com.h6ah4i.android.media.IBasicMediaPlayer;

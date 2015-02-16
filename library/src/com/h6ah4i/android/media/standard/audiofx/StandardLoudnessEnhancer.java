@@ -4,7 +4,6 @@ package com.h6ah4i.android.media.standard.audiofx;
 import android.media.audiofx.AudioEffect;
 import android.os.Build;
 
-import com.h6ah4i.android.media.audiofx.IAudioEffect;
 import com.h6ah4i.android.media.audiofx.ILoudnessEnhancer;
 
 public class StandardLoudnessEnhancer extends StandardAudioEffect implements ILoudnessEnhancer {
