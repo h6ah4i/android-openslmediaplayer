@@ -1040,8 +1040,8 @@ void AudioPlayer::Impl::pollHandlePlaybackCompletion(poll_results_info_t &result
         AudioMixer::DeferredApplication mixer_da(mixer);
 
         if (started_) {
-            releaseActiveAudioSource(&mixer_da);
             releaseOldAudioSource(&mixer_da);
+            releaseActiveAudioSource(&mixer_da);
 
             if (next_source_) {
                 moveNextSourceToReadySource(&mixer_da);
@@ -1557,17 +1557,6 @@ void AudioPlayer::Impl::onMixingStarted(AudioSourceDataPipe *pipe, AudioMixer::m
         LOGD("onMixingStarted() - pipe == NEXT");
         if (cause == AudioMixer::MIXING_START_CAUSE_LOOP_TRIGGERED) {
             next_source_->start();
-
-            {
-                AudioMixer::DeferredApplication mixer_da(getAudioMixer());
-
-                releaseOldAudioSource(&mixer_da);
-                releaseActiveAudioSource(&mixer_da);
-                releaseReadyAudioSource(&mixer_da);
-                moveNextSourceToReadySource(&mixer_da);
-                moveReadySourceToActiveSource(&mixer_da);
-                refreshCurrentSourceToMixer(&mixer_da);
-            }
         } else {
             LOGW("%d onMixingStarted(pipe = %p (next), cause = %d)", player_instance_id_, pipe, cause);
         }
