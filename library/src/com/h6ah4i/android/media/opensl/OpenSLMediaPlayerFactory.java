@@ -68,6 +68,7 @@ public class OpenSLMediaPlayerFactory implements IMediaPlayerFactory {
 
     @Override
     protected void finalize() throws Throwable {
+        super.finalize();
         release();
     }
 
