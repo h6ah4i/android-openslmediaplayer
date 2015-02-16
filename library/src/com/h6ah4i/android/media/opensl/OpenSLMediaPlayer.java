@@ -17,7 +17,6 @@
 
 package com.h6ah4i.android.media.opensl;
 
-import java.io.Closeable;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -744,10 +743,14 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
         return fileSize;
     }
 
-    static void closeQuietly(Closeable c) {
-        if (c != null) {
+    /*
+     * NOTE: The AssetFileDescriptor does not implement
+    　* Closeable interface until API level 19 (issue #8)
+     */
+    static void closeQuietly(AssetFileDescriptor afd) {
+        if (afd != null) {
             try {
-                c.close();
+                afd.close();
             } catch (IOException e) {
                 Log.w(TAG, "closeQuietly() " + e.getStackTrace());
             }

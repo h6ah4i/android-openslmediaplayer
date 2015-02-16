@@ -21,6 +21,7 @@ import java.io.Closeable;
 import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -33,6 +34,7 @@ import java.util.List;
 import junit.framework.TestCase;
 import junit.framework.TestSuite;
 import android.content.Context;
+import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -233,8 +235,12 @@ public abstract class BasicMediaPlayerTestCaseBase
         return dir;
     }
 
-    protected static void closeQuietly(Closeable c) {
-        CommonTestCaseUtils.closeQuietly(c);
+    protected static void closeQuietly(AssetFileDescriptor afd) {
+        CommonTestCaseUtils.closeQuietly(afd);
+    }
+
+    protected static void closeQuietly(InputStream is) {
+        CommonTestCaseUtils.closeQuietly(is);
     }
 
     protected static void releaseQuietly(IReleasable releasable) {
