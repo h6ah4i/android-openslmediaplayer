@@ -26,7 +26,7 @@ import com.h6ah4i.android.media.utils.AudioSystemUtils;
 import com.h6ah4i.android.media.utils.AudioSystemUtils.AudioSystemProperties;
 
 public class OpenSLMediaPlayerContext implements IReleasable {
-    private static final String TAG = "OpenSLMediaPlayerContext";
+    private static final String TAG = "OpenSLMediaPlayerCtx";
 
     // options
     public static final int OPTION_USE_BASSBOOST = (1 << 0);

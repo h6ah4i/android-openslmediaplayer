@@ -2466,11 +2466,11 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
                         "setEnabled(false) returns an error");
 
             if (mWaveform.analyze())
-                Log.d("DataCaptureRateMeasure-WaveForm",
+                Log.d("CaptureRateMeasure-WF",
                         mWaveform.summaryText());
 
             if (mFft.analyze())
-                Log.d("DataCaptureRateMeasure-FFT", mFft.summaryText());
+                Log.d("CaptureRateMeasure-FFT", mFft.summaryText());
         }
 
         private static long diffTime(long t1, long t2) {
@@ -2604,7 +2604,7 @@ public class VisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             double error = (1.0 * (measuredRate - rate) / rate);
 
-            Log.d("checkWaveFormCaptureRate",
+            Log.d("chkWaveFormCaptureRate",
                     "expected: " + rate + ", measured: " + measuredRate
                             + "  (error: "
                             + String.format("%.2f", (error * 100)) + " %)");
