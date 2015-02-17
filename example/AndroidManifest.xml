@@ -19,8 +19,8 @@
  content of android-studio/OpenSLMediaPlayer/library/build.gradle -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.h6ah4i.android.example.openslmediaplayer"
-    android:versionCode="2"
-    android:versionName="0.5.1" >
+    android:versionCode="3"
+    android:versionName="0.6.0" >
 
     <!-- NOTE: StandardMediaPlayer: API level 9+, OpenSLMediaPlayer: API level 14+ -->
     <uses-sdk
