@@ -93,7 +93,7 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         }
     };
 
-    private android.media.MediaPlayer.OnSeekCompleteListener mHookOnSeekCompeleteListener = new android.media.MediaPlayer.OnSeekCompleteListener() {
+    private android.media.MediaPlayer.OnSeekCompleteListener mHookOnSeekCompleteListener = new android.media.MediaPlayer.OnSeekCompleteListener() {
         @Override
         public void onSeekComplete(android.media.MediaPlayer mp) {
             StandardMediaPlayer.this.handleOnSeekComplete(mp);
@@ -138,7 +138,7 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
             mPlayer.setOnCompletionListener(mHookOnCompletionListener);
             mPlayer.setOnPreparedListener(mHookOnPreparedListener);
-            mPlayer.setOnSeekCompleteListener(mHookOnSeekCompeleteListener);
+            mPlayer.setOnSeekCompleteListener(mHookOnSeekCompleteListener);
             mPlayer.setOnBufferingUpdateListener(mHookOnBufferingUpdateListener);
             mPlayer.setOnInfoListener(mHookOnInfoListener);
             mPlayer.setOnErrorListener(mHookOnErrorListener);
@@ -192,7 +192,7 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
 
         mHookOnCompletionListener = null;
         mHookOnPreparedListener = null;
-        mHookOnSeekCompeleteListener = null;
+        mHookOnSeekCompleteListener = null;
         mHookOnBufferingUpdateListener = null;
         mHookOnInfoListener = null;
         mHookOnErrorListener = null;
