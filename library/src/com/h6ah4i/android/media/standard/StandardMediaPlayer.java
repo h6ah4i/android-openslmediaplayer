@@ -535,6 +535,10 @@ public class StandardMediaPlayer implements IBasicMediaPlayer {
         }
 
         try {
+            // workaround: some devices don't raise onSeekCompletion()
+            // event if the seek position is greater than the duration
+            msec = Math.min(Math.max(mDuration - 1, 0), msec);
+
             if (!isSeeking()) {
                 mPlayer.seekTo(msec);
                 mSeekPosition = msec;
