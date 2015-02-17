@@ -1017,7 +1017,7 @@ void OpenSLMediaPlayer::Impl::onHandleMessage(const void *msg_) noexcept
             result = player_->start();
         } else {
             result = OSLMP_RESULT_ILLEGAL_STATE;
-            raise_error = checkStateMask(prev_error_state_, STATE_MASK_PREPARED);
+            raise_error = true;
         }
 
         checkResultAndSetState(result, next_state, true);
