@@ -68,11 +68,13 @@ Getting started
 ### Use pre-built library (for Android Studio only)
 
 1. Add these lines to `build.gradle` of your project
-    ```groovy
-    dependencies {
-        compile 'com.h6ah4i.android:openslmediaplayer:0.5.0'
-    }
-    ```
+
+```groovy
+dependencies {
+    compile 'com.h6ah4i.android:openslmediaplayer:0.6.0'
+}
+```
+
 2. That's all ;)
 
 ### Build from source
@@ -82,7 +84,7 @@ If you want to build from source or want to build with ADT (Eclipse), please ref
 Documentation
 ---
 
-Refer to [Wiki](../../wiki) and [JavaDoc](https://h6ah4i.github.io/android-openslmediaplayer/javadoc/0.5.0/).
+Refer to [Wiki](../../wiki) and [JavaDoc](https://h6ah4i.github.io/android-openslmediaplayer/javadoc/0.6.0/).
 
 
 ToDos
