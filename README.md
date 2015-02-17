@@ -53,7 +53,7 @@ Target platforms
 Latest version
 ---
 
-- Version 0.5.0  (November 23, 2014)
+- Version 0.6.0  (Februaly 17, 2015)
 
 
 Demo application (pre-built example apps)
