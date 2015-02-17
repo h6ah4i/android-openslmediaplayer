@@ -53,7 +53,7 @@ Target platforms
 Latest version
 ---
 
-- Version 0.5.0  (November 23, 2014)
+- Version 0.6.0  (Februaly 17, 2015)
 
 
 Demo application (pre-built example apps)
@@ -69,10 +69,6 @@ Getting started
 
 1. Add these lines to `build.gradle` of your project
     ```groovy
-    repositories {
-        maven { url 'http://h6ah4i.github.io/android-openslmediaplayer/repository/' }
-    }
-
     dependencies {
         compile 'com.h6ah4i.android:openslmediaplayer:0.5.0'
     }
@@ -109,7 +105,7 @@ This library is licensed under the [Apache Software License, Version 2.0](http:/
 
 See [`LICENSE`](LICENSE) for full of the license text.
 
-    Copyright (C) 2014 Haruki Hasegawa
+    Copyright (C) 2014-2015 Haruki Hasegawa
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.

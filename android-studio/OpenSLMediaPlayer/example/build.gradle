@@ -21,7 +21,7 @@ ext {
     ndkProjectCodeRootDir = projectBasePath // required for 'android-setup-custom-ndk-build.gradle'
 }
 
-// Common configurations 
+// Common configurations
 apply from: '../common/android-set-common-properties.gradle'
 apply from: '../common/android-use-legacy-layout-files.gradle'
 apply from: '../common/android-disable-default-ndk-build.gradle'
@@ -35,8 +35,8 @@ android {
         applicationId "com.h6ah4i.android.example.openslmediaplayer"
         minSdkVersion 14
         targetSdkVersion 21
-        versionCode 2
-        versionName "0.5.1"
+        versionCode 3
+        versionName "0.6.0"
     }
 
     signingConfigs {
@@ -57,7 +57,7 @@ android {
 // load signing config from external properties file
 if (loadSigningConfigFromPropertiesFile(
     project, android.signingConfigs.release, '../signing/example-signing.properties')) {
-    android.buildTypes.release.signingConfig android.signingConfigs.release  
+    android.buildTypes.release.signingConfig android.signingConfigs.release
 }
 
 
@@ -66,7 +66,7 @@ dependencies {
     compile 'com.android.support:support-v4:21.0.+'
     compile 'com.android.support:appcompat-v7:21.0.+'
     compile 'com.android.support:gridlayout-v7:21.0.+' // Needed for android.support.v7.widget.Space
-    
+
 
     compile project(path: ':library')
 
