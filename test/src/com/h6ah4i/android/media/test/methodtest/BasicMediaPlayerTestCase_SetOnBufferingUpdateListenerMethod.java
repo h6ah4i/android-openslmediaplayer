@@ -120,6 +120,9 @@ public class BasicMediaPlayerTestCase_SetOnBufferingUpdateListenerMethod
 
         assertFalse(comp.occurred());
         assertFalse(err.occurred());
+
+        // XXX Galaxy S4  (SC-04E, Android 4.4.2) fails on this assertion
+        // (StandardMediaPlayer & testStatePreparing, testStatePreparingAfterReset)
         assertFalse(buffupdate.occurred());
     }
 

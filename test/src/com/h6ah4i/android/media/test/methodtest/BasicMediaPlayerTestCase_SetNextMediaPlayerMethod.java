@@ -633,6 +633,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerMethod extends
             assertTrue(nextPlayer.isPlaying());
 
             // NOTE: valid current position position is returned
+            // XXX Galaxy S4 (SC-04E, Android 4.4.2) fails on this assertion
             assertLargerThanOrEqual(seekPosition,
                     nextPlayer.getCurrentPosition());
 
