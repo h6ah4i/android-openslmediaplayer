@@ -17,7 +17,6 @@
 
 package com.h6ah4i.android.media.test.utils;
 
-import java.io.Closeable;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -26,6 +25,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 
+import android.content.res.AssetFileDescriptor;
 import android.content.res.AssetManager;
 
 import com.h6ah4i.android.media.IReleasable;
@@ -34,12 +34,46 @@ public class CommonTestCaseUtils {
     private CommonTestCaseUtils() {
     }
 
-    public static void closeQuietly(Closeable c) {
-        if (c == null)
+    /*
+     * NOTE: The AssetFileDescriptor does not implement
+    　* Closeable interface until API level 19 (issue #8)
+     */
+    public static void closeQuietly(AssetFileDescriptor afd) {
+        if (afd == null)
             return;
 
         try {
-            c.close();
+            afd.close();
+        } catch (Exception e) {
+        }
+    }
+
+    public static void closeQuietly(InputStream is) {
+        if (is == null)
+            return;
+
+        try {
+            is.close();
+        } catch (Exception e) {
+        }
+    }
+
+    public static void closeQuietly(OutputStream os) {
+        if (os == null)
+            return;
+
+        try {
+            os.close();
+        } catch (Exception e) {
+        }
+    }
+
+    public static void closeQuietly(FileChannel is) {
+        if (is == null)
+            return;
+
+        try {
+            is.close();
         } catch (Exception e) {
         }
     }

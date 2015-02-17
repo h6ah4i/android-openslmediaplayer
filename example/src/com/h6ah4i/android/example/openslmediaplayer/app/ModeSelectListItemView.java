@@ -30,11 +30,6 @@ public class ModeSelectListItemView extends RelativeLayout implements Checkable 
         super(context);
     }
 
-    public ModeSelectListItemView(Context context, AttributeSet attrs, int defStyleAttr,
-            int defStyleRes) {
-        super(context, attrs, defStyleAttr, defStyleRes);
-    }
-
     public ModeSelectListItemView(Context context, AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
     }

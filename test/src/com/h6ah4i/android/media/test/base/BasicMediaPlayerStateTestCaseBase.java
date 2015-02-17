@@ -17,6 +17,8 @@
 
 package com.h6ah4i.android.media.test.base;
 
+import android.os.Build;
+
 import java.io.IOException;
 
 import com.h6ah4i.android.media.IBasicMediaPlayer;
@@ -374,19 +376,27 @@ public abstract class BasicMediaPlayerStateTestCaseBase
     @Override
     protected void setDataSourceForCommonTests(IBasicMediaPlayer player, Object args)
             throws IOException {
-        // NOTE:
-        // MP3 format should not be used for this test
-        // because MP3 file cannot handle duration info correctly.
-        player.setDataSource(getStorageFilePath(LOCAL_440HZ_STEREO_OGG));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            // Older devices returns completely wrong duration for OGG files.
+            player.setDataSource(getStorageFilePath(LOCAL_440HZ_STEREO_MP3));
+        } else {
+            // MP3 format should not be used for this test
+            // because MP3 file cannot handle duration info correctly.
+            player.setDataSource(getStorageFilePath(LOCAL_440HZ_STEREO_OGG));
+        }
     }
 
     @Override
     protected void setDataSourceForPlaybackCompletedTest(IBasicMediaPlayer player, Object args)
             throws IOException {
-        // NOTE:
-        // MP3 format should not be used for this test
-        // because MP3 file cannot handle duration info correctly.
-        player.setDataSource(getStorageFilePath(LOCAL_440HZ_STEREO_OGG));
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            // Older devices returns completely wrong duration for OGG files.
+            player.setDataSource(getStorageFilePath(LOCAL_440HZ_STEREO_MP3));
+        } else {
+            // MP3 format should not be used for this test
+            // because MP3 file cannot handle duration info correctly.
+            player.setDataSource(getStorageFilePath(LOCAL_440HZ_STEREO_OGG));
+        }
     }
 
     //

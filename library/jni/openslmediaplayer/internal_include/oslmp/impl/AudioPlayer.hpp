@@ -34,11 +34,17 @@ namespace impl {
 
 class AudioPlayer {
 public:
+    enum PlaybackCompletionType {
+        kCompletionNormal,
+        kCompletionStartNextPlayer,
+        kPlaybackLooped,
+    };
+
     class EventHandler {
     public:
         virtual ~EventHandler() {}
         virtual void onDecoderBufferingUpdate(int32_t percent) noexcept = 0;
-        virtual void onPlaybackCompletion() noexcept = 0;
+        virtual void onPlaybackCompletion(PlaybackCompletionType completion_type) noexcept = 0;
         virtual void onPrepareCompleted(int prepare_result) noexcept = 0;
         virtual void onSeekCompleted(int seek_result) noexcept = 0;
         virtual void onPlayerStartedAsNextPlayer() noexcept = 0;

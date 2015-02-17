@@ -160,7 +160,7 @@ public final class MockBasicMediaPlayer implements IBasicMediaPlayer {
     }
 
     @Override
-    public void setNextMediaPlayerCompat(IBasicMediaPlayer next) {
+    public void setNextMediaPlayer(IBasicMediaPlayer next) {
     }
 
     @Override

@@ -451,12 +451,12 @@ public class NavigationDrawerFragment extends AppBaseFragment {
 
         private Context mContext;
         private ListItem[] mItems;
-        private LayoutInflater mInflator;
+        private LayoutInflater mInflater;
 
         public ModeSelectListAdapter(Context context, ListItem[] items) {
             mContext = context;
             mItems = items;
-            mInflator = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
         @Override
@@ -481,7 +481,7 @@ public class NavigationDrawerFragment extends AppBaseFragment {
             if (convertView != null) {
                 v = (ModeSelectListItemView) convertView;
             } else {
-                v = (ModeSelectListItemView) mInflator.inflate(
+                v = (ModeSelectListItemView) mInflater.inflate(
                         R.layout.navigation_drawer_mode_select_list_item, parent, false);
             }
 
@@ -512,7 +512,7 @@ public class NavigationDrawerFragment extends AppBaseFragment {
 
         private Context mContext;
         private ListItem[] mItems;
-        private LayoutInflater mInflator;
+        private LayoutInflater mInflater;
 
         private OnItemSwitchCheckedChangedListener mOnItemSwitchCheckedChangedListener;
 
@@ -520,7 +520,7 @@ public class NavigationDrawerFragment extends AppBaseFragment {
                 Context context, ListItem[] items) {
             mContext = context;
             mItems = items;
-            mInflator = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+            mInflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
         @Override
@@ -559,7 +559,7 @@ public class NavigationDrawerFragment extends AppBaseFragment {
                     && (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH)) {
                 v = convertView;
             } else {
-                v = mInflator.inflate(R.layout.navigation_drawer_page_select_list_item, parent,
+                v = mInflater.inflate(R.layout.navigation_drawer_page_select_list_item, parent,
                         false);
                 v.setTag(new Tag(v));
             }

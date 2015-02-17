@@ -199,7 +199,7 @@ public interface IHQVisualizer extends IReleasable {
     /**
      * Sets the capture size, i.e. the number of frames captured by
      * OnDataCaptureListener event. The capture size must be a power of 2 in the
-     * range returned by {@link #getCaptureSizeRangeCompat()}. This method must
+     * range returned by {@link #getCaptureSizeRange()}. This method must
      * not be called when the Visualizer is enabled.
      *
      * @param size requested capture size
@@ -257,10 +257,10 @@ public interface IHQVisualizer extends IReleasable {
     /**
      * Returns the capture size range.
      *
-     * @return the mininum capture size is returned in first array element and
+     * @return the minimum capture size is returned in first array element and
      *         the maximum in second array element.
      */
-    int[] getCaptureSizeRangeCompat() throws IllegalStateException;
+    int[] getCaptureSizeRange() throws IllegalStateException;
 
     /**
      * Returns the maximum capture rate for the callback capture method. This is
@@ -270,5 +270,5 @@ public interface IHQVisualizer extends IReleasable {
      *
      * @return the maximum capture rate expressed in milliHertz
      */
-    int getMaxCaptureRateCompat() throws IllegalStateException;
+    int getMaxCaptureRate() throws IllegalStateException;
 }

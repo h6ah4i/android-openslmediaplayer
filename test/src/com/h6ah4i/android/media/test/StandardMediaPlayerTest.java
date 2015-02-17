@@ -52,7 +52,7 @@ import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetData
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetDataSourcePathMethod;
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetDataSourceUriMethod;
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetLoopingMethod;
-import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod;
+import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetNextMediaPlayerMethod;
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetOnBufferingUpdateListenerMethod;
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetOnCompletionListenerMethod;
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetOnErrorListenerMethod;
@@ -118,7 +118,7 @@ public class StandardMediaPlayerTest extends TestCase {
                 BasicMediaPlayerTestCase_SetOnSeekCompleteListenerMethod.buildTestSuite(factory));
         suite.addTest(BasicMediaPlayerTestCase_SetOnInfoListenerMethod.buildTestSuite(factory));
         suite.addTest(
-                BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod.buildTestSuite(factory));
+                BasicMediaPlayerTestCase_SetNextMediaPlayerMethod.buildTestSuite(factory));
         suite.addTest(BasicMediaPlayerTestCase_SetAudioAttributesMethod.buildTestSuite(factory));
 
         //
@@ -127,7 +127,6 @@ public class StandardMediaPlayerTest extends TestCase {
         suite.addTest(BassBoostTestCase.buildTestSuite(factory));
         suite.addTest(VirtualizerTestCase.buildTestSuite(factory));
         suite.addTest(EqualizerTestCase.buildTestSuite(factory));
-        /* NOTE: This method is not supported */
         suite.addTest(LoudnessEnhancerTestCase.buildTestSuite(factory));
         suite.addTest(PresetReverbTestCase.buildTestSuite(factory));
         suite.addTest(EnvironmentalReverbTestCase.buildTestSuite(factory));

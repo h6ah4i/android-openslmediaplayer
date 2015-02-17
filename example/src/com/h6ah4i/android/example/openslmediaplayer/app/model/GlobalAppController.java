@@ -501,8 +501,8 @@ public class GlobalAppController implements IReleasable {
             IBasicMediaPlayer player0 = getPlayer(0);
             IBasicMediaPlayer player1 = getPlayer(1);
 
-            player0.setNextMediaPlayerCompat(player1);
-            player1.setNextMediaPlayerCompat(player0);
+            player0.setNextMediaPlayer(player1);
+            player1.setNextMediaPlayer(player0);
 
             mNextPlayerPrepared = true;
         }
@@ -671,22 +671,19 @@ public class GlobalAppController implements IReleasable {
             case PlayerControlReqEvents.PLAYER_STOP: {
                 playerStop(0);
                 playerStop(1);
-                mSwapPlayerPending = false;
+                resetPlayerStateControlVariables();
             }
                 break;
             case PlayerControlReqEvents.PLAYER_RESET: {
                 playerReset(0);
                 playerReset(1);
-                mSwapPlayerPending = false;
+                resetPlayerStateControlVariables();
             }
                 break;
             case PlayerControlReqEvents.PLAYER_RELEASE: {
                 playerRelease(0);
                 playerRelease(1);
-
-                mActivePlayerIndex = 0;
-                mNextPlayerPrepared = false;
-                mSwapPlayerPending = false;
+                resetPlayerStateControlVariables();
             }
                 break;
             case PlayerControlReqEvents.PLAYER_SEEK_TO: {
@@ -742,6 +739,12 @@ public class GlobalAppController implements IReleasable {
             }
                 break;
         }
+    }
+
+    private void resetPlayerStateControlVariables() {
+        mActivePlayerIndex = 0;
+        mNextPlayerPrepared = false;
+        mSwapPlayerPending = false;
     }
 
     private void playerPrepare(int index) {
@@ -1079,7 +1082,7 @@ public class GlobalAppController implements IReleasable {
 
                 // apply
                 if (envreverb != null) {
-                    envreverb.setPropertiesCompat(state.getSettings());
+                    envreverb.setProperties(state.getSettings());
                 }
 
                 // notify preset changed
@@ -1471,7 +1474,7 @@ public class GlobalAppController implements IReleasable {
         if (bassboost == null)
             return;
 
-        bassboost.setPropertiesCompat(states.getSettings());
+        bassboost.setProperties(states.getSettings());
         bassboost.setEnabled(states.isEnabled());
     }
 
@@ -1480,7 +1483,7 @@ public class GlobalAppController implements IReleasable {
         if (virtualizer == null)
             return;
 
-        virtualizer.setPropertiesCompat(states.getSettings());
+        virtualizer.setProperties(states.getSettings());
         virtualizer.setEnabled(states.isEnabled());
     }
 
@@ -1489,7 +1492,7 @@ public class GlobalAppController implements IReleasable {
         if (equalizer == null)
             return;
 
-        equalizer.setPropertiesCompat(states.getSettings());
+        equalizer.setProperties(states.getSettings());
         equalizer.setEnabled(states.isEnabled());
     }
 
@@ -1498,7 +1501,7 @@ public class GlobalAppController implements IReleasable {
         if (loudnessEnhancer == null)
             return;
 
-        loudnessEnhancer.setPropertiesCompat(states.getSettings());
+        loudnessEnhancer.setProperties(states.getSettings());
         loudnessEnhancer.setEnabled(states.isEnabled());
     }
 
@@ -1507,7 +1510,7 @@ public class GlobalAppController implements IReleasable {
         if (presetreverb == null)
             return;
 
-        presetreverb.setPropertiesCompat(states.getSettings());
+        presetreverb.setProperties(states.getSettings());
         presetreverb.setEnabled(states.isEnabled());
     }
 
@@ -1516,7 +1519,7 @@ public class GlobalAppController implements IReleasable {
         if (envreverb == null)
             return;
 
-        envreverb.setPropertiesCompat(states.getSettings());
+        envreverb.setProperties(states.getSettings());
         envreverb.setEnabled(states.isEnabled());
     }
 
@@ -1525,7 +1528,7 @@ public class GlobalAppController implements IReleasable {
         if (equalizer == null)
             return;
 
-        equalizer.setPropertiesCompat(states.getSettings());
+        equalizer.setProperties(states.getSettings());
         equalizer.setEnabled(states.isEnabled());
     }
 
@@ -1692,6 +1695,7 @@ public class GlobalAppController implements IReleasable {
     private void releaseAllPlayerResources() {
         playerRelease(0);
         playerRelease(1);
+        resetPlayerStateControlVariables();
 
         safeRelease(mBassBoost);
         mBassBoost = null;
@@ -1722,10 +1726,6 @@ public class GlobalAppController implements IReleasable {
 
         safeRelease(mHQVisualizer);
         mHQVisualizer = null;
-
-        mActivePlayerIndex = 0;
-        mNextPlayerPrepared = false;
-        mSwapPlayerPending = false;
     }
 
     private void releaseFactory() {
@@ -1930,6 +1930,11 @@ public class GlobalAppController implements IReleasable {
 
         if (isPlaying) {
             final MediaMetadata metadata = getActiveMediaMetadata();
+
+            if (metadata == null) {
+                throw new IllegalStateException("Bug check (GitHub issue #5)");
+            }
+
             final Notification notification = NotificationBuilder
                     .createServiceNotification(mHolderService, metadata);
 

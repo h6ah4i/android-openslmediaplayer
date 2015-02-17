@@ -459,6 +459,8 @@ public final class TestBasicMediaPlayerWrapper
                     mPlayer.setWakeMode(context, mode);
                 }
             });
+        } catch (IllegalStateException e) {
+            throw e;
         } catch (IllegalArgumentException e) {
             throw e;
         } catch (NullPointerException e) {
@@ -553,15 +555,17 @@ public final class TestBasicMediaPlayerWrapper
     }
 
     @Override
-    public void setNextMediaPlayerCompat(final IBasicMediaPlayer next) {
+    public void setNextMediaPlayer(final IBasicMediaPlayer next) {
         try {
             invoke(new ThrowableRunnable() {
                 @Override
                 public void run() {
-                    mPlayer.setNextMediaPlayerCompat(next);
+                    mPlayer.setNextMediaPlayer(next);
                 }
             });
         } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (IllegalStateException e) {
             throw e;
         } catch (Throwable th) {
             failUnexpectedThrowable(th);

@@ -41,7 +41,7 @@ import java.util.StringTokenizer;
 public interface IPresetReverb extends IAudioEffect {
     /**
      * The Settings class regroups all preset reverb parameters. It is used in
-     * conjuntion with getPropertiesCompat() and setPropertiesCompat() methods
+     * conjuntion with getProperties() and setProperties() methods
      * to backup and restore all parameters in a single call.
      */
     public static class Settings implements Cloneable {
@@ -176,7 +176,7 @@ public interface IPresetReverb extends IAudioEffect {
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    IPresetReverb.Settings getPropertiesCompat()
+    IPresetReverb.Settings getProperties()
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException;
 
     /**
@@ -206,7 +206,7 @@ public interface IPresetReverb extends IAudioEffect {
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    void setPropertiesCompat(IPresetReverb.Settings settings)
+    void setProperties(IPresetReverb.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException;
 
     /**

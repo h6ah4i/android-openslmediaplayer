@@ -21,6 +21,7 @@ package com.h6ah4i.android.media.compat;
 
 //import android.annotation.IntDef;
 //import android.annotation.SystemApi;
+import java.util.Arrays;
 import java.util.Objects;
 
 //import android.media.AudioFormat;
@@ -679,10 +680,10 @@ public final class AudioAttributes implements Parcelable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(mContentType, mFlags, /* mSource, */mUsage/*
-                                                                       * ,
-                                                                       * mFormattedTags
-                                                                       */);
+        return Arrays.hashCode(new int[] {
+                mContentType, mFlags,
+                /* mSource, */
+                mUsage/* mFormattedTags */});
     }
 
     @Override

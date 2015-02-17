@@ -232,25 +232,15 @@ public class BasicMediaPlayerTestCase_SetWakeModeMethod
         fail("Context = " + params.passValidContext + ", Mode = " + wakeModeToString(params.mode));
     }
 
-    private void expectsNullPointerException(IBasicMediaPlayer player, TestParams params) {
+    private void expectsIllegalStateException(IBasicMediaPlayer player, TestParams params) {
         try {
             setWakeMode(player, params);
-        } catch (NullPointerException e) {
+        } catch (IllegalStateException e) {
             return;
         }
-        fail("Context = " + params.passValidContext + ", Mode = " + wakeModeToString(params.mode));
+        fail("Context = " + params.passValidContext + ", Mode = " +
+                wakeModeToString(params.mode));
     }
-
-    // private void expectsIllegalStateException(IBasicMediaPlayer player,
-    // TestParams params) {
-    // try {
-    // setWakeMode(player, params);
-    // } catch (IllegalStateException e) {
-    // return;
-    // }
-    // fail("Context = " + params.passValidContext + ", Mode = " +
-    // wakeModeToString(params.mode));
-    // }
 
     private void setWakeMode(IBasicMediaPlayer player, TestParams params) {
         final Context context = (params.passValidContext) ? getContext() : null;
@@ -258,14 +248,10 @@ public class BasicMediaPlayerTestCase_SetWakeModeMethod
     }
 
     private void swithByExpections(IBasicMediaPlayer player, TestParams params) {
-        if (params.passValidContext) {
-            if (params.isValidMode) {
-                expectsNoErrors(player, params);
-            } else {
-                expectsIllegalArgumentException(player, params);
-            }
+        if (params.passValidContext && params.isValidMode) {
+            expectsNoErrors(player, params);
         } else {
-            expectsNullPointerException(player, params);
+            expectsIllegalArgumentException(player, params);
         }
     }
 
@@ -324,6 +310,6 @@ public class BasicMediaPlayerTestCase_SetWakeModeMethod
 
     @Override
     protected void onTestStateEnd(IBasicMediaPlayer player, Object args) throws Throwable {
-        swithByExpections(player, (TestParams) args);
+        expectsIllegalStateException(player, (TestParams) args);
     }
 }

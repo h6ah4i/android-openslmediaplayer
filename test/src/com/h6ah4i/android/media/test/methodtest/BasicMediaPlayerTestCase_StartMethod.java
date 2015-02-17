@@ -39,25 +39,23 @@ public class BasicMediaPlayerTestCase_StartMethod
         super(args);
     }
 
-    private void expectsNoErrors(IBasicMediaPlayer player) {
-        Object sharedSyncObj = new Object();
-        ErrorListenerObject err = new ErrorListenerObject(sharedSyncObj, false);
-        CompletionListenerObject comp = new CompletionListenerObject(sharedSyncObj);
-
-        player.setOnErrorListener(err);
-        player.setOnCompletionListener(comp);
-
-        player.start();
-
-        // XXX SH-02E (StandardMediaPlayer &
-        // StateErrorBeforePreparedAndAfterReset)
-        if (comp.await(SHORT_EVENT_WAIT_DURATION)) {
-            fail(comp + ", " + err);
-        }
-
-        assertFalse(comp.occurred());
-        assertFalse(err.occurred());
-    }
+//    private void expectsNoErrors(IBasicMediaPlayer player) {
+//        Object sharedSyncObj = new Object();
+//        ErrorListenerObject err = new ErrorListenerObject(sharedSyncObj, false);
+//        CompletionListenerObject comp = new CompletionListenerObject(sharedSyncObj);
+//
+//        player.setOnErrorListener(err);
+//        player.setOnCompletionListener(comp);
+//
+//        player.start();
+//
+//        if (comp.await(SHORT_EVENT_WAIT_DURATION)) {
+//            fail(comp + ", " + err);
+//        }
+//
+//        assertFalse(comp.occurred());
+//        assertFalse(err.occurred());
+//    }
 
     private void expectsPlaybackCompletionWithNoErrors(IBasicMediaPlayer player) {
         Object sharedSyncObj = new Object();
@@ -148,7 +146,7 @@ public class BasicMediaPlayerTestCase_StartMethod
     @Override
     protected void onTestStateErrorBeforePrepared(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        expectsNoErrors(player);
+        expectsErrorCallback(player);
     }
 
     @Override

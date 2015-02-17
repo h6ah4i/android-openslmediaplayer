@@ -20,8 +20,7 @@
     android:minHeight="@dimen/navigation_drawer_list_item_min_height"
     android:paddingEnd="@dimen/navigation_drawer_list_item_padding_right"
     android:paddingLeft="@dimen/navigation_drawer_list_item_padding_left"
-    android:paddingRight="@dimen/navigation_drawer_list_item_padding_right"
-    android:paddingStart="@dimen/navigation_drawer_list_item_padding_left" >
+    android:paddingRight="@dimen/navigation_drawer_list_item_padding_right">
 
     <TextView
         android:id="@android:id/text1"

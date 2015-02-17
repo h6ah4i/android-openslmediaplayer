@@ -64,7 +64,7 @@ public class HQEqualizerUtil {
 
                 preset.index = i;
                 preset.name = eq.getPresetName(preset.index);
-                preset.settings = eq.getPropertiesCompat();
+                preset.settings = eq.getProperties();
 
                 presets[i] = preset;
             }

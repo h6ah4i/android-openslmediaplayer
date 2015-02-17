@@ -51,7 +51,7 @@ import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetData
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetDataSourcePathMethod;
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetDataSourceUriMethod;
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetLoopingMethod;
-import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod;
+import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetNextMediaPlayerMethod;
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetOnBufferingUpdateListenerMethod;
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetOnCompletionListenerMethod;
 import com.h6ah4i.android.media.test.methodtest.BasicMediaPlayerTestCase_SetOnErrorListenerMethod;
@@ -119,7 +119,7 @@ public class OpenSLMediaPlayerTest extends TestCase {
         suite.addTest(BasicMediaPlayerTestCase_SetOnInfoListenerMethod.buildTestSuite(factory));
 
         suite.addTest(
-                BasicMediaPlayerTestCase_SetNextMediaPlayerCompatMethod.buildTestSuite(factory));
+                BasicMediaPlayerTestCase_SetNextMediaPlayerMethod.buildTestSuite(factory));
         suite.addTest(BasicMediaPlayerTestCase_SetAudioAttributesMethod.buildTestSuite(factory));
 
         //

@@ -33,7 +33,7 @@ import com.h6ah4i.android.testing.ParameterizedTestSuiteBuilder;
 public class BasicMediaPlayerClassTestCase
         extends BasicMediaPlayerTestCaseBase {
 
-    private static final String TAG = "BasicMediaPlayerClassTestCase";
+    private static final String TAG = "BasicMediaPlayerClassTC";
 
     public static TestSuite buildTestSuite(
             Class<? extends IMediaPlayerFactory> factoryClazz) {

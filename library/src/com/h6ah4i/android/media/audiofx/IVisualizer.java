@@ -154,7 +154,7 @@ public interface IVisualizer extends IReleasable {
      * Defines a measurement mode which computes the peak and RMS value in mB,
      * where 0mB is the maximum sample value, and -9600mB is the minimum value.
      * Values for peak and RMS can be retrieved with
-     * {@link #getMeasurementPeakRmsCompat(MeasurementPeakRms)}.
+     * {@link #getMeasurementPeakRms(MeasurementPeakRms)}.
      */
     public static final int MEASUREMENT_MODE_PEAK_RMS = 1;
 
@@ -279,7 +279,7 @@ public interface IVisualizer extends IReleasable {
      * Sets the capture size, i.e. the number of bytes returned by
      * {@link #getWaveForm(byte[])} and {@link #getFft(byte[])} methods. The
      * capture size must be a power of 2 in the range returned by
-     * {@link #getCaptureSizeRangeCompat()}. This method must not be called when
+     * {@link #getCaptureSizeRange()}. This method must not be called when
      * the Visualizer is enabled.
      *
      * @param size requested capture size
@@ -314,10 +314,10 @@ public interface IVisualizer extends IReleasable {
     /**
      * Returns the capture size range.
      *
-     * @return the mininum capture size is returned in first array element and
+     * @return the minimum capture size is returned in first array element and
      *         the maximum in second array element.
      */
-    int[] getCaptureSizeRangeCompat() throws IllegalStateException;
+    int[] getCaptureSizeRange() throws IllegalStateException;
 
     /**
      * Returns the maximum capture rate for the callback capture method. This is
@@ -327,7 +327,7 @@ public interface IVisualizer extends IReleasable {
      *
      * @return the maximum capture rate expressed in milliHertz
      */
-    int getMaxCaptureRateCompat() throws IllegalStateException;
+    int getMaxCaptureRate() throws IllegalStateException;
 
     /**
      * Returns the current scaling mode on the captured visualization data.
@@ -336,7 +336,7 @@ public interface IVisualizer extends IReleasable {
      *         {@link #SCALING_MODE_AS_PLAYED}.
      * @throws IllegalStateException
      */
-    int getScalingModeCompat() throws IllegalStateException;
+    int getScalingMode() throws IllegalStateException;
 
     /**
      * Set the type of scaling applied on the captured visualization data.
@@ -347,7 +347,7 @@ public interface IVisualizer extends IReleasable {
      *         case of failure.
      * @throws IllegalStateException
      */
-    int setScalingModeCompat(int mode) throws IllegalStateException;
+    int setScalingMode(int mode) throws IllegalStateException;
 
     /**
      * Returns the current measurement modes performed by this audio effect
@@ -357,7 +357,7 @@ public interface IVisualizer extends IReleasable {
      *         {@link #MEASUREMENT_MODE_PEAK_RMS}.
      * @throws IllegalStateException
      */
-    int getMeasurementModeCompat() throws IllegalStateException;
+    int getMeasurementMode() throws IllegalStateException;
 
     /**
      * Sets the combination of measurement modes to be performed by this audio
@@ -370,7 +370,7 @@ public interface IVisualizer extends IReleasable {
      *         case of failure.
      * @throws IllegalStateException
      */
-    int setMeasurementModeCompat(int mode) throws IllegalStateException;
+    int setMeasurementMode(int mode) throws IllegalStateException;
 
     /**
      * Retrieves the latest peak and RMS measurement. Sets the peak and RMS
@@ -383,5 +383,5 @@ public interface IVisualizer extends IReleasable {
      *         {@link #ERROR_NO_MEMORY}, {@link #ERROR_INVALID_OPERATION} or
      *         {@link #ERROR_DEAD_OBJECT} in case of failure.
      */
-    int getMeasurementPeakRmsCompat(MeasurementPeakRms measurement);
+    int getMeasurementPeakRms(MeasurementPeakRms measurement);
 }

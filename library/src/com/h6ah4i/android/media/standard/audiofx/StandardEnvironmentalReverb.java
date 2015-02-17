@@ -17,14 +17,13 @@
 
 package com.h6ah4i.android.media.standard.audiofx;
 
-import com.h6ah4i.android.media.audiofx.IAudioEffect;
+import android.media.audiofx.EnvironmentalReverb;
+
 import com.h6ah4i.android.media.audiofx.IEnvironmentalReverb;
 import com.h6ah4i.android.media.utils.AudioEffectSettingsConverter;
 
-public class StandardEnvironmentalReverb extends android.media.audiofx.EnvironmentalReverb
-        implements IEnvironmentalReverb {
+public class StandardEnvironmentalReverb extends StandardAudioEffect implements IEnvironmentalReverb {
 
-    private Object mOnParameterChangeListenerLock = new Object();
     private IEnvironmentalReverb.OnParameterChangeListener mUserOnParameterChangeListener;
 
     private android.media.audiofx.EnvironmentalReverb.OnParameterChangeListener mOnParameterChangeListener = new android.media.audiofx.EnvironmentalReverb.OnParameterChangeListener() {
@@ -38,70 +37,186 @@ public class StandardEnvironmentalReverb extends android.media.audiofx.Environme
     public StandardEnvironmentalReverb(int priority, int audioSession)
             throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException, RuntimeException {
-        super(priority, audioSession);
-        super.setParameterListener(mOnParameterChangeListener);
+        super(new EnvironmentalReverb(priority, audioSession));
+        getEnvironmentalReverb().setParameterListener(mOnParameterChangeListener);
+    }
+
+    /**
+     * Get underlying EnvironmentalReverb instance.
+     *
+     * @return underlying EnvironmentalReverb instance.
+     */
+    public EnvironmentalReverb getEnvironmentalReverb() {
+        return (EnvironmentalReverb) getGetAudioEffect();
     }
 
     @Override
     public void release() {
-        mUserOnParameterChangeListener = null;
         super.release();
+        mOnParameterChangeListener = null;
+        mUserOnParameterChangeListener = null;
     }
 
     @Override
-    public void setPropertiesCompat(IEnvironmentalReverb.Settings settings)
+    public IEnvironmentalReverb.Settings getProperties() throws IllegalStateException,
+            IllegalArgumentException,
+            UnsupportedOperationException {
+        checkIsNotReleased("getProperties()");
+        return AudioEffectSettingsConverter.convert(getEnvironmentalReverb().getProperties());
+    }
+
+    @Override
+    public void setProperties(IEnvironmentalReverb.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
         verifySettings(settings);
-        super.setProperties(AudioEffectSettingsConverter.convert(settings));
+        checkIsNotReleased("setProperties()");
+        getEnvironmentalReverb().setProperties(AudioEffectSettingsConverter.convert(settings));
     }
 
     @Override
-    public IEnvironmentalReverb.Settings getPropertiesCompat() throws IllegalStateException,
-            IllegalArgumentException,
-            UnsupportedOperationException {
-        return AudioEffectSettingsConverter.convert(super.getProperties());
+    public short getDiffusion() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getDiffusion()");
+        return getEnvironmentalReverb().getDiffusion();
     }
 
     @Override
-    public void setProperties(android.media.audiofx.EnvironmentalReverb.Settings settings)
-            throws IllegalStateException,
+    public void setDiffusion(short diffusion) throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException {
-        throwUseIEnvironmentalReverbVersionMethod();
-    };
+        verifyDiffusionParameterRange(diffusion);
+        checkIsNotReleased("setDiffusion()");
+        getEnvironmentalReverb().setDiffusion(diffusion);
+    }
 
     @Override
-    public android.media.audiofx.EnvironmentalReverb.Settings getProperties()
-            throws IllegalStateException,
-            IllegalArgumentException,
+    public short getDensity() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getDensity()");
+        return getEnvironmentalReverb().getDensity();
+    }
+
+    @Override
+    public void setDensity(short density) throws IllegalStateException, IllegalArgumentException,
             UnsupportedOperationException {
-        throwUseIEnvironmentalReverbVersionMethod();
-        return null;
+        verifyDensityParameterRange(density);
+        checkIsNotReleased("setDensity()");
+        getEnvironmentalReverb().setDensity(density);
+    }
+
+    @Override
+    public short getDecayHFRatio() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getDecayHFRatio()");
+        return getEnvironmentalReverb().getDecayHFRatio();
+    }
+
+    @Override
+    public void setDecayHFRatio(short decayHFRatio) throws IllegalStateException,
+            IllegalArgumentException, UnsupportedOperationException {
+        verifyDecayHFRatioParameterRange(decayHFRatio);
+        checkIsNotReleased("setDecayHFRatio()");
+        getEnvironmentalReverb().setDecayHFRatio(decayHFRatio);
+    }
+
+    @Override
+    public int getDecayTime() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getDecayTime()");
+        return getEnvironmentalReverb().getDecayTime();
+    }
+
+    @Override
+    public void setDecayTime(int decayTime) throws IllegalStateException, IllegalArgumentException,
+            UnsupportedOperationException {
+        verifyDecayTimeParameterRange(decayTime);
+        checkIsNotReleased("setDecayTime()");
+        getEnvironmentalReverb().setDecayTime(decayTime);
+    }
+
+    @Override
+    public short getRoomLevel() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getRoomLevel()");
+        return getEnvironmentalReverb().getRoomLevel();
+    }
+
+    @Override
+    public void setRoomLevel(short room) throws IllegalStateException, IllegalArgumentException,
+            UnsupportedOperationException {
+        verifyRoomLevelParameterRange(room);
+        checkIsNotReleased("setRoomLevel()");
+        getEnvironmentalReverb().setRoomLevel(room);
+    }
+
+    @Override
+    public short getRoomHFLevel() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getRoomHFLevel()");
+        return getEnvironmentalReverb().getRoomHFLevel();
+    }
+
+    @Override
+    public void setRoomHFLevel(short roomHF) throws IllegalStateException,
+            IllegalArgumentException, UnsupportedOperationException {
+        verifyRoomHFLevelParameterRange(roomHF);
+        checkIsNotReleased("setRoomHFLevel()");
+        getEnvironmentalReverb().setRoomHFLevel(roomHF);
+    }
+
+    @Override
+    public short getReverbLevel() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getReverbLevel()");
+        return getEnvironmentalReverb().getReverbLevel();
+    }
+
+    @Override
+    public void setReverbLevel(short reverbLevel) throws IllegalStateException,
+            IllegalArgumentException, UnsupportedOperationException {
+        verifyReverbLevelParameterRange(reverbLevel);
+        checkIsNotReleased("setReverbLevel()");
+        getEnvironmentalReverb().setReverbLevel(reverbLevel);
+    }
+
+    @Override
+    public int getReverbDelay() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getReverbDelay()");
+        return getEnvironmentalReverb().getReverbDelay();
+    }
+
+    @Override
+    public void setReverbDelay(int reverbDelay) throws IllegalStateException,
+            IllegalArgumentException, UnsupportedOperationException {
+        verifyReverbDelayParameterRange(reverbDelay);
+        checkIsNotReleased("setReverbDelay()");
+        getEnvironmentalReverb().setReverbDelay(reverbDelay);
+    }
+
+    @Override
+    public short getReflectionsLevel() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getReflectionsLevel()");
+        return getEnvironmentalReverb().getReflectionsLevel();
+    }
+
+    @Override
+    public void setReflectionsLevel(short reflectionsLevel) throws IllegalStateException,
+            IllegalArgumentException, UnsupportedOperationException {
+        verifyReflectionsLevelParameterRange(reflectionsLevel);
+        checkIsNotReleased("setReflectionsLevel()");
+        getEnvironmentalReverb().setReflectionsLevel(reflectionsLevel);
+    }
+
+    @Override
+    public int getReflectionsDelay() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getReflectionsDelay()");
+        return getEnvironmentalReverb().getReflectionsDelay();
+    }
+
+    @Override
+    public void setReflectionsDelay(int reflectionsDelay) throws IllegalStateException,
+            IllegalArgumentException, UnsupportedOperationException {
+        verifyReflectionsDelayParameterRange(reflectionsDelay);
+        checkIsNotReleased("setReflectionsDelay()");
+        getEnvironmentalReverb().setReflectionsDelay(reflectionsDelay);
     }
 
     @Override
     public void setParameterListener(
             IEnvironmentalReverb.OnParameterChangeListener listener) {
-        synchronized (mOnParameterChangeListenerLock) {
-            mUserOnParameterChangeListener = listener;
-        }
-    }
-    
-    @Override
-    public void setControlStatusListener(IAudioEffect.OnControlStatusChangeListener listener)
-            throws IllegalStateException {
-        super.setControlStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-    
-    @Override
-    public void setEnableStatusListener(IAudioEffect.OnEnableStatusChangeListener listener)
-            throws IllegalStateException {
-        super.setEnableStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-
-    @Override
-    public void setParameterListener(
-            android.media.audiofx.EnvironmentalReverb.OnParameterChangeListener listener) {
-        throwUseIEnvironmentalReverbVersionMethod();
+        mUserOnParameterChangeListener = listener;
     }
 
     /* package */void onParameterChange(
@@ -109,18 +224,11 @@ public class StandardEnvironmentalReverb extends android.media.audiofx.Environme
             int status, int param, int value) {
         IEnvironmentalReverb.OnParameterChangeListener listener = null;
 
-        synchronized (mOnParameterChangeListenerLock) {
-            listener = mUserOnParameterChangeListener;
-        }
+        listener = mUserOnParameterChangeListener;
 
         if (listener != null) {
-            listener.onParameterChange((StandardEnvironmentalReverb) effect, status, param, value);
+            listener.onParameterChange(this, status, param, value);
         }
-    }
-
-    private static void throwUseIEnvironmentalReverbVersionMethod() {
-        throw new IllegalStateException(
-                "This method is not supported, please use IEnvironmentalReverb version");
     }
 
     // === Fix unwanted behaviors ===
@@ -151,76 +259,6 @@ public class StandardEnvironmentalReverb extends android.media.audiofx.Environme
     private static final short DIFFUSION_MAX = (short) 1000;
     private static final short DENSITY_MIN = (short) 0;
     private static final short DENSITY_MAX = (short) 1000;
-
-    @Override
-    public void setRoomLevel(short room) throws IllegalStateException, IllegalArgumentException,
-            UnsupportedOperationException {
-        verifyRoomLevelParameterRange(room);
-        super.setRoomLevel(room);
-    }
-
-    @Override
-    public void setRoomHFLevel(short roomHF) throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        verifyRoomHFLevelParameterRange(roomHF);
-        super.setRoomHFLevel(roomHF);
-    }
-
-    @Override
-    public void setDecayTime(int decayTime) throws IllegalStateException, IllegalArgumentException,
-            UnsupportedOperationException {
-        verifyDecayTimeParameterRange(decayTime);
-        super.setDecayTime(decayTime);
-    }
-
-    @Override
-    public void setDecayHFRatio(short decayHFRatio) throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        verifyDecayHFRatioParameterRange(decayHFRatio);
-        super.setDecayHFRatio(decayHFRatio);
-    }
-
-    @Override
-    public void setReflectionsLevel(short reflectionsLevel) throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        verifyReflectionsLevelParameterRange(reflectionsLevel);
-        super.setReflectionsLevel(reflectionsLevel);
-    }
-
-    @Override
-    public void setReflectionsDelay(int reflectionsDelay) throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        verifyReflectionsDelayParameterRange(reflectionsDelay);
-        super.setReflectionsDelay(reflectionsDelay);
-    }
-
-    @Override
-    public void setReverbLevel(short reverbLevel) throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        verifyReverbLevelParameterRange(reverbLevel);
-        super.setReverbLevel(reverbLevel);
-    }
-
-    @Override
-    public void setReverbDelay(int reverbDelay) throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        verifyReverbDelayParameterRange(reverbDelay);
-        super.setReverbDelay(reverbDelay);
-    }
-
-    @Override
-    public void setDiffusion(short diffusion) throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        verifyDiffusionParameterRange(diffusion);
-        super.setDiffusion(diffusion);
-    }
-
-    @Override
-    public void setDensity(short density) throws IllegalStateException, IllegalArgumentException,
-            UnsupportedOperationException {
-        verifyDensityParameterRange(density);
-        super.setDensity(density);
-    }
 
     private static void verifyRoomLevelParameterRange(short roomLevel) {
         if (!(roomLevel >= ROOM_LEVEL_MIN && roomLevel <= ROOM_LEVEL_MAX))

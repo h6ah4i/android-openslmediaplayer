@@ -53,7 +53,7 @@ Target platforms
 Latest version
 ---
 
-- Version 0.5.0  (November 23, 2014)
+- Version 0.6.0  (Februaly 17, 2015)
 
 
 Demo application (pre-built example apps)
@@ -105,7 +105,7 @@ This library is licensed under the [Apache Software License, Version 2.0](http:/
 
 See [`LICENSE`](LICENSE) for full of the license text.
 
-    Copyright (C) 2014 Haruki Hasegawa
+    Copyright (C) 2014-2015 Haruki Hasegawa
 
     Licensed under the Apache License, Version 2.0 (the "License");
     you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ These libraries are licensed under the [Apache Software License, Version 2.0](ht
 
 - [cxxdasp](https://github.com/h6ah4i/cxxdasp)
 - [cxxporthelper](https://github.com/h6ah4i/cxxporthelper)
-- [lockfreedatastructure](https://github.com/h6ah4i/lockfreedatastructure))
+- [lockfreedatastructure](https://github.com/h6ah4i/lockfreedatastructure)
 - [OpenSL ES CXX](https://github.com/h6ah4i/openslescxx)
 
 

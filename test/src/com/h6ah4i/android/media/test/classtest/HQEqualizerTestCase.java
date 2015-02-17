@@ -479,7 +479,7 @@ public class HQEqualizerTestCase
             assertEquals(IAudioEffect.SUCCESS, effect.setEnabled(true));
             effect.usePreset((short) (effect.getNumberOfPresets() - 1));
 
-            final IEqualizer.Settings expectedSettings = effect.getPropertiesCompat();
+            final IEqualizer.Settings expectedSettings = effect.getProperties();
 
             // player: idle
 
@@ -487,25 +487,25 @@ public class HQEqualizerTestCase
             setDataSourceForCommonTests(player, null);
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: prepared
             player.prepare();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: started
             player.start();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: paused
             player.pause();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: playback completed
             player.seekTo(player.getDuration());
@@ -518,26 +518,26 @@ public class HQEqualizerTestCase
             }
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: stop
             player.stop();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: idle
             player.reset();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: end
             player.release();
             player = null;
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
         } finally {
             releaseQuietly(player);
             releaseQuietly(effect);
@@ -737,7 +737,7 @@ public class HQEqualizerTestCase
         try {
             effect = createEqualizer(player);
             try {
-                effect.setPropertiesCompat(null);
+                effect.setProperties(null);
                 fail();
             } catch (IllegalArgumentException e) {
                 // expected
@@ -761,7 +761,7 @@ public class HQEqualizerTestCase
             settings.curPreset = 1;
             settings.bandLevels = new short[settings.numBands];
 
-            effect.setPropertiesCompat(settings);
+            effect.setProperties(settings);
 
             assertEquals((short) 1, effect.getCurrentPreset());
 
@@ -876,7 +876,7 @@ public class HQEqualizerTestCase
         }
 
         try {
-            createReleasedEqualizer(player).getPropertiesCompat();
+            createReleasedEqualizer(player).getProperties();
             fail();
         } catch (IllegalStateException e) {
             // expected
@@ -888,7 +888,7 @@ public class HQEqualizerTestCase
 
             equalizer.release();
 
-            createReleasedEqualizer(player).setPropertiesCompat(settings);
+            createReleasedEqualizer(player).setProperties(settings);
             fail();
         } catch (IllegalStateException e) {
             // expected
@@ -1006,7 +1006,7 @@ public class HQEqualizerTestCase
             effect2 = createEqualizer(player);
 
             final boolean initialEnabledState = effect2.getEnabled();
-            final IEqualizer.Settings initialSettings = effect2.getPropertiesCompat();
+            final IEqualizer.Settings initialSettings = effect2.getProperties();
 
             assertFalse(effect1.hasControl());
             assertTrue(effect2.hasControl());
@@ -1024,7 +1024,7 @@ public class HQEqualizerTestCase
             assertEquals(effect2.getBandFreqRange((short) 0)[0],
                     effect1.getBandFreqRange((short) 0)[0]);
             assertEquals(effect2.getBandLevelRange()[0], effect1.getBandLevelRange()[0]);
-            assertEquals(effect2.getPropertiesCompat(), effect1.getPropertiesCompat());
+            assertEquals(effect2.getProperties(), effect1.getProperties());
 
             // setEnabled() should return IAudioEffect.ERROR_INVALID_OPERATION
             assertEquals(IAudioEffect.ERROR_INVALID_OPERATION, effect1.setEnabled(false));
@@ -1050,7 +1050,7 @@ public class HQEqualizerTestCase
                 settings.numBands = initialSettings.numBands;
                 settings.bandLevels = new short[settings.numBands];
 
-                effect1.setPropertiesCompat(settings);
+                effect1.setProperties(settings);
                 fail();
             } catch (UnsupportedOperationException e) {
                 // expected
@@ -1058,7 +1058,7 @@ public class HQEqualizerTestCase
 
             // confirm object state
             assertEquals(initialEnabledState, effect1.getEnabled());
-            assertEquals(initialSettings, effect1.getPropertiesCompat());
+            assertEquals(initialSettings, effect1.getProperties());
         } finally {
             releaseQuietly(effect1);
             effect1 = null;
@@ -1087,7 +1087,7 @@ public class HQEqualizerTestCase
 
             effect2.usePreset((short) 0);
 
-            IEqualizer.Settings expectedSettings = effect2.getPropertiesCompat();
+            IEqualizer.Settings expectedSettings = effect2.getProperties();
 
             // check effect 1 lost controls
             assertEquals(IAudioEffect.ERROR_INVALID_OPERATION, effect1.setEnabled(false));
@@ -1107,12 +1107,12 @@ public class HQEqualizerTestCase
                 settings.numBands = expectedSettings.numBands;
                 settings.bandLevels = new short[settings.numBands];
 
-                effect1.setPropertiesCompat(settings);
+                effect1.setProperties(settings);
                 fail();
             } catch (UnsupportedOperationException e) {
                 // expected
             }
-            assertEquals(expectedSettings, effect1.getPropertiesCompat());
+            assertEquals(expectedSettings, effect1.getProperties());
 
             try {
                 effect1.usePreset((short) 2);
@@ -1120,7 +1120,7 @@ public class HQEqualizerTestCase
             } catch (UnsupportedOperationException e) {
                 // expected
             }
-            assertEquals(expectedSettings, effect1.getPropertiesCompat());
+            assertEquals(expectedSettings, effect1.getProperties());
 
             // change states
             assertEquals(IAudioEffect.SUCCESS, effect2.setEnabled(true));
@@ -1328,7 +1328,7 @@ public class HQEqualizerTestCase
 
         for (ShortValues v : TEST_VALUES) {
             for (short band = 0; band < numBands; band++) {
-                IEqualizer.Settings prevSettings = equalizer.getPropertiesCompat();
+                IEqualizer.Settings prevSettings = equalizer.getProperties();
 
                 equalizer.setBandLevel(band, v.setvalue);
                 assertBandLevelWithOthersArePreserved(v.expected, equalizer, band, prevSettings);
@@ -1346,7 +1346,7 @@ public class HQEqualizerTestCase
 
         for (ShortValues v : TEST_VALUES) {
             for (short band = 0; band < numBands; band++) {
-                IEqualizer.Settings prevSettings = equalizer.getPropertiesCompat();
+                IEqualizer.Settings prevSettings = equalizer.getProperties();
 
                 try {
                     equalizer.setBandLevel(band, v.setvalue);
@@ -1355,7 +1355,7 @@ public class HQEqualizerTestCase
                     // expected
                 }
 
-                assertEquals(prevSettings, equalizer.getPropertiesCompat());
+                assertEquals(prevSettings, equalizer.getProperties());
             }
         }
     }
@@ -1367,7 +1367,7 @@ public class HQEqualizerTestCase
         };
 
         for (short band : TEST_VALUES) {
-            IEqualizer.Settings prevSettings = equalizer.getPropertiesCompat();
+            IEqualizer.Settings prevSettings = equalizer.getProperties();
 
             try {
                 equalizer.setBandLevel(band, (short) 123);
@@ -1383,7 +1383,7 @@ public class HQEqualizerTestCase
                 // expected
             }
 
-            assertEquals(prevSettings, equalizer.getPropertiesCompat());
+            assertEquals(prevSettings, equalizer.getProperties());
         }
     }
 
@@ -1404,7 +1404,7 @@ public class HQEqualizerTestCase
             for (short preset = 0; preset < numPresets; preset++) {
                 for (short band = 0; band < numBands; band++) {
                     equalizer.usePreset(preset);
-                    IEqualizer.Settings expectedSettings = equalizer.getPropertiesCompat();
+                    IEqualizer.Settings expectedSettings = equalizer.getProperties();
                     String expectedName = equalizer.getPresetName(preset);
                     assertEquals(preset, expectedSettings.curPreset);
 
@@ -1418,11 +1418,11 @@ public class HQEqualizerTestCase
 
                     settings.bandLevels[band] = v.expected;
 
-                    equalizer.setPropertiesCompat(settings);
+                    equalizer.setProperties(settings);
 
                     // NOTE
                     // bandLevels values are not used
-                    assertEquals(expectedSettings, equalizer.getPropertiesCompat());
+                    assertEquals(expectedSettings, equalizer.getProperties());
                     assertEquals(expectedName,
                             equalizer.getPresetName(equalizer.getCurrentPreset()));
                 }
@@ -1447,9 +1447,9 @@ public class HQEqualizerTestCase
         settings.bandLevels[3] = (short) -400;
         settings.bandLevels[4] = (short) 500;
 
-        equalizer.setPropertiesCompat(settings);
+        equalizer.setProperties(settings);
 
-        assertEquals(settings, equalizer.getPropertiesCompat());
+        assertEquals(settings, equalizer.getProperties());
         assertEquals(expectedName, equalizer.getPresetName(equalizer.getCurrentPreset()));
     }
 
@@ -1467,7 +1467,7 @@ public class HQEqualizerTestCase
             for (short preset = 0; preset < numPresets; preset++) {
                 for (short band = 0; band < numBands; band++) {
                     equalizer.usePreset(preset);
-                    IEqualizer.Settings expectedSettings = equalizer.getPropertiesCompat();
+                    IEqualizer.Settings expectedSettings = equalizer.getProperties();
                     String expectedName = equalizer.getPresetName(preset);
                     assertEquals(preset, expectedSettings.curPreset);
 
@@ -1481,11 +1481,11 @@ public class HQEqualizerTestCase
 
                     settings.bandLevels[band] = v.expected;
 
-                    equalizer.setPropertiesCompat(settings);
+                    equalizer.setProperties(settings);
 
                     // NOTE
                     // bandLevels values are not used
-                    assertEquals(expectedSettings, equalizer.getPropertiesCompat());
+                    assertEquals(expectedSettings, equalizer.getProperties());
                     assertEquals(expectedName,
                             equalizer.getPresetName(equalizer.getCurrentPreset()));
                 }
@@ -1502,7 +1502,7 @@ public class HQEqualizerTestCase
         settings.bandLevels = null;
 
         try {
-            equalizer.setPropertiesCompat(settings);
+            equalizer.setProperties(settings);
             fail();
         } catch (IllegalArgumentException e) {
             // excepted
@@ -1523,7 +1523,7 @@ public class HQEqualizerTestCase
             settings.bandLevels = new short[numBands];
 
             try {
-                equalizer.setPropertiesCompat(settings);
+                equalizer.setProperties(settings);
                 fail();
             } catch (IllegalArgumentException e) {
                 // excepted
@@ -1548,8 +1548,8 @@ public class HQEqualizerTestCase
             settings.bandLevels = new short[numBands];
 
             try {
-                equalizer.setPropertiesCompat(settings);
-                fail("actual = " + equalizer.getPropertiesCompat());
+                equalizer.setProperties(settings);
+                fail("actual = " + equalizer.getProperties());
             } catch (IllegalArgumentException e) {
                 // excepted
             }
@@ -1571,7 +1571,7 @@ public class HQEqualizerTestCase
             settings.bandLevels = new short[n]; // invalid
 
             try {
-                equalizer.setPropertiesCompat(settings);
+                equalizer.setProperties(settings);
                 fail();
             } catch (IllegalArgumentException e) {
                 // excepted
@@ -1587,7 +1587,7 @@ public class HQEqualizerTestCase
             settings.bandLevels = new short[n];
 
             try {
-                equalizer.setPropertiesCompat(settings);
+                equalizer.setProperties(settings);
                 fail();
             } catch (IllegalArgumentException e) {
                 // excepted
@@ -1605,7 +1605,7 @@ public class HQEqualizerTestCase
 
     static void assertBandLevelEquals(short expected, IEqualizer equalizer, short band) {
         assertEquals(expected, equalizer.getBandLevel(band));
-        assertEquals(expected, equalizer.getPropertiesCompat().bandLevels[band]);
+        assertEquals(expected, equalizer.getProperties().bandLevels[band]);
     }
 
     static void assertBandLevelAllPreserved(

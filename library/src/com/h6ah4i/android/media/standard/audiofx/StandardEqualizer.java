@@ -17,20 +17,18 @@
 
 package com.h6ah4i.android.media.standard.audiofx;
 
+import android.media.audiofx.Equalizer;
 import android.util.Log;
 
-import com.h6ah4i.android.media.audiofx.IAudioEffect;
 import com.h6ah4i.android.media.audiofx.IEqualizer;
 import com.h6ah4i.android.media.utils.AudioEffectSettingsConverter;
 import com.h6ah4i.android.media.utils.DefaultEqualizerPresets;
 import com.h6ah4i.android.media.utils.EqualizerBandInfoCorrector;
 
-public class StandardEqualizer extends android.media.audiofx.Equalizer implements IEqualizer {
+public class StandardEqualizer extends StandardAudioEffect implements IEqualizer {
 
     private static final String TAG = "StandardEqualizer";
 
-    private boolean mReleased;
-    private Object mOnParameterChangeListenerLock = new Object();
     private IEqualizer.OnParameterChangeListener mUserOnParameterChangeListener;
 
     private android.media.audiofx.Equalizer.OnParameterChangeListener mOnParameterChangeListener = new android.media.audiofx.Equalizer.OnParameterChangeListener() {
@@ -44,74 +42,63 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
 
     public StandardEqualizer(int priority, int audioSession) throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException, RuntimeException {
-        super(priority, audioSession);
+        super(new Equalizer(priority, audioSession));
+        getEqualizer().setParameterListener(mOnParameterChangeListener);
         initializeForCompat();
-        super.setParameterListener(mOnParameterChangeListener);
+    }
+
+    /**
+     * Get underlying Equalizer instance.
+     *
+     * @return underlying Equalizer instance.
+     */
+    public Equalizer getEqualizer() {
+        return (Equalizer) super.getGetAudioEffect();
     }
 
     @Override
     public void release() {
-        mReleased = true;
-        mUserOnParameterChangeListener = null;
         super.release();
+        mOnParameterChangeListener = null;
+        mUserOnParameterChangeListener = null;
     }
 
     @Override
-    public void setPropertiesCompat(IEqualizer.Settings settings)
+    public void setProperties(IEqualizer.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
         verifySettings(settings);
+
+        checkIsNotReleased("setProperties()");
 
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
             workaroundGalaxyS4SetProperties(settings);
         } else if (mIsCyanogenModWorkaroundEnabled) {
             workaroundCyanogenModSetProperties(settings);
         } else {
-            super.setProperties(AudioEffectSettingsConverter.convert(settings));
+            getEqualizer().setProperties(AudioEffectSettingsConverter.convert(settings));
         }
     }
 
     @Override
-    public IEqualizer.Settings getPropertiesCompat() throws IllegalStateException,
+    public IEqualizer.Settings getProperties() throws IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
+
+        checkIsNotReleased("getProperties()");
 
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
-            checkState("getPropertiesCompat()");
             return workaroundGalaxyS4GetPropertiesCompat();
         } else if (mIsCyanogenModWorkaroundEnabled) {
-            checkState("getPropertiesCompat()");
             return workaroundCyanogenModGetPropertiesCompat();
         } else {
-            return AudioEffectSettingsConverter.convert(super.getProperties());
+            return AudioEffectSettingsConverter.convert(getEqualizer().getProperties());
         }
-    }
-
-    @Override
-    public void setProperties(android.media.audiofx.Equalizer.Settings settings)
-            throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        throwUseIEqualizerVersionMethod();
-    };
-
-    @Override
-    public android.media.audiofx.Equalizer.Settings getProperties() throws IllegalStateException,
-            IllegalArgumentException,
-            UnsupportedOperationException {
-        throwUseIEqualizerVersionMethod();
-        return null;
     }
 
     @Override
     public void setParameterListener(IEqualizer.OnParameterChangeListener listener) {
-        synchronized (mOnParameterChangeListenerLock) {
-            mUserOnParameterChangeListener = listener;
-        }
-    }
-
-    @Override
-    public void setParameterListener(
-            android.media.audiofx.Equalizer.OnParameterChangeListener listener) {
-        throwUseIEqualizerVersionMethod();
+        checkIsNotReleased("setParameterListener()");
+        mUserOnParameterChangeListener = listener;
     }
 
     /* package */void onParameterChange(
@@ -119,30 +106,11 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
             int status, int param1, int param2, int value) {
         IEqualizer.OnParameterChangeListener listener = null;
 
-        synchronized (mOnParameterChangeListenerLock) {
-            listener = mUserOnParameterChangeListener;
-        }
+        listener = mUserOnParameterChangeListener;
 
         if (listener != null) {
-            listener.onParameterChange((StandardEqualizer) effect, status, param1, param2, value);
+            listener.onParameterChange(this, status, param1, param2, value);
         }
-    }
-    
-    @Override
-    public void setControlStatusListener(IAudioEffect.OnControlStatusChangeListener listener)
-            throws IllegalStateException {
-        super.setControlStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-    
-    @Override
-    public void setEnableStatusListener(IAudioEffect.OnEnableStatusChangeListener listener)
-            throws IllegalStateException {
-        super.setEnableStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-
-    private static void throwUseIEqualizerVersionMethod() {
-        throw new IllegalStateException(
-                "This method is not supported, please use IEqualizer version");
     }
 
     // === Fix unwanted behaviors ===
@@ -169,10 +137,12 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
         final int MIN = 0;
         final int MAX = 1;
 
-        mNumBands = getNumberOfBands();
-        mNumPresets = super.getNumberOfPresets();
+        final Equalizer eq = getEqualizer();
 
-        short[] levelRange = super.getBandLevelRange();
+        mNumBands = eq.getNumberOfBands();
+        mNumPresets = eq.getNumberOfPresets();
+
+        short[] levelRange = eq.getBandLevelRange();
 
         mBandLevelMin = levelRange[0];
         mBandLevelMax = levelRange[1];
@@ -180,8 +150,8 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
         mBandFreqRange = new int[mNumBands][2];
         mBandCenterFreq = new int[mNumBands];
         for (short band = 0; band < mNumBands; band++) {
-            int center = super.getCenterFreq(band);
-            int[] range = super.getBandFreqRange(band);
+            int center = eq.getCenterFreq(band);
+            int[] range = eq.getBandFreqRange(band);
             mBandFreqRange[band][MIN] = range[MIN];
             mBandFreqRange[band][MAX] = range[MAX];
             mBandCenterFreq[band] = center;
@@ -204,12 +174,14 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
     private void initializePresetWorkarounds() {
         // set to default preset
         // (NOTE: default preset of Galaxy S4 is "3")
-        super.usePreset(DEFAULT_PRESET);
+        final Equalizer eq = getEqualizer();
+
+        eq.usePreset(DEFAULT_PRESET);
 
         if (mNumBands == 5) {
             short[] bandLevels = new short[mNumBands];
             for (short band = 0; band < mNumBands; band++) {
-                bandLevels[band] = super.getBandLevel(band);
+                bandLevels[band] = eq.getBandLevel(band);
             }
 
             IEqualizer.Settings defSettings = DefaultEqualizerPresets.PRESET_NORMAL;
@@ -225,8 +197,8 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
 
             if (!mIsWorkaroundHTCAndGalaxyS4Enabled && mNumPresets >= 2) {
                 try {
-                    super.usePreset((short) 1);
-                    super.usePreset(DEFAULT_PRESET);
+                    eq.usePreset((short) 1);
+                    eq.usePreset(DEFAULT_PRESET);
                 } catch (IllegalArgumentException e) {
                     // HTC phones (HTC Evo 3D, Evo 4G LTE) raises
                     // IllegalArgumentException
@@ -244,16 +216,16 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
             // set: 0, get: 0
             // set: 1, get: 1
             // set: 2, get: 2
-            final short origBandLevel = super.getBandLevel((short) 0);
-            super.setBandLevel((short) 0, (short) -1);
-            mIsNegativeBandLevelWorkaroundEnabled = (super.getBandLevel((short) 0) == 0);
-            super.setBandLevel((short) 0, origBandLevel);
+            final short origBandLevel = eq.getBandLevel((short) 0);
+            eq.setBandLevel((short) 0, (short) -1);
+            mIsNegativeBandLevelWorkaroundEnabled = (eq.getBandLevel((short) 0) == 0);
+            eq.setBandLevel((short) 0, origBandLevel);
 
             // Check setProperties() works properly
-            android.media.audiofx.Equalizer.Settings settings = super.getProperties();
+            android.media.audiofx.Equalizer.Settings settings = eq.getProperties();
             try {
                 settings.curPreset = DEFAULT_PRESET;
-                super.setProperties(settings);
+                eq.setProperties(settings);
             } catch (IllegalArgumentException e) {
                 mIsCyanogenModWorkaroundEnabled = true;
             }
@@ -277,10 +249,12 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
 
     private void workaroundCyanogenModUsePreset(short preset) {
         if (preset != PRESET_UNDEFINED) {
-            super.usePreset(preset);
+            final Equalizer eq = getEqualizer();
+
+            eq.usePreset(preset);
 
             for (short band = 0; band < mNumBands; band++) {
-                mWorkaroundBandLevels[band] = super.getBandLevel(band);
+                mWorkaroundBandLevels[band] = eq.getBandLevel(band);
             }
             mWorkaroundCurPreset = preset;
         }
@@ -299,7 +273,7 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
     }
 
     private void workaroundGalaxyS4SetBandLevel(short band, short level) {
-        super.setBandLevel(band, level);
+        getEqualizer().setBandLevel(band, level);
         mWorkaroundBandLevels[band] = level;
         mWorkaroundCurPreset = PRESET_UNDEFINED;
     }
@@ -310,7 +284,7 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
                 level -= (short) 1;
             }
         }
-        super.setBandLevel(band, level);
+        getEqualizer().setBandLevel(band, level);
         mWorkaroundBandLevels[band] = level;
         mWorkaroundCurPreset = PRESET_UNDEFINED;
     }
@@ -320,6 +294,8 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
     }
 
     private void workaroundGalaxyS4SetProperties(IEqualizer.Settings settings) {
+        final Equalizer eq = getEqualizer();
+
         if (settings.curPreset != PRESET_UNDEFINED) {
             // NOTE: if curPreset has valid preset no.,
             // bandLevels values are not used.
@@ -329,13 +305,13 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
         // apply
         if (settings.curPreset != PRESET_UNDEFINED) {
             try {
-                super.usePreset(settings.curPreset);
+                eq.usePreset(settings.curPreset);
             } catch (IllegalArgumentException e) {
                 // HTC devices raises IllegalArgumentException
             }
         }
         for (short band = 0; band < settings.numBands; band++) {
-            super.setBandLevel(band, settings.bandLevels[band]);
+            eq.setBandLevel(band, settings.bandLevels[band]);
         }
 
         mWorkaroundCurPreset = settings.curPreset;
@@ -346,10 +322,12 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
     private void workaroundCyanogenModSetProperties(IEqualizer.Settings settings) {
         // apply
         if (settings.curPreset != PRESET_UNDEFINED) {
-            super.usePreset(settings.curPreset);
+            final Equalizer eq = getEqualizer();
+
+            eq.usePreset(settings.curPreset);
             mWorkaroundCurPreset = settings.curPreset;
             for (short band = 0; band < settings.numBands; band++) {
-                mWorkaroundBandLevels[band] = super.getBandLevel(band);
+                mWorkaroundBandLevels[band] = eq.getBandLevel(band);
             }
         } else {
             for (short band = 0; band < settings.numBands; band++) {
@@ -370,13 +348,15 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
     }
 
     private IEqualizer.Settings workaroundCyanogenModGetPropertiesCompat() {
+        final Equalizer eq = getEqualizer();
         IEqualizer.Settings settings = new IEqualizer.Settings();
+
         settings.curPreset = mWorkaroundCurPreset;
         settings.numBands = mNumBands;
         settings.bandLevels = new short[mNumBands];
 
         for (short band = 0; band < mNumBands; band++) {
-            settings.bandLevels[band] = super.getBandLevel(band);
+            settings.bandLevels[band] = eq.getBandLevel(band);
         }
 
         return settings;
@@ -415,18 +395,18 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
     @Override
     public short getNumberOfBands() throws IllegalStateException, IllegalArgumentException,
             UnsupportedOperationException {
-        checkState("getNumberOfBands()");
-        return super.getNumberOfBands();
+        checkIsNotReleased("getNumberOfBands()");
+        return getEqualizer().getNumberOfBands();
     }
 
     @Override
     public short getNumberOfPresets() throws IllegalStateException, IllegalArgumentException,
             UnsupportedOperationException {
-        checkState("getNumberOfPresets()");
+        checkIsNotReleased("getNumberOfPresets()");
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
             return mNumPresets;
         } else {
-            return super.getNumberOfPresets();
+            return getEqualizer().getNumberOfPresets();
         }
     }
 
@@ -435,21 +415,23 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
             UnsupportedOperationException {
         verifyPresetRange(preset);
 
+        checkIsNotReleased("usePreset()");
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
             workaroundGalaxyS4UsePreset(preset);
         } else if (mIsCyanogenModWorkaroundEnabled) {
             workaroundCyanogenModUsePreset(preset);
         } else {
-            super.usePreset(preset);
+            getEqualizer().usePreset(preset);
         }
     }
 
     @Override
     public String getPresetName(short preset) {
+        checkIsNotReleased("getPresetName()");
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
             return workaroundGalaxyS4GetPesetName(preset);
         } else {
-            return super.getPresetName(preset);
+            return getEqualizer().getPresetName(preset);
         }
     }
 
@@ -457,12 +439,18 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
     public short getBandLevel(short band) throws IllegalStateException, IllegalArgumentException,
             UnsupportedOperationException {
         verifyBandRange(band);
+        checkIsNotReleased("getBandLevel()");
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
-            checkState("getBandLevel()");
             return workaroundGetBandLevel(band);
         } else {
-            return super.getBandLevel(band);
+            return getEqualizer().getBandLevel(band);
         }
+    }
+
+    @Override
+    public short[] getBandLevelRange() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getBandLevelRange()");
+        return getEqualizer().getBandLevelRange();
     }
 
     @Override
@@ -471,12 +459,14 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
         verifyBandRange(band);
         verifyBandLevelRange(level);
 
+        checkIsNotReleased("setBandLevel()");
+
         if (mIsWorkaroundHTCAndGalaxyS4Enabled) {
             workaroundGalaxyS4SetBandLevel(band, level);
         } else if (mIsNegativeBandLevelWorkaroundEnabled) {
             workaroundCyanogenModSetBandLevel(band, level);
         } else {
-            super.setBandLevel(band, level);
+            getEqualizer().setBandLevel(band, level);
         }
     }
 
@@ -487,11 +477,12 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
         // Use getBandCompat() method instead of super.getBand(frequency),
         // because the original implementation returns wrong values.
 
+        checkIsNotReleased("getBand()");
+
         if (mCorrectedBandFreqRange != null) {
-            checkState("getBand()");
             return getBandCompat(mNumBands, mCorrectedBandFreqRange, frequency);
         } else {
-            return super.getBand(frequency);
+            return getEqualizer().getBand(frequency);
         }
     }
 
@@ -504,12 +495,12 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
         // because the original implementation returns wrong values.
         verifyBandRange(band);
 
-        if (mCorrectedBandFreqRange != null) {
-            checkState("getBandFreqRange()");
+        checkIsNotReleased("getBandFreqRange()");
 
+        if (mCorrectedBandFreqRange != null) {
             return getBandFreqRangeCompat(mCorrectedBandFreqRange, band);
         } else {
-            return super.getBandFreqRange(band);
+            return getEqualizer().getBandFreqRange(band);
         }
     }
 
@@ -518,11 +509,11 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
             UnsupportedOperationException {
         verifyBandRange(band);
 
+        checkIsNotReleased("getCenterFreq()");
         if (mCorrectedCenterFreq != null) {
-            checkState("getCenterFreq()");
             return getCenterFreqCompat(mCorrectedCenterFreq, band);
         } else {
-            return super.getCenterFreq(band);
+            return getEqualizer().getCenterFreq(band);
         }
     }
 
@@ -532,11 +523,11 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
 
         short preset;
 
+        checkIsNotReleased("getCurrentPreset()");
         if (mIsWorkaroundHTCAndGalaxyS4Enabled || mIsCyanogenModWorkaroundEnabled) {
-            checkState("getCurrentPreset()");
             preset = workaroundGetCurrentPreset();
         } else {
-            preset = super.getCurrentPreset();
+            preset = getEqualizer().getCurrentPreset();
         }
 
         if (!(preset >= 0 && preset < mNumPresets)) {
@@ -545,13 +536,6 @@ public class StandardEqualizer extends android.media.audiofx.Equalizer implement
         }
 
         return preset;
-    }
-
-    private void checkState(String methodName) throws IllegalStateException {
-        if (mReleased) {
-            throw (new IllegalStateException(methodName
-                    + " called on uninitialized AudioEffect."));
-        }
     }
 
     private void verifyBandLevelRange(short level) {

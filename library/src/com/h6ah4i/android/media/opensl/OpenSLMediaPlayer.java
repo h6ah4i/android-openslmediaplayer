@@ -17,7 +17,6 @@
 
 package com.h6ah4i.android.media.opensl;
 
-import java.io.Closeable;
 import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -470,10 +469,10 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
 
     @Override
     public void setWakeMode(Context context, int mode) {
+        checkNativeImplIsAvailable();
+
         if (context == null) {
-            throw new NullPointerException();
-            // throw new
-            // IllegalArgumentException("The argument context cannot be null");
+            throw new IllegalArgumentException("The argument context must not be null");
         }
 
         // re-create the wake lock object
@@ -488,60 +487,83 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
 
     @Override
     public void setOnBufferingUpdateListener(OnBufferingUpdateListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnBufferingUpdateListener = listener;
     }
 
     @Override
     public void setOnCompletionListener(OnCompletionListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnCompletionListener = listener;
     }
 
     @Override
     public void setOnErrorListener(OnErrorListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnErrorListener = listener;
     }
 
     @Override
     public void setOnInfoListener(OnInfoListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnInfoListener = listener;
     }
 
     @Override
     public void setOnPreparedListener(OnPreparedListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnPreparedListener = listener;
     }
 
     @Override
     public void setOnSeekCompleteListener(OnSeekCompleteListener listener) {
+        if (!isNativeImplIsAvailable()) {
+            return;
+        }
         mOnSeekCompleteListener = listener;
     }
 
     @Override
-    public void setNextMediaPlayerCompat(IBasicMediaPlayer next) {
+    public void setNextMediaPlayer(IBasicMediaPlayer next) {
+        checkNativeImplIsAvailable();
+
         if (next != null && !(next instanceof OpenSLMediaPlayer)) {
             throw new IllegalArgumentException("Not OpenSLMediaPlayer instance");
         }
 
-        setNextMediaPlayer((OpenSLMediaPlayer) next);
-    }
+        OpenSLMediaPlayer next2 = (OpenSLMediaPlayer) next;
 
-    public void setNextMediaPlayer(OpenSLMediaPlayer next) {
-        if (next == this)
+        if (next2 == this) {
             throw new IllegalArgumentException("Can't assign the self instance as a next player");
+        }
 
-        long nextHandle = (next == null) ? 0 : (next.mNativeHandle);
+        if ((next2 != null) && next2.mNativeHandle == 0) {
+            throw new IllegalStateException("The next player has already been released.");
+        }
 
-        if (mNativeHandle != 0) {
-            try {
-                final int result = setNextMediaPlayerImplNative(mNativeHandle, nextHandle);
+        final long nextHandle = (next2 == null) ? 0 : (next2.mNativeHandle);
 
-                parseResultAndThrowNoExceptions(result);
-            } catch (IllegalArgumentException e) {
-                throw e;
-            } catch (Exception e) {
-                Log.e(TAG, "An error occurred in setNextMediaPlayer(nextHandle = "
-                        + nextHandle + ")");
-            }
+        try {
+            final int result = setNextMediaPlayerImplNative(mNativeHandle, nextHandle);
+
+            parseResultAndThrowExceptForIOExceptions(result);
+        } catch (IllegalArgumentException e) {
+            throw e;
+        } catch (IllegalStateException e) {
+            throw e;
+        } catch (Exception e) {
+            Log.e(TAG, "An error occurred in setNextMediaPlayer(nextHandle = "
+                    + nextHandle + ")");
         }
     }
 
@@ -649,8 +671,12 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
     // Utilities
     //
 
+    private boolean isNativeImplIsAvailable()  {
+        return (mNativeHandle != 0);
+    }
+
     private void checkNativeImplIsAvailable() throws IllegalStateException {
-        if (mNativeHandle == 0) {
+        if (!isNativeImplIsAvailable()) {
             throw new IllegalStateException("Native implemenation handle is not present");
         }
     }
@@ -717,10 +743,14 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
         return fileSize;
     }
 
-    static void closeQuietly(Closeable c) {
-        if (c != null) {
+    /*
+     * NOTE: The AssetFileDescriptor does not implement
+    　* Closeable interface until API level 19 (issue #8)
+     */
+    static void closeQuietly(AssetFileDescriptor afd) {
+        if (afd != null) {
             try {
-                c.close();
+                afd.close();
             } catch (IOException e) {
                 Log.w(TAG, "closeQuietly() " + e.getStackTrace());
             }
@@ -731,10 +761,11 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
     // Event handlers
     //
     private void handleOnCompletion() {
+        stayAwake(false);
+
         if (mOnCompletionListener != null) {
             mOnCompletionListener.onCompletion(this);
         }
-        stayAwake(false);
     }
 
     private void handleOnPrepared() {
@@ -764,6 +795,9 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
 
     private void handleOnError(int what, int extra) {
         boolean handled = false;
+
+        stayAwake(false);
+
         if (mOnErrorListener != null) {
             handled = mOnErrorListener.onError(this, what, extra);
         }
@@ -773,8 +807,6 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
                 mOnCompletionListener.onCompletion(this);
             }
         }
-
-        stayAwake(false);
     }
 
     //

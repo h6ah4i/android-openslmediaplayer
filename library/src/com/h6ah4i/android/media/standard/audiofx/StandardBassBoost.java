@@ -17,16 +17,15 @@
 
 package com.h6ah4i.android.media.standard.audiofx;
 
+import android.media.audiofx.BassBoost;
 import android.util.Log;
 
-import com.h6ah4i.android.media.audiofx.IAudioEffect;
 import com.h6ah4i.android.media.audiofx.IBassBoost;
 import com.h6ah4i.android.media.utils.AudioEffectSettingsConverter;
 
-public class StandardBassBoost extends android.media.audiofx.BassBoost implements IBassBoost {
+public class StandardBassBoost extends StandardAudioEffect implements IBassBoost {
     private static final String TAG = "StandardBassBoost";
 
-    private Object mOnParameterChangeListenerLock = new Object();
     private IBassBoost.OnParameterChangeListener mUserOnParameterChangeListener;
 
     private android.media.audiofx.BassBoost.OnParameterChangeListener mOnParameterChangeListener = new android.media.audiofx.BassBoost.OnParameterChangeListener() {
@@ -39,72 +38,67 @@ public class StandardBassBoost extends android.media.audiofx.BassBoost implement
 
     public StandardBassBoost(int priority, int audioSession) throws IllegalStateException,
             IllegalArgumentException, UnsupportedOperationException, RuntimeException {
-        super(priority, audioSession);
-        super.setParameterListener(mOnParameterChangeListener);
+        super(new BassBoost(priority, audioSession));
+        getBassBoost().setParameterListener(mOnParameterChangeListener);
         initializeForCompat();
+    }
+
+    /**
+     * Get underlying BassBoost instance.
+     *
+     * @return underlying BassBoost instance.
+     */
+    public BassBoost getBassBoost() {
+        return (BassBoost) super.getGetAudioEffect();
     }
 
     @Override
     public void release() {
-        mUserOnParameterChangeListener = null;
         super.release();
+        mOnParameterChangeListener = null;
+        mUserOnParameterChangeListener = null;
     }
 
     @Override
-    public void setPropertiesCompat(IBassBoost.Settings settings)
+    public void setProperties(IBassBoost.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("setProperties()");
         verifySettings(settings);
-        super.setProperties(AudioEffectSettingsConverter.convert(settings));
+        getBassBoost().setProperties(AudioEffectSettingsConverter.convert(settings));
     }
 
     @Override
-    public IBassBoost.Settings getPropertiesCompat() throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        return AudioEffectSettingsConverter.convert(super.getProperties());
+    public boolean getStrengthSupported() {
+        if (getBassBoost() == null) {
+            return false;
+        }
+        return getBassBoost().getStrengthSupported();
     }
 
     @Override
-    public void setProperties(android.media.audiofx.BassBoost.Settings settings)
-            throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        throwUseIBassBoostVersionMethod();
-    };
-
-    @Override
-    public android.media.audiofx.BassBoost.Settings getProperties() throws IllegalStateException,
-            IllegalArgumentException, UnsupportedOperationException {
-        throwUseIBassBoostVersionMethod();
-        return null;
+    public void setStrength(short strength) throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("setStrength()");
+        verifyStrengthParameterRange(strength);
+        getBassBoost().setStrength(strength);
     }
 
-    private static void throwUseIBassBoostVersionMethod() {
-        throw new IllegalStateException(
-                "This method is not supported, please use IBassBoost version");
+    @Override
+    public short getRoundedStrength() throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getRoundedStrength()");
+        return getBassBoost().getRoundedStrength();
+    }
+
+    @Override
+    public IBassBoost.Settings getProperties() throws IllegalStateException,
+            IllegalArgumentException, UnsupportedOperationException {
+        checkIsNotReleased("getProperties()");
+        return AudioEffectSettingsConverter.convert(getBassBoost().getProperties());
     }
 
     @Override
     public void setParameterListener(IBassBoost.OnParameterChangeListener listener) {
-        synchronized (mOnParameterChangeListenerLock) {
-            mUserOnParameterChangeListener = listener;
-        }
-    }
-    
-    @Override
-    public void setControlStatusListener(IAudioEffect.OnControlStatusChangeListener listener)
-            throws IllegalStateException {
-        super.setControlStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-    
-    @Override
-    public void setEnableStatusListener(IAudioEffect.OnEnableStatusChangeListener listener)
-            throws IllegalStateException {
-        super.setEnableStatusListener(StandardAudioEffect.wrap(this, listener));
-    }
-
-    @Override
-    public void setParameterListener(
-            android.media.audiofx.BassBoost.OnParameterChangeListener listener) {
-        throwUseIBassBoostVersionMethod();
+        checkIsNotReleased("setParameterListener()");
+        mUserOnParameterChangeListener = listener;
     }
 
     /* package */void onParameterChange(
@@ -112,12 +106,10 @@ public class StandardBassBoost extends android.media.audiofx.BassBoost implement
             int status, int param, short value) {
         IBassBoost.OnParameterChangeListener listener = null;
 
-        synchronized (mOnParameterChangeListenerLock) {
-            listener = mUserOnParameterChangeListener;
-        }
+        listener = mUserOnParameterChangeListener;
 
         if (listener != null) {
-            listener.onParameterChange((StandardBassBoost) effect, status, param, value);
+            listener.onParameterChange(this, status, param, value);
         }
     }
 
@@ -128,17 +120,10 @@ public class StandardBassBoost extends android.media.audiofx.BassBoost implement
 
     void initializeForCompat() {
         try {
-            super.setStrength(DEFAULT_STRENGTH);
+            getBassBoost().setStrength(DEFAULT_STRENGTH);
         } catch (IllegalStateException e) {
             Log.e(TAG, "initializeForCompat()", e);
         }
-    }
-
-    @Override
-    public void setStrength(short strength) throws IllegalStateException, IllegalArgumentException,
-            UnsupportedOperationException {
-        verifyStrengthParameterRange(strength);
-        super.setStrength(strength);
     }
 
     private static void verifyStrengthParameterRange(short strength) {

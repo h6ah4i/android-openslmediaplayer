@@ -125,6 +125,24 @@ public class BasicMediaPlayerTestCase_SeekToMethod
         assertFalse(err.occurred());
     }
 
+    private void expectsNoErrorsWithPlaybackCompletion(IBasicMediaPlayer player, int msec) {
+        Object sharedSyncObj = new Object();
+        ErrorListenerObject err = new ErrorListenerObject(sharedSyncObj, false);
+        CompletionListenerObject comp = new CompletionListenerObject(sharedSyncObj);
+
+        player.setOnErrorListener(err);
+        player.setOnCompletionListener(comp);
+
+        player.seekTo(msec);
+
+        if (!comp.await(SHORT_EVENT_WAIT_DURATION)) {
+            fail(comp + ", " + err);
+        }
+
+        assertTrue(comp.occurred());
+        assertFalse(err.occurred());
+    }
+
     private void expectsErrorCallback(IBasicMediaPlayer player, int msec) {
         Object sharedSyncObj = new Object();
         ErrorListenerObject err = new ErrorListenerObject(sharedSyncObj, false);
@@ -213,7 +231,18 @@ public class BasicMediaPlayerTestCase_SeekToMethod
     @Override
     protected void onTestStateErrorBeforePrepared(IBasicMediaPlayer player, Object args)
             throws Throwable {
-        expectsNoErrors(player, getSeekPosition(player, (TestParams) args));
+
+        switch (((TestParams) args).getSeekPosition()) {
+            case MINUS:
+            case ZERO:
+            case MIDDLE:
+                expectsNoErrors(player, getSeekPosition(player, (TestParams) args));
+                break;
+            case END:
+            case OVERRUN:
+                expectsNoErrorsWithPlaybackCompletion(player, getSeekPosition(player, (TestParams) args));
+                break;
+        }
     }
 
     @Override

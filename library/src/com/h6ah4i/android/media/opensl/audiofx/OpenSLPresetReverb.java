@@ -144,7 +144,7 @@ public class OpenSLPresetReverb extends OpenSLAudioEffect implements IPresetReve
     }
 
     @Override
-    public IPresetReverb.Settings getPropertiesCompat() throws
+    public IPresetReverb.Settings getProperties() throws
             IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {
@@ -175,7 +175,7 @@ public class OpenSLPresetReverb extends OpenSLAudioEffect implements IPresetReve
     }
 
     @Override
-    public void setPropertiesCompat(IPresetReverb.Settings settings) throws
+    public void setProperties(IPresetReverb.Settings settings) throws
             IllegalStateException,
             IllegalArgumentException,
             UnsupportedOperationException {

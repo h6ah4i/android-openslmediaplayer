@@ -245,7 +245,7 @@ public class VirtualizerTestCase
             assertEquals(IAudioEffect.SUCCESS, effect.setEnabled(true));
             effect.setStrength((short) 123);
 
-            final IVirtualizer.Settings expectedSettings = effect.getPropertiesCompat();
+            final IVirtualizer.Settings expectedSettings = effect.getProperties();
 
             // player: idle
 
@@ -253,25 +253,25 @@ public class VirtualizerTestCase
             setDataSourceForCommonTests(player, null);
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: prepared
             player.prepare();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: started
             player.start();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: paused
             player.pause();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: playback completed
             player.seekTo(player.getDuration());
@@ -286,26 +286,26 @@ public class VirtualizerTestCase
             }
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: stop
             player.stop();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: idle
             player.reset();
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
 
             // player: end
             player.release();
             player = null;
 
             assertTrue(effect.getEnabled());
-            assertEquals(expectedSettings, effect.getPropertiesCompat());
+            assertEquals(expectedSettings, effect.getProperties());
         } finally {
             releaseQuietly(player);
             releaseQuietly(effect);
@@ -380,7 +380,7 @@ public class VirtualizerTestCase
         try {
             effect = getFactory().createVirtualizer(player);
             try {
-                effect.setPropertiesCompat(null);
+                effect.setProperties(null);
                 fail();
             } catch (IllegalArgumentException e) {
                 // expected
@@ -463,14 +463,14 @@ public class VirtualizerTestCase
         }
 
         try {
-            createReleasedVirtualizer(player).getPropertiesCompat();
+            createReleasedVirtualizer(player).getProperties();
             fail();
         } catch (IllegalStateException e) {
             // expected
         }
 
         try {
-            createReleasedVirtualizer(player).setPropertiesCompat(createSettings((short) 0));
+            createReleasedVirtualizer(player).setProperties(createSettings((short) 0));
             fail();
         } catch (IllegalStateException e) {
             // expected
@@ -589,7 +589,7 @@ public class VirtualizerTestCase
             effect2 = getFactory().createVirtualizer(player);
 
             final boolean initialEnabledState = effect2.getEnabled();
-            final IVirtualizer.Settings initialSettings = effect2.getPropertiesCompat();
+            final IVirtualizer.Settings initialSettings = effect2.getProperties();
 
             assertFalse(effect1.hasControl());
             assertTrue(effect2.hasControl());
@@ -599,7 +599,7 @@ public class VirtualizerTestCase
             assertEquals(effect2.getId(), effect1.getId());
             assertEquals(effect2.getStrengthSupported(), effect1.getStrengthSupported());
             assertEquals(effect2.getRoundedStrength(), effect1.getRoundedStrength());
-            assertEquals(effect2.getPropertiesCompat(), effect1.getPropertiesCompat());
+            assertEquals(effect2.getProperties(), effect1.getProperties());
 
             // setEnabled() should return IAudioEffect.ERROR_INVALID_OPERATION
             assertEquals(IAudioEffect.ERROR_INVALID_OPERATION, effect1.setEnabled(false));
@@ -613,7 +613,7 @@ public class VirtualizerTestCase
                 // expected
             }
             try {
-                effect1.setPropertiesCompat(createSettings((short) 100));
+                effect1.setProperties(createSettings((short) 100));
                 fail();
             } catch (UnsupportedOperationException e) {
                 // expected
@@ -621,7 +621,7 @@ public class VirtualizerTestCase
 
             // confirm object state
             assertEquals(initialEnabledState, effect1.getEnabled());
-            assertEquals(initialSettings, effect1.getPropertiesCompat());
+            assertEquals(initialSettings, effect1.getProperties());
         } finally {
             releaseQuietly(effect1);
             effect1 = null;
@@ -659,7 +659,7 @@ public class VirtualizerTestCase
             assertEquals(DEFAULT_STRENGTH, effect1.getRoundedStrength());
 
             try {
-                effect1.setPropertiesCompat(createSettings((short) 123));
+                effect1.setProperties(createSettings((short) 123));
                 fail();
             } catch (UnsupportedOperationException e) {
                 // expected
@@ -732,14 +732,14 @@ public class VirtualizerTestCase
         virtualizer.setStrength((short) 1000);
         assertStrengthEquals((short) 1000, virtualizer);
 
-        // by setPropertiesCompat()
-        virtualizer.setPropertiesCompat(createSettings((short) 0));
+        // by setProperties()
+        virtualizer.setProperties(createSettings((short) 0));
         assertStrengthEquals((short) 0, virtualizer);
 
-        virtualizer.setPropertiesCompat(createSettings((short) 500));
+        virtualizer.setProperties(createSettings((short) 500));
         assertStrengthEquals((short) 500, virtualizer);
 
-        virtualizer.setPropertiesCompat(createSettings((short) 1000));
+        virtualizer.setProperties(createSettings((short) 1000));
         assertStrengthEquals((short) 1000, virtualizer);
     }
 
@@ -766,9 +766,9 @@ public class VirtualizerTestCase
         }
         assertStrengthEquals(expected, virtualizer);
 
-        // by setPropertiesCompat()
+        // by setProperties()
         try {
-            virtualizer.setPropertiesCompat(createSettings((short) -1));
+            virtualizer.setProperties(createSettings((short) -1));
             fail();
         } catch (IllegalArgumentException e) {
             // expected
@@ -776,7 +776,7 @@ public class VirtualizerTestCase
         assertStrengthEquals(expected, virtualizer);
 
         try {
-            virtualizer.setPropertiesCompat(createSettings((short) 1001));
+            virtualizer.setProperties(createSettings((short) 1001));
             fail();
         } catch (IllegalArgumentException e) {
             // expected
@@ -790,7 +790,7 @@ public class VirtualizerTestCase
 
     static void assertStrengthEquals(short expected, IVirtualizer virtualizer) {
         assertEquals(expected, virtualizer.getRoundedStrength());
-        assertEquals(expected, virtualizer.getPropertiesCompat().strength);
+        assertEquals(expected, virtualizer.getProperties().strength);
     }
 
     static IVirtualizer.Settings createSettings(short strength) {

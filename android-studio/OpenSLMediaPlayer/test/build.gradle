@@ -20,34 +20,25 @@ ext {
     projectBasePath = file('../../../test').absolutePath
 }
 
-// Common configurations 
+// Common configurations
 apply from: '../common/android-set-common-properties.gradle'
 apply from: '../common/android-use-legacy-layout-files.gradle'
 
 // Use eclipse style project files layout
 useLegacyLayoutFiles(android.sourceSets.main, projectBasePath)
+useLegacyLayoutFiles(android.sourceSets.androidTest, projectBasePath)
 
 android {
     defaultConfig {
-        applicationId "com.h6ah4i.android.media"
-        minSdkVersion 14
+        applicationId "com.h6ah4i.android.media.test"
+        minSdkVersion 10
         targetSdkVersion 21
         versionCode 1
         versionName "1.0"
 
-        testApplicationId "com.h6ah4i.android.media.test"
+        testApplicationId "com.h6ah4i.android.media.test.runner"
         testInstrumentationRunner "com.h6ah4i.android.media.test.MyInstrumentationTestRunner"
         // testFunctionalTest true
-    }
-
-    sourceSets {
-        androidTest {
-//            manifest.srcFile projectBasePath + '/AndroidManifest.xml'
-//            java.srcDirs = [projectBasePath + '/src']
-//            res.srcDirs = [projectBasePath + '/res']
-            assets.srcDirs = [projectBasePath + '/assets']
-//            jniLibs.srcDir projectBasePath + '/libs'
-        }
     }
 
     buildTypes {

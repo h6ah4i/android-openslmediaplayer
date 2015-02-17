@@ -623,13 +623,13 @@ public interface IBasicMediaPlayer extends IReleasable {
      * must be prepared by the app, and the application should not call start()
      * on it. The next MediaPlayer must be different from 'this'. An exception
      * will be thrown if next == this. The application may call
-     * setNextMediaPlayerCompat(null) to indicate no next player should be
+     * setNextMediaPlayer(null) to indicate no next player should be
      * started at the end of playback. If the current player is looping, it will
      * keep looping and the next player will not be started.
      *
      * @param next the player to start after this one completes playback.
      */
-    void setNextMediaPlayerCompat(IBasicMediaPlayer next);
+    void setNextMediaPlayer(IBasicMediaPlayer next);
 
     /**
      * Sets the audio attributes for this MediaPlayer. See

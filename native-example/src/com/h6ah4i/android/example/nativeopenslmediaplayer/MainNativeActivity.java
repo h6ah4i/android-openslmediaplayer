@@ -216,13 +216,13 @@ public class MainNativeActivity extends NativeActivity {
     private void setupControlViews() {
         // Create overlay window
         final WindowManager wm = (WindowManager) getSystemService(WINDOW_SERVICE);
-        final LayoutInflater inflator = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
+        final LayoutInflater inflater = (LayoutInflater) getSystemService(LAYOUT_INFLATER_SERVICE);
 
-        final Rect rectgle = new Rect();
-        getWindow().getDecorView().getWindowVisibleDisplayFrame(rectgle);
-        final int StatusBarHeight = rectgle.top;
+        final Rect rectangle = new Rect();
+        getWindow().getDecorView().getWindowVisibleDisplayFrame(rectangle);
+        final int StatusBarHeight = rectangle.top;
 
-        RelativeLayout controls = (RelativeLayout) inflator.inflate(R.layout.controls, null, true);
+        RelativeLayout controls = (RelativeLayout) inflater.inflate(R.layout.controls, null, true);
         WindowManager.LayoutParams params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.TYPE_APPLICATION_PANEL,
                 WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL,

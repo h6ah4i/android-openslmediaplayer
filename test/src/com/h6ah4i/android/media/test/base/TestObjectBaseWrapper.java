@@ -71,7 +71,7 @@ public abstract class TestObjectBaseWrapper {
                 failUnexpectedThrowable(th);
             }
         } else {
-            failCalledFronUnexpectedThreadContext();
+            failCalledFromUnexpectedThreadContext();
         }
     }
 
@@ -87,7 +87,7 @@ public abstract class TestObjectBaseWrapper {
         fail("Unexpected throwable; " + th);
     }
 
-    protected void failCalledFronUnexpectedThreadContext() {
+    protected void failCalledFromUnexpectedThreadContext() {
         fail("Called from unexpected thread context; thread id = " + getCurrentThreadId());
     }
 
@@ -97,7 +97,7 @@ public abstract class TestObjectBaseWrapper {
         } else if (isTestRunnerThread()) {
             mHost.hostRunTestOnUiThread(thr);
         } else {
-            failCalledFronUnexpectedThreadContext();
+            failCalledFromUnexpectedThreadContext();
         }
     }
 }

@@ -664,7 +664,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         try {
             visualizer = createVisualizer(player);
 
-            int[] range = visualizer.getCaptureSizeRangeCompat();
+            int[] range = visualizer.getCaptureSizeRange();
 
             assertEquals(128, range[0]);
             assertEquals(8192, range[1]);
@@ -678,7 +678,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
         try {
             visualizer = createVisualizer(player);
-            assertEquals(60000, visualizer.getMaxCaptureRateCompat());
+            assertEquals(60000, visualizer.getMaxCaptureRate());
         } finally {
             releaseQuietly(visualizer);
         }
@@ -829,7 +829,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             visualizer = createVisualizer(player);
 
-            int rate = visualizer.getMaxCaptureRateCompat();
+            int rate = visualizer.getMaxCaptureRate();
             int expectedNumChannels = visualizer.getNumChannels();
             int expectedDataLen = visualizer.getCaptureSize() * expectedNumChannels;
             int expectedSamplingRate = getExpectedSamplingRate(getContext());
@@ -862,7 +862,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             visualizer = createVisualizer(player);
 
-            int rate = visualizer.getMaxCaptureRateCompat();
+            int rate = visualizer.getMaxCaptureRate();
             int expectedNumChannels = visualizer.getNumChannels();
             int expectedDataLen = visualizer.getCaptureSize() * expectedNumChannels;
             int expectedSamplingRate = getExpectedSamplingRate(getContext());
@@ -896,7 +896,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             visualizer = createVisualizer(player);
 
-            int rate = visualizer.getMaxCaptureRateCompat();
+            int rate = visualizer.getMaxCaptureRate();
             int expectedNumChannels = visualizer.getNumChannels();
             int expectedDataLen = visualizer.getCaptureSize() * expectedNumChannels;
             int expectedSamplingRate = getExpectedSamplingRate(getContext());
@@ -929,7 +929,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             visualizer = createVisualizer(player);
 
             final int minRate = MIN_CAPTURE_RATE;
-            final int maxRate = visualizer.getMaxCaptureRateCompat();
+            final int maxRate = visualizer.getMaxCaptureRate();
             IHQVisualizer.OnDataCaptureListener listener = new EmptyOnDataCaptureListenerObj();
 
             assertEquals(IHQVisualizer.SUCCESS,
@@ -956,7 +956,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             visualizer = createVisualizer(player);
 
             final int minRate = MIN_CAPTURE_RATE;
-            final int maxRate = visualizer.getMaxCaptureRateCompat();
+            final int maxRate = visualizer.getMaxCaptureRate();
             IHQVisualizer.OnDataCaptureListener listener = new EmptyOnDataCaptureListenerObj();
 
             assertEquals(IHQVisualizer.ERROR_BAD_VALUE,
@@ -988,7 +988,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(IHQVisualizer.SUCCESS, visualizer.setEnabled(true));
             assertTrue(visualizer.getEnabled());
 
-            final int maxRate = visualizer.getMaxCaptureRateCompat();
+            final int maxRate = visualizer.getMaxCaptureRate();
             IHQVisualizer.OnDataCaptureListener listener = new EmptyOnDataCaptureListenerObj();
 
             // with valid params
@@ -1023,7 +1023,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             visualizer = createVisualizer(player);
 
             DataCaptureRateMeasure measure = new DataCaptureRateMeasure();
-            int maxRate = visualizer.getMaxCaptureRateCompat();
+            int maxRate = visualizer.getMaxCaptureRate();
 
             {
                 // @ max. rate
@@ -1057,7 +1057,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             visualizer = createVisualizer(player);
 
             DataCaptureRateMeasure measure = new DataCaptureRateMeasure();
-            int maxRate = visualizer.getMaxCaptureRateCompat();
+            int maxRate = visualizer.getMaxCaptureRate();
 
             {
                 // @ max. rate
@@ -1089,8 +1089,8 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             visualizer = createVisualizer(player);
 
-            int range[] = visualizer.getCaptureSizeRangeCompat();
-            int rate = visualizer.getMaxCaptureRateCompat();
+            int range[] = visualizer.getCaptureSizeRange();
+            int rate = visualizer.getMaxCaptureRate();
 
             for (int size = range[0]; size <= range[1]; size *= 2) {
                 visualizer.setCaptureSize(size);
@@ -1161,14 +1161,14 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             }
 
             try {
-                visualizer.getCaptureSizeRangeCompat();
+                visualizer.getCaptureSizeRange();
                 fail();
             } catch (IllegalStateException e) {
                 // expected
             }
 
             try {
-                visualizer.getMaxCaptureRateCompat();
+                visualizer.getMaxCaptureRate();
                 fail();
             } catch (IllegalStateException e) {
                 // expected
@@ -1235,7 +1235,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(
                     IHQVisualizer.SUCCESS,
                     visualizer1.setDataCaptureListener(listener1,
-                            visualizer1.getMaxCaptureRateCompat(), true, true));
+                            visualizer1.getMaxCaptureRate(), true, true));
 
             // create visualizer 2
             visualizer2 = createVisualizer(player);
@@ -1243,9 +1243,9 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(
                     IHQVisualizer.SUCCESS,
                     visualizer2.setDataCaptureListener(listener2,
-                            visualizer2.getMaxCaptureRateCompat(), true, true));
+                            visualizer2.getMaxCaptureRate(), true, true));
 
-            int[] sizeRange = visualizer2.getCaptureSizeRangeCompat();
+            int[] sizeRange = visualizer2.getCaptureSizeRange();
             int size2 = sizeRange[0] * 2;
 
             assertNotEquals(DEFAULT_CAPTURE_SIZE, size2);
@@ -1333,8 +1333,8 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             visualizer.setEnabled(true);
             visualizer.getSamplingRate();
             visualizer.getCaptureSize();
-            visualizer.getCaptureSizeRangeCompat();
-            visualizer.getMaxCaptureRateCompat();
+            visualizer.getCaptureSizeRange();
+            visualizer.getMaxCaptureRate();
 
             visualizer.release();
         } finally {
@@ -1392,8 +1392,8 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             final int origSize = visualizer1.getCaptureSize();
             final int origSamplingRate = visualizer1.getSamplingRate();
-            final int[] origRange = visualizer1.getCaptureSizeRangeCompat();
-            final int origMaxCapRate = visualizer1.getMaxCaptureRateCompat();
+            final int[] origRange = visualizer1.getCaptureSizeRange();
+            final int origMaxCapRate = visualizer1.getMaxCaptureRate();
             final int origWindowType = visualizer1.getWindowFunction();
 
             // create instance 2
@@ -1403,10 +1403,10 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
             assertEquals(true, visualizer1.getEnabled());
             assertEquals(origSamplingRate, visualizer1.getSamplingRate());
             assertEquals(origRange[0],
-                    visualizer1.getCaptureSizeRangeCompat()[0]);
+                    visualizer1.getCaptureSizeRange()[0]);
             assertEquals(origRange[1],
-                    visualizer1.getCaptureSizeRangeCompat()[1]);
-            assertEquals(origMaxCapRate, visualizer1.getMaxCaptureRateCompat());
+                    visualizer1.getCaptureSizeRange()[1]);
+            assertEquals(origMaxCapRate, visualizer1.getMaxCaptureRate());
             assertEquals(origSize, visualizer1.getCaptureSize());
             assertEquals(origWindowType, visualizer1.getWindowFunction());
 
@@ -1736,11 +1736,11 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
                         "setEnabled(false) returns an error");
 
             if (mWaveform.analyze())
-                Log.d("DataCaptureRateMeasure-WaveForm",
+                Log.d("CaptureRateMeasure - WF",
                         mWaveform.summaryText());
 
             if (mFft.analyze())
-                Log.d("DataCaptureRateMeasure-FFT", mFft.summaryText());
+                Log.d("CaptureRateMeasure-FFT", mFft.summaryText());
         }
 
         private static long diffTime(long t1, long t2) {
@@ -1874,7 +1874,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
 
             double error = (1.0 * (measuredRate - rate) / rate);
 
-            Log.d("checkWaveFormCaptureRate",
+            Log.d("chkWaveFormCaptureRate",
                     "expected: " + rate + ", measured: " + measuredRate
                             + "  (error: "
                             + String.format("%.2f", (error * 100)) + " %)");

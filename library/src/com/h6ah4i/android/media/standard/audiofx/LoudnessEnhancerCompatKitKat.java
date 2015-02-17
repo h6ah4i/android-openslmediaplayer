@@ -9,7 +9,7 @@ import android.util.Log;
 
 @TargetApi(Build.VERSION_CODES.KITKAT)
 class LoudnessEnhancerCompatKitKat extends LoudnessEnhancerCompatBase {
-    private static final String TAG = "LoudnessEnhancerCompatKitKat";
+    private static final String TAG = "LoudEnhancerCompatKK";
 
     @Override
     public AudioEffect create(int audioSession) {

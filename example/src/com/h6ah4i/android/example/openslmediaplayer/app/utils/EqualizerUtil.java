@@ -44,7 +44,7 @@ public class EqualizerUtil {
         short numberOfBands = 0;
         short numberOfPresets = 0;
         PresetInfo[] presets = null;
-        int[] centerFreqency = new int[0];
+        int[] centerFrequency = new int[0];
         short[] bandLevelRange = new short[2];
 
         MediaPlayer player = null;
@@ -69,9 +69,9 @@ public class EqualizerUtil {
                 presets[i] = preset;
             }
 
-            centerFreqency = new int[numberOfBands];
+            centerFrequency = new int[numberOfBands];
             for (short i = 0; i < numberOfBands; i++) {
-                centerFreqency[i] = eq.getCenterFreq(i);
+                centerFrequency[i] = eq.getCenterFreq(i);
             }
 
             bandLevelRange = eq.getBandLevelRange();
@@ -95,7 +95,7 @@ public class EqualizerUtil {
         NUMBER_OF_BANDS = numberOfBands;
         NUMBER_OF_PRESETS = numberOfPresets;
         PRESETS = presets;
-        CENTER_FREQUENCY = centerFreqency;
+        CENTER_FREQUENCY = centerFrequency;
         BAND_LEVEL_MIN = bandLevelRange[0];
         BAND_LEVEL_MAX = bandLevelRange[1];
     }

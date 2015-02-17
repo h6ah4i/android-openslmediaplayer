@@ -58,7 +58,7 @@ public interface ILoudnessEnhancer extends IAudioEffect {
 
     /**
      * The Settings class regroups the LoudnessEnhancer parameters. It is used
-     * in conjunction with the getPropertiesCompat() and setPropertiesCompat()
+     * in conjunction with the getProperties() and setProperties()
      * methods to backup and restore all parameters in a single call.
      */
     public static class Settings {
@@ -156,7 +156,7 @@ public interface ILoudnessEnhancer extends IAudioEffect {
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    ILoudnessEnhancer.Settings getPropertiesCompat()
+    ILoudnessEnhancer.Settings getProperties()
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException;
 
     /**
@@ -169,7 +169,7 @@ public interface ILoudnessEnhancer extends IAudioEffect {
      * @throws IllegalArgumentException
      * @throws UnsupportedOperationException
      */
-    void setPropertiesCompat(ILoudnessEnhancer.Settings settings)
+    void setProperties(ILoudnessEnhancer.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException;
 
 }

@@ -25,7 +25,7 @@ import android.util.Log;
 import com.h6ah4i.android.example.openslmediaplayer.app.utils.LocalServiceBinder;
 
 public class GlobalAppControllerService extends Service {
-    private static final String TAG = "GlobalAppControllerService";
+    private static final String TAG = "GlobalAppControllerSvc";
 
     // internal classes
     public static class LocalBinder extends
