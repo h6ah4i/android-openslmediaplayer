@@ -277,7 +277,7 @@ public class HQEqualizerTestCase
                 });
     }
 
-    public void testPropertiesCompatWithInvaildNumBands() throws Throwable {
+    public void testPropertiesCompatWithInvalidNumBands() throws Throwable {
         final TestParams params = (TestParams) getTestParams();
 
         checkWithNoPlayerErrors(
@@ -285,12 +285,12 @@ public class HQEqualizerTestCase
                 new BasicMediaPlayerTestRunnable() {
                     @Override
                     public void run(IBasicMediaPlayer player, Object args) throws Throwable {
-                        checkPropertiesCompatWithInvaildNumBands(player, params);
+                        checkPropertiesCompatWithInvalidNumBands(player, params);
                     }
                 });
     }
 
-    public void testPropertiesCompatWithInvaildCurPreset() throws Throwable {
+    public void testPropertiesCompatWithInvalidCurPreset() throws Throwable {
         final TestParams params = (TestParams) getTestParams();
 
         checkWithNoPlayerErrors(
@@ -298,7 +298,7 @@ public class HQEqualizerTestCase
                 new BasicMediaPlayerTestRunnable() {
                     @Override
                     public void run(IBasicMediaPlayer player, Object args) throws Throwable {
-                        checkPropertiesCompatWithInvaildCurPreset(player, params);
+                        checkPropertiesCompatWithInvalidCurPreset(player, params);
                     }
                 });
     }
@@ -703,7 +703,7 @@ public class HQEqualizerTestCase
         }
     }
 
-    private void checkPropertiesCompatWithInvaildNumBands(
+    private void checkPropertiesCompatWithInvalidNumBands(
             IBasicMediaPlayer player, TestParams params) {
         IEqualizer effect = null;
 
@@ -717,7 +717,7 @@ public class HQEqualizerTestCase
         }
     }
 
-    private void checkPropertiesCompatWithInvaildCurPreset(
+    private void checkPropertiesCompatWithInvalidCurPreset(
             IBasicMediaPlayer player, TestParams params) {
         IEqualizer effect = null;
 

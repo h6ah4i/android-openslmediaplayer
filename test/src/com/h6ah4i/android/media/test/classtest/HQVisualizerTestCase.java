@@ -179,14 +179,14 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         });
     }
 
-    public void testSetCaptureSizeWithInvaildParameters() throws Throwable {
+    public void testSetCaptureSizeWithInvalidParameters() throws Throwable {
         TestParams params = (TestParams) getTestParams();
 
         checkWithNoPlayerErrors(params, new BasicMediaPlayerTestRunnable() {
             @Override
             public void run(IBasicMediaPlayer player, Object args)
                     throws Throwable {
-                checkSetCaptureSizeWithInvaildParameters(player);
+                checkSetCaptureSizeWithInvalidParameters(player);
             }
         });
     }
@@ -567,7 +567,7 @@ public class HQVisualizerTestCase extends BasicMediaPlayerTestCaseBase {
         }
     }
 
-    private void checkSetCaptureSizeWithInvaildParameters(
+    private void checkSetCaptureSizeWithInvalidParameters(
             IBasicMediaPlayer player) {
         IHQVisualizer visualizer = null;
 

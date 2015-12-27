@@ -720,7 +720,7 @@ void AudioPipeBufferQueueBinder::handleCallback(AudioSinkDataPipe *pipe,
     } else {
         if (CXXPH_LIKELY(pipe->lockRead(rb, wait_buffering_))) {
             wait_buffering_ = 0;
-            NB_LOGV("vaild audio block (index = %d)", rb.dbg_lock_index);
+            NB_LOGV("valid audio block (index = %d)", rb.dbg_lock_index);
         } else {
             wait_buffering_ = 1;
             rb = silent_block_;
