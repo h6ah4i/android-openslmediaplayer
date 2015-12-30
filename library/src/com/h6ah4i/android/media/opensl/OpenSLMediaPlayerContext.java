@@ -46,7 +46,7 @@ public class OpenSLMediaPlayerContext implements IReleasable {
 
     // HQEqualizer implementation type specifier
     public static final int HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER = 0;
-    public static final int HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPOINSE = 1;
+    public static final int HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPONSE = 1;
 
     private long mNativeHandle;
     private static final boolean HAS_NATIVE;

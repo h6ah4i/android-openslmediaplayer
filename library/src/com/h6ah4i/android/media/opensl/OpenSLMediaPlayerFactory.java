@@ -300,7 +300,7 @@ public class OpenSLMediaPlayerFactory implements IMediaPlayerFactory {
         // params.resamplerQuality =
         // OpenSLMediaPlayerContext.RESAMPLER_QUALITY_HIGH;
         // params.hqEqualizerImplType =
-        // OpenSLMediaPlayerContext.HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPOINSE;
+        // OpenSLMediaPlayerContext.HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPONSE;
 
         return params;
     }
