@@ -35,7 +35,7 @@ class NonBlockingTraceLogger {
     NonBlockingTraceLogger &operator=(const NonBlockingTraceLogger &) = delete;
 
 public:
-    enum { MESSAGE_BUFFER_SIZE = 256, LOG_ENTRY_BUFFER_NUM_PER_CLIENT = 256, NUM_CLIENTS = 16, };
+    enum { MESSAGE_BUFFER_SIZE = 256, LOG_ENTRY_BUFFER_NUM_PER_CLIENT = 256, NUM_CLIENTS = 24, };
 
     enum LogLevel {
         LOG_LEVEL_UNKNOWN = 0, // for internal use only

@@ -40,12 +40,18 @@ class AudioDataPipeManager;
 namespace oslmp {
 namespace impl {
 
+
+//
+// AudioSink
+//
 class AudioSink {
 public:
     enum state_t { SINK_STATE_NOT_INITIALIZED, SINK_STATE_STOPPED, SINK_STATE_STARTED, SINK_STATE_PAUSED, };
+    enum backend_t { BACKEND_OPENSL, BACKEND_AUDIO_TRACK, };
 
     struct initialize_args_t {
         OpenSLMediaPlayerInternalContext *context;
+        backend_t backend;
         sample_format_type sample_format;
         uint32_t sampling_rate;
         int stream_type;
@@ -55,7 +61,8 @@ public:
         uint32_t num_player_blocks;
 
         initialize_args_t()
-            : context(nullptr), sample_format(kAudioSampleFormatType_Unknown), sampling_rate(0), stream_type(0),
+            : context(nullptr), backend(BACKEND_OPENSL), 
+              sample_format(kAudioSampleFormatType_Unknown), sampling_rate(0), stream_type(0),
               opts(0), pipe_manager(nullptr), pipe(nullptr), num_player_blocks(0)
         {
         }
@@ -74,9 +81,35 @@ public:
     AudioSinkDataPipe *getPipe() const noexcept;
     opensles::CSLObjectItf *getPlayerObj() const noexcept;
 
+    enum {
+        NUM_CHANNELS = 2
+    };
 private:
     class Impl;
     std::unique_ptr<Impl> impl_;
+};
+
+
+//
+// AudioSinkBackend
+//
+class AudioSinkBackend {
+public:
+    AudioSinkBackend() : pipe_(nullptr) {
+    }
+
+    virtual ~AudioSinkBackend() {}
+
+    virtual int onInitialize(const AudioSink::initialize_args_t &args, void *pipe_user) noexcept = 0;
+    virtual int onStart() noexcept = 0;
+    virtual int onPause() noexcept = 0;
+    virtual int onResume() noexcept = 0;
+    virtual int onStop() noexcept = 0;
+    virtual opensles::CSLObjectItf *onGetPlayerObj() const noexcept = 0;
+    virtual uint32_t onGetLatencyInFrames() const noexcept = 0;
+
+protected:
+    AudioSinkDataPipe *pipe_;
 };
 
 } // namespace impl

@@ -302,6 +302,8 @@ public class OpenSLMediaPlayerFactory implements IMediaPlayerFactory {
         // params.hqEqualizerImplType =
         // OpenSLMediaPlayerContext.HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPONSE;
 
+        // params.sinkBackEndType = OpenSLMediaPlayerContext.SINK_BACKEND_TYPE_AUDIO_TRACK;
+
         return params;
     }
 }

@@ -48,6 +48,10 @@ public class OpenSLMediaPlayerContext implements IReleasable {
     public static final int HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER = 0;
     public static final int HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPONSE = 1;
 
+    // Sink back-end implementation type specifier
+    public static final int SINK_BACKEND_TYPE_OPENSL = 0;
+    public static final int SINK_BACKEND_TYPE_AUDIO_TRACK = 1;
+
     private long mNativeHandle;
     private static final boolean HAS_NATIVE;
     private boolean mHasNative;
@@ -65,6 +69,7 @@ public class OpenSLMediaPlayerContext implements IReleasable {
         public int longFadeDuration = 1500; // [milli seconds]
         public int resamplerQuality = RESAMPLER_QUALITY_MIDDLE;
         public int hqEqualizerImplType = HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER;
+        public int sinkBackEndType = SINK_BACKEND_TYPE_OPENSL;
     }
 
     public OpenSLMediaPlayerContext(Context context, Parameters params) {
@@ -77,7 +82,7 @@ public class OpenSLMediaPlayerContext implements IReleasable {
         boolean hasNative = false;
         if (HAS_NATIVE) {
             try {
-                final int[] iparams = new int[10];
+                final int[] iparams = new int[11];
 
                 iparams[0] = props.outputSampleRate * 1000; // [Hz] -> [milli hertz]
                 iparams[1] = props.outputFramesPerBuffer;
@@ -89,6 +94,7 @@ public class OpenSLMediaPlayerContext implements IReleasable {
                 iparams[7] = params.longFadeDuration;
                 iparams[8] = params.resamplerQuality;
                 iparams[9] = params.hqEqualizerImplType;
+                iparams[10] = params.sinkBackEndType;
 
                 mNativeHandle = createNativeImplHandle(iparams);
                 if (mNativeHandle != 0) {

@@ -170,6 +170,7 @@ int OpenSLMediaPlayerInternalContextImpl::initialize(JNIEnv *env, OpenSLMediaPla
         init_args.long_fade_duration_ms = args.long_fade_duration;
         init_args.resampler_quality = args.resampler_quality;
         init_args.hq_equalizer_impl_type = args.hq_equalizer_impl_type;
+        init_args.sink_backend_type = args.sink_backend_type;
 
         result = audio_system_->initialize(init_args);
     }

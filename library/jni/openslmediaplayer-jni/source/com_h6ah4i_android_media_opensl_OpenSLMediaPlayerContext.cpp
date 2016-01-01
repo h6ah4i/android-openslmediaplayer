@@ -101,6 +101,7 @@ Java_com_h6ah4i_android_media_opensl_OpenSLMediaPlayerContext_createNativeImplHa
         create_args.long_fade_duration = params_[7];
         create_args.resampler_quality = params_[8];
         create_args.hq_equalizer_impl_type = params_[9];
+        create_args.sink_backend_type = params_[10];
 
         holder->context = oslmp::OpenSLMediaPlayerContext::create(env, create_args);
 

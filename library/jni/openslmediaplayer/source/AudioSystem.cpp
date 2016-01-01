@@ -510,13 +510,14 @@ int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args
                                       std::unique_ptr<AudioMixer> &mixer,
                                       MixedOutputAudioEffect *mixout_effects[]) const noexcept
 {
+    const bool uses_opensl_sink = (args.sink_backend_type == OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL);
 
     const uint32_t kSourcePipeMinDurationInMsec = 2000;  // 2 sec.
     const uint32_t kSourcePipeRoomDurationInMsec = 1000; // 1 sec.
     const uint32_t kSourcePipeMaxNumBlocks = static_cast<uint32_t>(AudioSourceDataPipe::MAX_BUFFER_ITEM_COUNT);
 
     const uint32_t kAudioMixerSinkPooledNumBlocks = 4;
-    const uint32_t kSinkPlayerNumBlocks = 4;
+    const uint32_t kSinkPlayerNumBlocks = (uses_opensl_sink) ? 4 : 16;
     const uint32_t kSinkPipeNumBlocks =
         kSinkPlayerNumBlocks + kAudioMixerSinkPooledNumBlocks + 1; // +1: silent buffer internally used in AudioSink
 
@@ -579,7 +580,7 @@ int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args
         init_args.pipe_manager = pipe_mgr.get();
         init_args.pipe = sink_pipe;
         init_args.num_player_blocks = kSinkPlayerNumBlocks;
-
+        init_args.backend = uses_opensl_sink ? AudioSink::BACKEND_OPENSL : AudioSink::BACKEND_AUDIO_TRACK;
         result = sink->initialize(init_args);
 
         if (result != OSLMP_RESULT_SUCCESS)
@@ -1392,7 +1393,9 @@ bool AudioSystem::Impl::check_is_low_latency(const initialize_args_t &args) noex
         OSLMP_CONTEXT_OPTION_USE_BASSBOOST | OSLMP_CONTEXT_OPTION_USE_VIRTUALIZER | OSLMP_CONTEXT_OPTION_USE_EQUALIZER |
         OSLMP_CONTEXT_OPTION_USE_ENVIRONMENAL_REVERB | OSLMP_CONTEXT_OPTION_USE_PRESET_REVERB;
 
-    if (args.system_supports_low_latency) {
+    const bool uses_opensl_sink = (args.sink_backend_type == OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL);
+
+    if (args.system_supports_low_latency && uses_opensl_sink) {
         const uint32_t options = args.context->getContextOptions();
         return ((options & normal_mixer_used_condition_mask) == 0);
     } else {
@@ -1402,7 +1405,9 @@ bool AudioSystem::Impl::check_is_low_latency(const initialize_args_t &args) noex
 
 uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t &args, bool is_low_latency) noexcept
 {
-    // if (is_low_latency) {
+    const bool uses_opensl_sink = (args.sink_backend_type == OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL);
+
+    // if (is_low_latency && uses_opensl_sink) {
     //     return args.system_out_frames_per_buffer;
     // } else {
         return calc_android_NormalMixer_FrameCount(args.system_out_frames_per_buffer,

@@ -55,7 +55,8 @@ LOCAL_STATIC_LIBRARIES := \
     cxxporthelper_static \
     $(CXXDASP_FFT_BACKEND_LIBS_$(TARGET_ARCH_ABI)) \
     openslescxx_static \
-    loghelper
+    loghelper \
+    jni_utils
 
 ifneq (, $(filter armeabi-v7a armeabi-v7a-hard, $(TARGET_ARCH_ABI)))
     LOCAL_ARM_NEON  := true
@@ -87,7 +88,8 @@ LOCAL_STATIC_LIBRARIES := \
     cxxporthelper_static \
     $(CXXDASP_FFT_BACKEND_LIBS_$(TARGET_ARCH_ABI)-no-neon) \
     openslescxx_static \
-    loghelper
+    loghelper \
+    jni_utils
 
 include $(BUILD_SHARED_LIBRARY)
 else

@@ -43,6 +43,10 @@
 #define OSLMP_CONTEXT_HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER 0
 #define OSLMP_CONTEXT_HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPOINSE 1
 
+// Sink backend implementation type specifier
+#define OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL      0
+#define OSLMP_CONTEXT_SINK_BACKEND_TYPE_AUDIO_TRACK 1
+
 //
 // forward declarations
 //
@@ -71,6 +75,7 @@ public:
         uint32_t long_fade_duration;  // Fade duration used when calling start(), pause() and seek() (unit: [ms])
         uint32_t resampler_quality;
         uint32_t hq_equalizer_impl_type;
+        uint32_t sink_backend_type;
         InternalThreadEventListener *listener;
 
         create_args_t() OSLMP_API_ABI : system_out_sampling_rate(44100000),
@@ -83,7 +88,8 @@ public:
                                         long_fade_duration(1500),
                                         listener(nullptr),
                                         resampler_quality(OSLMP_CONTEXT_RESAMPLER_QUALITY_MIDDLE),
-                                        hq_equalizer_impl_type(OSLMP_CONTEXT_HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER)
+                                        hq_equalizer_impl_type(OSLMP_CONTEXT_HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER),
+                                        sink_backend_type(OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL)
         {
         }
     };
