@@ -516,7 +516,7 @@ int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args
     const uint32_t kSourcePipeMaxNumBlocks = static_cast<uint32_t>(AudioSourceDataPipe::MAX_BUFFER_ITEM_COUNT);
 
     const uint32_t kAudioMixerSinkPooledNumBlocks = 4;
-    const uint32_t kSinkPlayerNumBlocks = 2;
+    const uint32_t kSinkPlayerNumBlocks = 4;
     const uint32_t kSinkPipeNumBlocks =
         kSinkPlayerNumBlocks + kAudioMixerSinkPooledNumBlocks + 1; // +1: silent buffer internally used in AudioSink
 
@@ -1402,12 +1402,12 @@ bool AudioSystem::Impl::check_is_low_latency(const initialize_args_t &args) noex
 
 uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t &args, bool is_low_latency) noexcept
 {
-    if (is_low_latency) {
-        return args.system_out_frames_per_buffer;
-    } else {
+    // if (is_low_latency) {
+    //     return args.system_out_frames_per_buffer;
+    // } else {
         return calc_android_NormalMixer_FrameCount(args.system_out_frames_per_buffer,
                                                    args.system_out_sampling_rate / 1000);
-    }
+    // }
 }
 
 // This function refers to Android framework's implementation
