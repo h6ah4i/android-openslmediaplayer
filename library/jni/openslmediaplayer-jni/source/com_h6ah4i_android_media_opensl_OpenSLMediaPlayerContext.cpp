@@ -125,6 +125,19 @@ Java_com_h6ah4i_android_media_opensl_OpenSLMediaPlayerContext_deleteNativeImplHa
     }
 }
 
+JNIEXPORT jint JNICALL
+Java_com_h6ah4i_android_media_opensl_OpenSLMediaPlayerContext_getAudioSessionIdImplNative(JNIEnv *env,
+                                                                                          jclass clazz, jlong handle) noexcept
+{
+    android::sp<oslmp::OpenSLMediaPlayerContext> context;
+
+    if (OpenSLMediaPlayerContext_GetInstanceFromJniHandle(handle, context)) {
+        return static_cast<jint>(context->getAudioSessionId());
+    } else {
+        return 0;
+    }
+}
+
 #ifdef __cplusplus
 }
 #endif

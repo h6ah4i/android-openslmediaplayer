@@ -63,6 +63,7 @@ public:
     int pause() noexcept;
     int reset() noexcept;
     int setVolume(float left_volume, float right_volume) noexcept;
+    int getAudioSessionId(int32_t *audio_session_id) noexcept;
     int getDuration(int32_t *duration) noexcept;
     int getCurrentPosition(int32_t *position) noexcept;
     int seekTo(int32_t msec) noexcept;

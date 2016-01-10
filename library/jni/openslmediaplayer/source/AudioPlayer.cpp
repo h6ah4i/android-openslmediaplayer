@@ -107,6 +107,7 @@ public:
     int stop() noexcept;
     int reset() noexcept;
     int setVolume(float left_volume, float right_volume) noexcept;
+    int getAudioSessionId(int32_t *audio_session_id) noexcept;
     int getDuration(int32_t *duration) noexcept;
     int getCurrentPosition(int32_t *position) noexcept;
     int seekTo(int32_t msec) noexcept;
@@ -401,6 +402,13 @@ int AudioPlayer::setVolume(float left_volume, float right_volume) noexcept
     if (CXXPH_UNLIKELY(!impl_))
         return OSLMP_RESULT_ILLEGAL_STATE;
     return impl_->setVolume(left_volume, right_volume);
+}
+
+int AudioPlayer::getAudioSessionId(int32_t *audio_session_id) noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return OSLMP_RESULT_ILLEGAL_STATE;
+    return impl_->getAudioSessionId(audio_session_id);
 }
 
 int AudioPlayer::getDuration(int32_t *duration) noexcept
@@ -1258,6 +1266,24 @@ int AudioPlayer::Impl::setVolume(float left_volume, float right_volume) noexcept
     }
 
     return mixer->setVolume(mixer_control_handle_, left_volume, right_volume);
+}
+
+int AudioPlayer::Impl::getAudioSessionId(int32_t *audio_session_id) noexcept
+{
+    if (!audio_session_id)
+        return OSLMP_RESULT_ILLEGAL_ARGUMENT;
+
+    AudioSystem *audio_system = (context_) ? context_->getAudioSystem() : nullptr;
+    int result;
+
+    if (audio_system) {
+        result = audio_system->getAudioSessionId(audio_session_id);
+    } else {
+        result = OSLMP_RESULT_ILLEGAL_STATE;
+        (*audio_session_id) = 0;
+    }
+
+    return result;
 }
 
 int AudioPlayer::Impl::getDuration(int32_t *duration) noexcept

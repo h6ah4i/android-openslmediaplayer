@@ -333,9 +333,14 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
         checkNativeImplIsAvailable();
 
         // NOTE:
-        // This method is not supported
+        // This method always returns 0 when using OpenSL sink backend.
 
-        return 0;
+        if (mNativeHandle != 0) {
+            getAudioSessionIdImplNative(mNativeHandle, mParamIntBuff);
+            return mParamIntBuff[0];
+        } else {
+            return 0;
+        }
     }
 
     @Override
@@ -852,6 +857,10 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
         public static long getNativeHandle(OpenSLMediaPlayerContext context) {
             return (context != null) ? context.getNativeHandle() : 0;
         }
+
+        public static int getAudioSessionId(OpenSLMediaPlayerContext context) {
+            return (context != null) ? context.getAudioSessionId() : 0;
+        }
     }
 
     //
@@ -1077,6 +1086,8 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
     private static native int resetImplNative(long handle);
 
     private static native int setVolumeImplNative(long handle, float leftVolume, float rightVolume);
+
+    private static native int getAudioSessionIdImplNative(long handle, int[] audioSessionId);
 
     private static native int getDurationImplNative(long handle, int[] duration);
 

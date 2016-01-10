@@ -87,6 +87,7 @@ public:
     int pause() noexcept OSLMP_API_ABI;
     int reset() noexcept OSLMP_API_ABI;
     int setVolume(float leftVolume, float rightVolume) noexcept OSLMP_API_ABI;
+    int getAudioSessionId(int32_t *audioSessionId) noexcept OSLMP_API_ABI;
     int getDuration(int32_t *duration) noexcept OSLMP_API_ABI;
     int getCurrentPosition(int32_t *position) noexcept OSLMP_API_ABI;
     int seekTo(int32_t msec) noexcept OSLMP_API_ABI;

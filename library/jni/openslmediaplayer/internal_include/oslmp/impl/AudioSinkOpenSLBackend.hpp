@@ -37,6 +37,7 @@ public:
     virtual int onStop() noexcept override;
     virtual opensles::CSLObjectItf *onGetPlayerObj() const noexcept override;
     virtual uint32_t onGetLatencyInFrames() const noexcept override;
+    virtual int32_t onGetAudioSessionId() const noexcept override;
 
 private:
     void releaseOpenSLResources() noexcept;

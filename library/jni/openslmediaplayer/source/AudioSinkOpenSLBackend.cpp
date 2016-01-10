@@ -296,6 +296,12 @@ uint32_t AudioSinkOpenSLBackend::onGetLatencyInFrames() const noexcept
     return static_cast<uint32_t>(block_size_in_frames_ * (num_pipe_blocks_ - 1));
 }
 
+int32_t AudioSinkOpenSLBackend::onGetAudioSessionId() const noexcept
+{
+    // can not retrieve the session id because OpenSL ES does not expose a corresponding method 
+    return 0;
+}
+
 void AudioSinkOpenSLBackend::releaseOpenSLResources() noexcept
 {
     volume_.unbind();

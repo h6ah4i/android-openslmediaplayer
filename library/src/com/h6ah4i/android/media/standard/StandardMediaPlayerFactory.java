@@ -149,8 +149,8 @@ public class StandardMediaPlayerFactory implements IMediaPlayerFactory {
         throw new UnsupportedOperationException("PreAmp is not supported");
     }
 
-    protected StandardBassBoost onCreateBassBoost(int audioSesion) {
-        return new StandardBassBoost(0, audioSesion);
+    protected StandardBassBoost onCreateBassBoost(int audioSession) {
+        return new StandardBassBoost(0, audioSession);
     }
 
     protected StandardBassBoost onCreateBassBoost(StandardMediaPlayer player) {

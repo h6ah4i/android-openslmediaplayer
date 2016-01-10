@@ -50,10 +50,20 @@ OpenSLMediaPlayerContext::~OpenSLMediaPlayerContext()
     impl_ = nullptr;
 }
 
-OpenSLMediaPlayerContext::InternalThreadEventListener *OpenSLMediaPlayerContext::getInternalThreadEventListener() const
-    noexcept
+OpenSLMediaPlayerContext::InternalThreadEventListener *OpenSLMediaPlayerContext::getInternalThreadEventListener() const noexcept
 {
     return getInternal().getInternalThreadEventListener();
+}
+
+int32_t OpenSLMediaPlayerContext::getAudioSessionId() const noexcept
+{
+    int32_t audio_session_id = 0;
+
+    if (getInternal().getAudioSystem()->getAudioSessionId(&audio_session_id) == OSLMP_RESULT_SUCCESS) {
+        return audio_session_id;
+    } else {
+        return 0;
+    }
 }
 
 OpenSLMediaPlayerInternalContext &OpenSLMediaPlayerContext::getInternal() const noexcept

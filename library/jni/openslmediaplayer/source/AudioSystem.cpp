@@ -130,6 +130,8 @@ public:
     int getPreAmp(PreAmp **p_preamp) const noexcept;
     int getHQEqualizer(HQEqualizer **p_hq_equalizer) const noexcept;
 
+    int getAudioSessionId(int32_t *audio_session_id) const noexcept;
+
 private:
     int initSubmodules(const AudioSystem::initialize_args_t &args, uint32_t output_frame_size,
                        std::unique_ptr<AudioSink> &sink, std::unique_ptr<AudioDataPipeManager> &pipe_mgr,
@@ -384,6 +386,14 @@ int AudioSystem::getHQEqualizer(HQEqualizer **p_hq_equalizer) const noexcept
     return impl_->getHQEqualizer(p_hq_equalizer);
 }
 
+int AudioSystem::getAudioSessionId(int32_t *p_audio_session_id) const noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return OSLMP_RESULT_ILLEGAL_STATE;
+    return impl_->getAudioSessionId(p_audio_session_id);
+}
+
+
 //
 // AudioSystem::Impl
 //
@@ -616,7 +626,6 @@ int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args
 int AudioSystem::Impl::initEngineOutputMix(uint32_t opts, CSLObjectItf &engineObj, CSLObjectItf &outputMixObj) const
     noexcept
 {
-
     CSLEngineItf engine;
     SLresult result;
 
@@ -950,43 +959,6 @@ int AudioSystem::Impl::poll() noexcept
 void AudioSystem::Impl::pollControlSinkMute() noexcept
 {
     audio_player_instance_updated_ = false;
-
-// skip this method to wait until sink buffer is flushed
-#if 0
-    CSLVolumeItf volume;
-    getInterfaceFromSinkPlayer(&volume);
-
-    SLboolean cur_mute_state = SL_BOOLEAN_FALSE;
-    volume.GetMute(&cur_mute_state);
-
-    if (!cur_mute_state) {
-        if (audio_players_info_.empty()) {
-            volume.SetMute(SL_BOOLEAN_TRUE);
-
-            // NOTE: This delay is required to avoid SLEqualizer's bug.
-            // (Unexpected audible issue: press "Create" button during playing when equalizer is used)
-            // However I decided not to sleep here, because 100 ms is too long!
-            // I recommend reuse OpenSLMediaPlayerEqualizer instance instead of re-creating each time.
-#if 0
-            timespec ts_sleep({0, 100000000});   // 100 ms
-            ::clock_nanosleep(CLOCK_MONOTONIC, 0, &ts_sleep, nullptr);
-#endif
-        }
-    } else {
-        bool found_active_player = false;
-
-        for (const auto &p : audio_players_info_) {
-            if (p.is_active) {
-                found_active_player = true;
-                break;
-            }
-        }
-
-        if (found_active_player) {
-            volume.SetMute(SL_BOOLEAN_FALSE);
-        }
-    }
-#endif
 }
 
 void AudioSystem::Impl::pollControlMixerAndSinkSuspendResume() noexcept
@@ -1312,6 +1284,19 @@ int AudioSystem::Impl::getHQEqualizer(HQEqualizer **p_hq_equalizer) const noexce
         return OSLMP_RESULT_ILLEGAL_STATE;
 
     (*p_hq_equalizer) = mixout_effect_hq_equalizer_.get();
+
+    return OSLMP_RESULT_SUCCESS;
+}
+
+int AudioSystem::Impl::getAudioSessionId(int32_t *p_audio_session_id) const noexcept
+{
+    if (!p_audio_session_id)
+        return OSLMP_RESULT_ILLEGAL_ARGUMENT;
+
+    if (!sink_)
+        return OSLMP_RESULT_ILLEGAL_STATE;
+
+    (*p_audio_session_id) = sink_->getAudioSessionId();
 
     return OSLMP_RESULT_SUCCESS;
 }

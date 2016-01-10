@@ -42,6 +42,8 @@ public:
     int start(render_callback_func_t callback, void *args) noexcept;
     int stop() noexcept;
 
+    int32_t getAudioSessionId() noexcept;
+
 private:
     static void *sinkWriterThreadEntryFunc(void *args) noexcept;
 
@@ -51,9 +53,10 @@ private:
     void sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcept;
     void sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept;
 
+    JNIEnv *getJNIEnv() noexcept;
+
 private:
     JavaVM *vm_;
-    JNIEnv *env_;
     std::unique_ptr<AudioTrack> track_;
     pthread_t pt_handle_;
 

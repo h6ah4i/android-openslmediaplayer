@@ -134,10 +134,18 @@ public class OpenSLMediaPlayerContext implements IReleasable {
         return mNativeHandle;
     }
 
+    /** @hide */
+    /* package */
+    int getAudioSessionId() {
+        return getAudioSessionIdImplNative(mNativeHandle);
+    }
+
     //
     // Native methods
     //
     private static native long createNativeImplHandle(int[] params);
 
     private static native void deleteNativeImplHandle(long handle);
+
+    private static native int getAudioSessionIdImplNative(long handle);
 }

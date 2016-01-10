@@ -81,6 +81,7 @@ enum {
     MSG_PAUSE,
     MSG_RESET,
     MSG_SET_VOLUME,
+    MSG_GET_AUDIO_SESSION_ID,
     MSG_GET_DURATION,
     MSG_GET_CURRENT_POSITION,
     MSG_SEEK_TO,
@@ -113,6 +114,10 @@ struct msg_blob_set_data_source_fd {
 struct msg_blob_set_volume {
     float left_volume;
     float right_volume;
+};
+
+struct msg_blob_get_audio_session_id {
+    int32_t *audio_session_id;
 };
 
 struct msg_blob_get_duration {
@@ -259,6 +264,8 @@ const char *OpenSLMediaPlayer::Impl::getCorrespondOperationName(int msg) noexcep
         return "reset";
     case MSG_SET_VOLUME:
         return "setVolume";
+    case MSG_GET_AUDIO_SESSION_ID:
+        return "getAudioSessionId";
     case MSG_GET_DURATION:
         return "getDuration";
     case MSG_GET_CURRENT_POSITION:
@@ -534,6 +541,21 @@ int OpenSLMediaPlayer::Impl::setVolume(float left_volume, float right_volume) no
         blob_t &blob = GET_MSG_BLOB(msg);
         blob.left_volume = left_volume;
         blob.right_volume = right_volume;
+    }
+
+    return postAndWaitResult(&msg);
+}
+
+int OpenSLMediaPlayer::Impl::getAudioSessionId(int32_t *audio_session_id) noexcept
+{
+    typedef msg_blob_get_audio_session_id blob_t;
+    CHECK_MSG_BLOB_SIZE(blob_t);
+
+    Message msg(INTERNAL_MESSAGE_CATEGORY, MSG_GET_AUDIO_SESSION_ID);
+
+    {
+        blob_t &blob = GET_MSG_BLOB(msg);
+        blob.audio_session_id = audio_session_id;
     }
 
     return postAndWaitResult(&msg);
@@ -1074,6 +1096,22 @@ void OpenSLMediaPlayer::Impl::onHandleMessage(const void *msg_) noexcept
         } else {
             result = OSLMP_RESULT_ILLEGAL_STATE;
         }
+    } break;
+    case MSG_GET_AUDIO_SESSION_ID: {
+        typedef msg_blob_get_audio_session_id blob_t;
+        const blob_t &blob = GET_MSG_BLOB(*msg);
+        const int state_mask = STATE_MASK_ANY;
+
+        if (checkCurrentState(state_mask)) {
+            result = player_->getAudioSessionId(blob.audio_session_id);
+        } else {
+            if (blob.audio_session_id) {
+                (*blob.audio_session_id) = 0;
+            }
+            result = OSLMP_RESULT_ILLEGAL_STATE;
+        }
+
+        checkResultAndSetError(result);
     } break;
     case MSG_GET_DURATION: {
         typedef msg_blob_get_duration blob_t;

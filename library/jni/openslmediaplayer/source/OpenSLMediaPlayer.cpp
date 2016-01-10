@@ -124,6 +124,13 @@ int OpenSLMediaPlayer::setVolume(float leftVolume, float rightVolume) noexcept
     return impl_->setVolume(leftVolume, rightVolume);
 }
 
+int OpenSLMediaPlayer::getAudioSessionId(int32_t *audioSessionId) noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_.get()))
+        return OSLMP_RESULT_ERROR;
+    return impl_->getAudioSessionId(audioSessionId);
+}
+
 int OpenSLMediaPlayer::getDuration(int32_t *duration) noexcept
 {
     if (CXXPH_UNLIKELY(!impl_.get()))

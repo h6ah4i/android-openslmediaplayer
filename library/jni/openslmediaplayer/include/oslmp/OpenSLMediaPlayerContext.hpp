@@ -101,6 +101,8 @@ public:
 
     InternalThreadEventListener *getInternalThreadEventListener() const noexcept OSLMP_API_ABI;
 
+    int32_t getAudioSessionId() const noexcept OSLMP_API_ABI;
+
 private:
     class Impl;
     OpenSLMediaPlayerContext(Impl *impl);

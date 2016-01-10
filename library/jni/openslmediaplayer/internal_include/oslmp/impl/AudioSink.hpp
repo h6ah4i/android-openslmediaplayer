@@ -20,15 +20,13 @@
 #include <cxxporthelper/memory>
 #include <cxxporthelper/cstdint>
 
+#include <SLESCXX/OpenSLES_CXX.hpp>
+
 #include "oslmp/impl/AudioDataTypes.hpp"
 
 //
 // forward declarations
 //
-namespace opensles {
-class CSLObjectItf;
-}
-
 namespace oslmp {
 namespace impl {
 class OpenSLMediaPlayerInternalContext;
@@ -79,6 +77,7 @@ public:
     uint32_t getLatencyInFrames() const noexcept;
     state_t getState() const noexcept;
     AudioSinkDataPipe *getPipe() const noexcept;
+    int32_t getAudioSessionId() const noexcept;
     opensles::CSLObjectItf *getPlayerObj() const noexcept;
 
     enum {
@@ -107,6 +106,7 @@ public:
     virtual int onStop() noexcept = 0;
     virtual opensles::CSLObjectItf *onGetPlayerObj() const noexcept = 0;
     virtual uint32_t onGetLatencyInFrames() const noexcept = 0;
+    virtual int32_t onGetAudioSessionId() const noexcept = 0;
 
 protected:
     AudioSinkDataPipe *pipe_;

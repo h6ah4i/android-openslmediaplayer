@@ -178,6 +178,7 @@ int OpenSLMediaPlayerInternalContextImpl::initialize(JNIEnv *env, OpenSLMediaPla
     if (result != OSLMP_RESULT_SUCCESS) {
         audio_system_.reset();
         listener_ = 0;
+        options_ = 0;
         context_ = 0;
 
         return result;
@@ -187,6 +188,7 @@ int OpenSLMediaPlayerInternalContextImpl::initialize(JNIEnv *env, OpenSLMediaPla
     if (!msgHandlerThread_.start(this)) {
         audio_system_.reset();
         listener_ = 0;
+        options_ = 0;
         context_ = 0;
 
         return OSLMP_RESULT_INTERNAL_ERROR;
@@ -200,6 +202,7 @@ int OpenSLMediaPlayerInternalContextImpl::initialize(JNIEnv *env, OpenSLMediaPla
     if (result != OSLMP_RESULT_SUCCESS) {
         audio_system_.reset();
         listener_ = 0;
+        options_ = 0;
         context_ = 0;
 
         return result;
@@ -533,12 +536,17 @@ void OpenSLMediaPlayerInternalContextImpl::notifyResult(const Message *msg, int 
 
 void OpenSLMediaPlayerInternalContextImpl::onEnterHandlerThread() noexcept
 {
+    JavaVM *vm = getJavaVM();
+    JNIEnv *env = nullptr;
+
+    // attach JavaVM
+    (void) vm->AttachCurrentThread(&env, nullptr);
 
     // set thread name
     AndroidHelper::setCurrentThreadName("OSLMPMsgHandler");
 
     // set thread priority
-    AndroidHelper::setThreadPriority(getJavaVM(), 0, ANDROID_THREAD_PRIORITY_MORE_FAVORABLE);
+    // AndroidHelper::setThreadPriority(env, 0, ANDROID_THREAD_PRIORITY_MORE_FAVORABLE);
 
     android::sp<OpenSLMediaPlayerContext::InternalThreadEventListener> listener;
     listener = listener_;
@@ -878,6 +886,11 @@ void *OpenSLMediaPlayerInternalContextImpl::onLeaveHandlerThread(bool stop_reque
     if (listener.get()) {
         listener->onLeaveInternalThread(context_);
     }
+
+    JavaVM *vm = getJavaVM();
+
+    // detach JavaVM
+    (void) vm->DetachCurrentThread();
 
     return nullptr;
 }

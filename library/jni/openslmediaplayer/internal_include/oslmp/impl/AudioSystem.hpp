@@ -116,6 +116,8 @@ public:
     int getPreAmp(PreAmp **p_preamp) const noexcept;
     int getHQEqualizer(HQEqualizer **p_hq_equalizer) const noexcept;
 
+    int getAudioSessionId(int32_t *p_audio_session_id) const noexcept;
+
 private:
     class Impl;
     std::unique_ptr<Impl> impl_;

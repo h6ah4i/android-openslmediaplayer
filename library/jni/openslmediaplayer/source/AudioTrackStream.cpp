@@ -82,7 +82,7 @@ private:
 };
 
 AudioTrackStream::AudioTrackStream()
-    : vm_(nullptr), env_(nullptr), track_(nullptr), pt_handle_(0), 
+    : vm_(nullptr), track_(nullptr), pt_handle_(0), 
     buffer_size_in_frames_(0), buffer_block_count_(0),
     callback_func_(nullptr), callback_args_(nullptr), stop_request_(false)
 {
@@ -95,8 +95,9 @@ AudioTrackStream::~AudioTrackStream()
         (void) ::pthread_join(pt_handle_, nullptr);
     }
 
-    if (env_ && track_) {
-        track_->release(env_);
+    JNIEnv *env = getJNIEnv();
+    if (env && track_) {
+        track_->release(env);
         track_.reset();
     }
 
@@ -139,7 +140,6 @@ int AudioTrackStream::init(
     }
 
     vm_ = vm;
-    env_ = env;
     track_ = std::move(track);
     buffer_size_in_frames_ = buffer_size_in_frames;
     buffer_block_count_ = buffer_block_count;
@@ -191,6 +191,27 @@ int AudioTrackStream::stop() noexcept
     stop_request_ = false;
 
     return OSLMP_RESULT_SUCCESS;
+}
+
+int32_t AudioTrackStream::getAudioSessionId() noexcept
+{
+    JNIEnv *env = getJNIEnv();
+
+    if (!(track_ && env)) {
+        return 0;
+    }
+
+    return track_->getAudioSessionId(env);
+}
+
+JNIEnv *AudioTrackStream::getJNIEnv() noexcept {
+    JNIEnv *env = nullptr;
+
+    if (vm_ && vm_->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6) == JNI_OK) {
+        return env;
+    } else {
+        return nullptr;
+    }
 }
 
 void* AudioTrackStream::sinkWriterThreadEntryFunc(void *args) noexcept

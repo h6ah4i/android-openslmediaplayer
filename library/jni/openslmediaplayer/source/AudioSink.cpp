@@ -58,6 +58,7 @@ public:
     uint32_t getLatencyInFrames() const noexcept;
     state_t getState() const noexcept;
     AudioSinkDataPipe *getPipe() const noexcept;
+    int32_t getAudioSessionId() const noexcept;
     opensles::CSLObjectItf *getPlayerObj() const noexcept;
 
 private:
@@ -135,6 +136,13 @@ AudioSinkDataPipe *AudioSink::getPipe() const noexcept
     if (CXXPH_UNLIKELY(!impl_))
         return nullptr;
     return impl_->getPipe();
+}
+
+int32_t AudioSink::getAudioSessionId() const noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return 0;
+    return impl_->getAudioSessionId();
 }
 
 opensles::CSLObjectItf *AudioSink::getPlayerObj() const noexcept
@@ -303,6 +311,11 @@ uint32_t AudioSink::Impl::getLatencyInFrames() const noexcept
 AudioSink::state_t AudioSink::Impl::getState() const noexcept { return state_; }
 
 AudioSinkDataPipe *AudioSink::Impl::getPipe() const noexcept { return pipe_; }
+
+int32_t AudioSink::Impl::getAudioSessionId() const noexcept
+{
+    return backend_->onGetAudioSessionId();
+}
 
 opensles::CSLObjectItf *AudioSink::Impl::getPlayerObj() const noexcept
 {

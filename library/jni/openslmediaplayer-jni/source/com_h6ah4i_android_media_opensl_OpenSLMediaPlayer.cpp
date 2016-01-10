@@ -283,6 +283,26 @@ Java_com_h6ah4i_android_media_opensl_OpenSLMediaPlayer_setVolumeImplNative(JNIEn
 }
 
 JNIEXPORT jint JNICALL
+Java_com_h6ah4i_android_media_opensl_OpenSLMediaPlayer_getAudioSessionIdImplNative(JNIEnv *env, jclass clazz, jlong handle,
+                                                                             jintArray audioSessionId) noexcept
+{
+
+    if (!handle) {
+        return OSLMP_RESULT_INVALID_HANDLE;
+    }
+
+    jint_array audioSessionId_(env, audioSessionId);
+
+    if (!audioSessionId_) {
+        return OSLMP_RESULT_ERROR;
+    }
+
+    Holder *holder = Holder::fromJniHandle(handle);
+
+    return holder->mp->getAudioSessionId(audioSessionId_.data());
+}
+
+JNIEXPORT jint JNICALL
 Java_com_h6ah4i_android_media_opensl_OpenSLMediaPlayer_getDurationImplNative(JNIEnv *env, jclass clazz, jlong handle,
                                                                              jintArray duration) noexcept
 {
