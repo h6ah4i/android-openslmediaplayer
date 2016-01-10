@@ -68,7 +68,7 @@ public:
     int setDataSourceFd(int fd, int64_t offset, int64_t length) noexcept;
 
     int preparePatialStart() noexcept;
-    int preparePatialPoll(bool *completed, bool *needRetry) noexcept;
+    int preparePatialPoll(bool *completed, bool *need_retry) noexcept;
     void preparePartialCleanup() noexcept;
     bool isPreparing() const noexcept;
 
@@ -76,16 +76,16 @@ public:
     int pause() noexcept;
     int stop() noexcept;
     int reset() noexcept;
-    int setVolume(float leftVolume, float rightVolume) noexcept;
+    int setVolume(float left_volume, float right_volume) noexcept;
     int getDuration(int32_t *duration) noexcept;
     int getCurrentPosition(int32_t *position) noexcept;
     int seekTo(int32_t msec) noexcept;
     int setLooping(bool looping) noexcept;
     int isLooping(bool *looping) noexcept;
-    int setAudioStreamType(int streamtype) noexcept;
-    int getAudioStreamType(int *streamtype) const noexcept;
+    int setAudioStreamType(int stream_type) noexcept;
+    int getAudioStreamType(int *stream_type) const noexcept;
     int setNextMediaPlayer(AudioPlayer *next) noexcept;
-    int attachAuxEffect(int effectId) noexcept;
+    int attachAuxEffect(int effect_id) noexcept;
     int setAuxEffectSendLevel(float level) noexcept;
     int setFadeInOutEnabled(bool enabled) noexcept;
 

@@ -28,6 +28,7 @@ class AndroidHelper {
     AndroidHelper() = delete;
 
 public:
+    static bool setThreadPriority(JNIEnv *env, pid_t tid, int prio) noexcept;
     static bool setThreadPriority(JavaVM *vm, pid_t tid, int prio) noexcept;
     static bool setCurrentThreadName(const char *name) noexcept;
 };

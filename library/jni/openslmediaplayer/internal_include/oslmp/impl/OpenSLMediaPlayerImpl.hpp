@@ -62,15 +62,15 @@ public:
     int stop() noexcept;
     int pause() noexcept;
     int reset() noexcept;
-    int setVolume(float leftVolume, float rightVolume) noexcept;
+    int setVolume(float left_volume, float right_volume) noexcept;
     int getDuration(int32_t *duration) noexcept;
     int getCurrentPosition(int32_t *position) noexcept;
     int seekTo(int32_t msec) noexcept;
     int setLooping(bool looping) noexcept;
     int isLooping(bool *looping) noexcept;
     int isPlaying(bool *playing) noexcept;
-    int setAudioStreamType(int streamtype) noexcept;
-    int attachAuxEffect(int effectId) noexcept;
+    int setAudioStreamType(int stream_type) noexcept;
+    int attachAuxEffect(int effect_id) noexcept;
     int setAuxEffectSendLevel(float level) noexcept;
 
     int setNextMediaPlayer(const android::sp<OpenSLMediaPlayer> *next) noexcept;

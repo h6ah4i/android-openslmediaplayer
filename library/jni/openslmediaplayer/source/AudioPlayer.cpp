@@ -106,16 +106,16 @@ public:
     int pause() noexcept;
     int stop() noexcept;
     int reset() noexcept;
-    int setVolume(float leftVolume, float rightVolume) noexcept;
+    int setVolume(float left_volume, float right_volume) noexcept;
     int getDuration(int32_t *duration) noexcept;
     int getCurrentPosition(int32_t *position) noexcept;
     int seekTo(int32_t msec) noexcept;
     int setLooping(bool looping) noexcept;
     int isLooping(bool *looping) noexcept;
-    int setAudioStreamType(int streamtype) noexcept;
-    int getAudioStreamType(int *streamtype) const noexcept;
+    int setAudioStreamType(int stream_type) noexcept;
+    int getAudioStreamType(int *stream_type) const noexcept;
     int setNextMediaPlayer(AudioPlayer *next) noexcept;
-    int attachAuxEffect(int effectId) noexcept;
+    int attachAuxEffect(int effect_id) noexcept;
     int setAuxEffectSendLevel(float level) noexcept;
     int setFadeInOutEnabled(bool enabled) noexcept;
 
@@ -396,11 +396,11 @@ int AudioPlayer::reset() noexcept
     return impl_->reset();
 }
 
-int AudioPlayer::setVolume(float leftVolume, float rightVolume) noexcept
+int AudioPlayer::setVolume(float left_volume, float right_volume) noexcept
 {
     if (CXXPH_UNLIKELY(!impl_))
         return OSLMP_RESULT_ILLEGAL_STATE;
-    return impl_->setVolume(leftVolume, rightVolume);
+    return impl_->setVolume(left_volume, right_volume);
 }
 
 int AudioPlayer::getDuration(int32_t *duration) noexcept
@@ -438,18 +438,18 @@ int AudioPlayer::isLooping(bool *looping) noexcept
     return impl_->isLooping(looping);
 }
 
-int AudioPlayer::setAudioStreamType(int streamtype) noexcept
+int AudioPlayer::setAudioStreamType(int stream_type) noexcept
 {
     if (CXXPH_UNLIKELY(!impl_))
         return OSLMP_RESULT_ILLEGAL_STATE;
-    return impl_->setAudioStreamType(streamtype);
+    return impl_->setAudioStreamType(stream_type);
 }
 
-int AudioPlayer::getAudioStreamType(int *streamtype) const noexcept
+int AudioPlayer::getAudioStreamType(int *stream_type) const noexcept
 {
     if (CXXPH_UNLIKELY(!impl_))
         return OSLMP_RESULT_ILLEGAL_STATE;
-    return impl_->getAudioStreamType(streamtype);
+    return impl_->getAudioStreamType(stream_type);
 }
 
 int AudioPlayer::setNextMediaPlayer(AudioPlayer *next) noexcept
@@ -459,11 +459,11 @@ int AudioPlayer::setNextMediaPlayer(AudioPlayer *next) noexcept
     return impl_->setNextMediaPlayer(next);
 }
 
-int AudioPlayer::attachAuxEffect(int effectId) noexcept
+int AudioPlayer::attachAuxEffect(int effect_id) noexcept
 {
     if (CXXPH_UNLIKELY(!impl_))
         return OSLMP_RESULT_ILLEGAL_STATE;
-    return impl_->attachAuxEffect(effectId);
+    return impl_->attachAuxEffect(effect_id);
 }
 
 int AudioPlayer::setAuxEffectSendLevel(float level) noexcept
@@ -1248,7 +1248,7 @@ int AudioPlayer::Impl::reset() noexcept
     return OSLMP_RESULT_SUCCESS;
 }
 
-int AudioPlayer::Impl::setVolume(float leftVolume, float rightVolume) noexcept
+int AudioPlayer::Impl::setVolume(float left_volume, float right_volume) noexcept
 {
     AudioSystem *audio_system = (context_) ? context_->getAudioSystem() : nullptr;
     AudioMixer *mixer = (audio_system) ? audio_system->getMixer() : nullptr;
@@ -1257,7 +1257,7 @@ int AudioPlayer::Impl::setVolume(float leftVolume, float rightVolume) noexcept
         return OSLMP_RESULT_ILLEGAL_STATE;
     }
 
-    return mixer->setVolume(mixer_control_handle_, leftVolume, rightVolume);
+    return mixer->setVolume(mixer_control_handle_, left_volume, right_volume);
 }
 
 int AudioPlayer::Impl::getDuration(int32_t *duration) noexcept
@@ -1409,17 +1409,17 @@ int AudioPlayer::Impl::isLooping(bool *looping) noexcept
     return OSLMP_RESULT_SUCCESS;
 }
 
-int AudioPlayer::Impl::setAudioStreamType(int streamtype) noexcept
+int AudioPlayer::Impl::setAudioStreamType(int stream_type) noexcept
 {
     AudioSystem *audio_system = context_->getAudioSystem();
-    audio_system->setAudioStreamType(streamtype);
+    audio_system->setAudioStreamType(stream_type);
     return OSLMP_RESULT_SUCCESS;
 }
 
-int AudioPlayer::Impl::getAudioStreamType(int *streamtype) const noexcept
+int AudioPlayer::Impl::getAudioStreamType(int *stream_type) const noexcept
 {
     AudioSystem *audio_system = context_->getAudioSystem();
-    return audio_system->getAudioStreamType(streamtype);
+    return audio_system->getAudioStreamType(stream_type);
 }
 
 int AudioPlayer::Impl::setNextMediaPlayer(AudioPlayer *next) noexcept
@@ -1437,9 +1437,9 @@ int AudioPlayer::Impl::setNextMediaPlayer(AudioPlayer *next) noexcept
     return OSLMP_RESULT_SUCCESS;
 }
 
-int AudioPlayer::Impl::attachAuxEffect(int effectId) noexcept
+int AudioPlayer::Impl::attachAuxEffect(int effect_id) noexcept
 {
-    return context_->getAudioSystem()->selectActiveAuxEffect(effectId);
+    return context_->getAudioSystem()->selectActiveAuxEffect(effect_id);
 }
 
 int AudioPlayer::Impl::setAuxEffectSendLevel(float level) noexcept

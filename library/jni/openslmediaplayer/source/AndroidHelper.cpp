@@ -57,8 +57,35 @@ struct local_ref_deleter {
 };
 
 typedef std::unique_ptr<JNIEnv, jni_env_deleter> jni_env_unique_ptr_t;
-typedef local_ref_deleter<std::remove_pointer<jclass>::type> jclass_deleter_t;
-typedef std::unique_ptr<std::remove_pointer<jclass>::type, jclass_deleter_t> jclass_unique_ptr_t;
+typedef local_ref_deleter<std::remove_pointer<jclass>::type> jclass_local_ref_deleter_t;
+typedef std::unique_ptr<std::remove_pointer<jclass>::type, jclass_local_ref_deleter_t> jclass_unique_ptr_t;
+
+
+bool AndroidHelper::setThreadPriority(JNIEnv *env, pid_t tid, int prio) noexcept
+{
+    jclass_local_ref_deleter_t del_jclass(env);
+
+    if (env->ExceptionCheck()) {
+        return false;
+    }
+
+    jclass_unique_ptr_t cls_android_os_process(env->FindClass("android/os/Process"), del_jclass);
+    jmethodID mid = nullptr;
+
+    if (!cls_android_os_process) {
+        return false;
+    }
+
+    mid = env->GetStaticMethodID(cls_android_os_process.get(), "setThreadPriority", "(II)V");
+    env->CallStaticVoidMethod(cls_android_os_process.get(), mid, static_cast<jint>(tid), static_cast<jint>(prio));
+
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+        return false;
+    }
+
+    return true;
+}
 
 bool AndroidHelper::setThreadPriority(JavaVM *vm, pid_t tid, int prio) noexcept
 {
@@ -76,30 +103,7 @@ bool AndroidHelper::setThreadPriority(JavaVM *vm, pid_t tid, int prio) noexcept
         return false;
     }
 
-    jclass_deleter_t del_jclass(env.get());
-
-    if (env->ExceptionCheck()) {
-        return false;
-    }
-
-    jclass_unique_ptr_t cls_android_os_process(nullptr, del_jclass);
-    jmethodID mid = nullptr;
-
-    cls_android_os_process.reset(env->FindClass("android/os/Process"));
-
-    if (!cls_android_os_process) {
-        return false;
-    }
-
-    mid = env->GetStaticMethodID(cls_android_os_process.get(), "setThreadPriority", "(II)V");
-    env->CallStaticVoidMethod(cls_android_os_process.get(), mid, static_cast<jint>(tid), static_cast<jint>(prio));
-
-    if (env->ExceptionCheck()) {
-        env->ExceptionClear();
-        return false;
-    }
-
-    return true;
+    return setThreadPriority(env.get(), tid, prio);
 }
 
 bool AndroidHelper::setCurrentThreadName(const char *name) noexcept

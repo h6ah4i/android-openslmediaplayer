@@ -111,8 +111,8 @@ struct msg_blob_set_data_source_fd {
 };
 
 struct msg_blob_set_volume {
-    float leftVolume;
-    float rightVolume;
+    float left_volume;
+    float right_volume;
 };
 
 struct msg_blob_get_duration {
@@ -144,7 +144,7 @@ struct msg_blob_set_next_media_player {
 };
 
 struct msg_blob_attach_aux_effect {
-    int effectId;
+    int effect_id;
 };
 
 struct msg_blob_set_aux_effect_send_level {
@@ -152,7 +152,7 @@ struct msg_blob_set_aux_effect_send_level {
 };
 
 struct msg_blob_set_audio_stream_type {
-    int streamtype;
+    int stream_type;
 };
 
 //
@@ -523,7 +523,7 @@ int OpenSLMediaPlayer::Impl::reset() noexcept
     return postAndWaitResult(&msg);
 }
 
-int OpenSLMediaPlayer::Impl::setVolume(float leftVolume, float rightVolume) noexcept
+int OpenSLMediaPlayer::Impl::setVolume(float left_volume, float right_volume) noexcept
 {
     typedef msg_blob_set_volume blob_t;
     CHECK_MSG_BLOB_SIZE(blob_t);
@@ -532,8 +532,8 @@ int OpenSLMediaPlayer::Impl::setVolume(float leftVolume, float rightVolume) noex
 
     {
         blob_t &blob = GET_MSG_BLOB(msg);
-        blob.leftVolume = leftVolume;
-        blob.rightVolume = rightVolume;
+        blob.left_volume = left_volume;
+        blob.right_volume = right_volume;
     }
 
     return postAndWaitResult(&msg);
@@ -629,7 +629,7 @@ int OpenSLMediaPlayer::Impl::isPlaying(bool *playing) noexcept
     return postAndWaitResult(&msg);
 }
 
-int OpenSLMediaPlayer::Impl::setAudioStreamType(int streamtype) noexcept
+int OpenSLMediaPlayer::Impl::setAudioStreamType(int stream_type) noexcept
 {
     typedef msg_blob_set_audio_stream_type blob_t;
     CHECK_MSG_BLOB_SIZE(blob_t);
@@ -638,13 +638,13 @@ int OpenSLMediaPlayer::Impl::setAudioStreamType(int streamtype) noexcept
 
     {
         blob_t &blob = GET_MSG_BLOB(msg);
-        blob.streamtype = streamtype;
+        blob.stream_type = stream_type;
     }
 
     return postAndWaitResult(&msg);
 }
 
-int OpenSLMediaPlayer::Impl::attachAuxEffect(int effectId) noexcept
+int OpenSLMediaPlayer::Impl::attachAuxEffect(int effect_id) noexcept
 {
     typedef msg_blob_attach_aux_effect blob_t;
     CHECK_MSG_BLOB_SIZE(blob_t);
@@ -653,7 +653,7 @@ int OpenSLMediaPlayer::Impl::attachAuxEffect(int effectId) noexcept
 
     {
         blob_t &blob = GET_MSG_BLOB(msg);
-        blob.effectId = effectId;
+        blob.effect_id = effect_id;
     }
 
     return postAndWaitResult(&msg);
@@ -1070,7 +1070,7 @@ void OpenSLMediaPlayer::Impl::onHandleMessage(const void *msg_) noexcept
                                SMASK(STARTED) | SMASK(PAUSED) | SMASK(STOPPED) | SMASK(PLAYBACK_COMPLETED);
 
         if (checkCurrentState(state_mask)) {
-            result = player_->setVolume(blob.leftVolume, blob.rightVolume);
+            result = player_->setVolume(blob.left_volume, blob.right_volume);
         } else {
             result = OSLMP_RESULT_ILLEGAL_STATE;
         }
@@ -1186,14 +1186,14 @@ void OpenSLMediaPlayer::Impl::onHandleMessage(const void *msg_) noexcept
  SMASK(PLAYBACK_COMPLETED)*/;
 
         if (checkCurrentState(state_mask)) {
-            result = player_->setAudioStreamType(blob.streamtype);
+            result = player_->setAudioStreamType(blob.stream_type);
         } else {
-            int current_streamtype = OSLMP_STREAM_MUSIC;
+            int current_stream_type = OSLMP_STREAM_MUSIC;
 
-            player_->getAudioStreamType(&current_streamtype);
+            player_->getAudioStreamType(&current_stream_type);
 
             result = OSLMP_RESULT_ILLEGAL_STATE;
-            raise_error = (!is_error) && (blob.streamtype != current_streamtype);
+            raise_error = (!is_error) && (blob.stream_type != current_stream_type);
         }
     } break;
     case MSG_SET_NEXT_MEDIA_PLAYER: {
@@ -1226,7 +1226,7 @@ void OpenSLMediaPlayer::Impl::onHandleMessage(const void *msg_) noexcept
         const int state_mask2 = SMASK(STARTED) | SMASK(PAUSED) | SMASK(STOPPED) | SMASK(PLAYBACK_COMPLETED);
 
         if (checkCurrentState(state_mask1 | state_mask2)) {
-            result = player_->attachAuxEffect(blob.effectId);
+            result = player_->attachAuxEffect(blob.effect_id);
             raise_error = (result != OSLMP_RESULT_SUCCESS) && checkCurrentState(state_mask2);
         } else {
             result = OSLMP_RESULT_ILLEGAL_STATE;

@@ -26,6 +26,15 @@
 namespace oslmp {
 namespace impl {
 
+static jmethodID safeGetMethodId(JNIEnv *env, jclass clazz, const char *name, const char *sig) {
+    jmethodID methodId = env->GetMethodID(clazz, name, sig);
+    if (env->ExceptionCheck()) {
+        env->ExceptionClear();
+        methodId = 0;
+    }
+    return methodId;
+}
+
 AudioTrack::AudioTrack()
     : cls_(nullptr), obj_(nullptr), m_play_(0), m_pause_(0), m_stop_(0), m_release_(0),
       m_get_state_(0), m_get_play_state_(0), m_get_audio_session_(0), m_write_sa_(0), m_write_fa_(0), m_write_bb_(0),
@@ -65,15 +74,15 @@ bool AudioTrack::create(
         return false;
     }
 
-    const jmethodID m_play = env->GetMethodID(cls, "play", "()V");
-    const jmethodID m_pause = env->GetMethodID(cls, "pause", "()V");
-    const jmethodID m_stop = env->GetMethodID(cls, "stop", "()V");
-    const jmethodID m_release = env->GetMethodID(cls, "release", "()V");
-    const jmethodID m_get_state = env->GetMethodID(cls, "getState", "()I");
-    const jmethodID m_get_play_state = env->GetMethodID(cls, "getPlayState", "()I");
-    const jmethodID m_get_audio_session = env->GetMethodID(cls, "getAudioSessionId", "()I");
-    const jmethodID m_write_sa = env->GetMethodID(cls, "write", "([SII)I");
-    const jmethodID m_write_fa = env->GetMethodID(cls, "write", "([FIII)I");
+    const jmethodID m_play = safeGetMethodId(env, cls, "play", "()V");
+    const jmethodID m_pause = safeGetMethodId(env, cls, "pause", "()V");
+    const jmethodID m_stop = safeGetMethodId(env, cls, "stop", "()V");
+    const jmethodID m_release = safeGetMethodId(env, cls, "release", "()V");
+    const jmethodID m_get_state = safeGetMethodId(env, cls, "getState", "()I");
+    const jmethodID m_get_play_state = safeGetMethodId(env, cls, "getPlayState", "()I");
+    const jmethodID m_get_audio_session = safeGetMethodId(env, cls, "getAudioSessionId", "()I");
+    const jmethodID m_write_sa = safeGetMethodId(env, cls, "write", "([SII)I");
+    const jmethodID m_write_fa = safeGetMethodId(env, cls, "write", "([FIII)I");
     const jmethodID m_write_bb = env->GetMethodID(cls, "write", "(Ljava/nio/ByteBuffer;II)I");
 
     if (!(m_play && m_pause && m_stop && m_release && m_get_state && m_get_play_state && m_get_audio_session && (
