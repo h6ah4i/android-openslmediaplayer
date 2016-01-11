@@ -35,6 +35,9 @@ public class ActionBarTileBuilder {
             case MediaPlayerStateStore.PLAYER_IMPL_TYPE_OPENSL:
                 impl_type_resid = R.string.mediaplayer_impl_opensl;
                 break;
+            case MediaPlayerStateStore.PLAYER_IMPL_TYPE_HYBRID:
+                impl_type_resid = R.string.mediaplayer_impl_hybrid;
+                break;
             default:
                 return "";
         }

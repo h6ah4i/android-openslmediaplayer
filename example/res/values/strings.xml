@@ -38,5 +38,6 @@
     <!-- MediaPlayer implementation names -->
     <string name="mediaplayer_impl_standard">Standard MediaPlayer</string>
     <string name="mediaplayer_impl_opensl">OpenSL MediaPlayer</string>
+    <string name="mediaplayer_impl_hybrid">Hybrid MediaPlayer</string>
 
 </resources>

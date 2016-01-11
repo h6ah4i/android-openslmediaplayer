@@ -25,6 +25,7 @@ import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.N
 import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_PRESET_REVERB;
 import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_VIRTUALIZER;
 import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_VISUALIZER;
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
@@ -61,7 +62,7 @@ import com.h6ah4i.android.example.openslmediaplayer.app.model.MediaPlayerStateSt
 public class NavigationDrawerFragment extends AppBaseFragment {
 
     private static class AppEventReceiver extends AppEventBus.Receiver<NavigationDrawerFragment> {
-        private static final int[] FILTER = new int[] {
+        private static final int[] FILTER = new int[]{
                 EventDefs.Category.NOTIFY_BASSBOOST,
                 EventDefs.Category.NOTIFY_VIRTUALIZER,
                 EventDefs.Category.NOTIFY_EQUALIZER,
@@ -181,14 +182,12 @@ public class NavigationDrawerFragment extends AppBaseFragment {
         ModeSelectListAdapter.ListItem[] listItems;
 
         final int curPlayerImplType = getAppController().getPlayerStateStore().getPlayerImplType();
-        final int selectedIntex =
-                (curPlayerImplType == MediaPlayerStateStore.PLAYER_IMPL_TYPE_STANDARD) ? 0 : 1;
+        final int selectedIndex = playerImplTypeToModeListIndex(curPlayerImplType);
 
-        listItems = new ModeSelectListAdapter.ListItem[] {
-                makeModeSelectListItem(
-                R.string.mediaplayer_impl_standard),
-                makeModeSelectListItem(
-                R.string.mediaplayer_impl_opensl),
+        listItems = new ModeSelectListAdapter.ListItem[]{
+                makeModeSelectListItem(R.string.mediaplayer_impl_standard),
+                makeModeSelectListItem(R.string.mediaplayer_impl_opensl),
+                makeModeSelectListItem(R.string.mediaplayer_impl_hybrid),
         };
 
         mModeSelectAdapter = new ModeSelectListAdapter(
@@ -196,14 +195,13 @@ public class NavigationDrawerFragment extends AppBaseFragment {
 
         mModeSelectListView.setAdapter(mModeSelectAdapter);
         mModeSelectListView.setChoiceMode(AbsListView.CHOICE_MODE_SINGLE);
-        mModeSelectListView.setItemChecked(selectedIntex, true);
-        mModeSelectListView.setOnItemClickListener(new
-                AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        onModeSelectLiteItemClick(position);
-                    }
-                });
+        mModeSelectListView.setItemChecked(selectedIndex, true);
+        mModeSelectListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                onModeSelectLiteItemClick(position);
+            }
+        });
     }
 
     private void setupPageSelectListView() {
@@ -219,7 +217,7 @@ public class NavigationDrawerFragment extends AppBaseFragment {
 
         PageSelectListAdapter.ListItem[] listItems;
 
-        listItems = new PageSelectListAdapter.ListItem[] {
+        listItems = new PageSelectListAdapter.ListItem[]{
                 makePageSelectListItem(
                         R.string.title_player_control, false, false),
                 makePageSelectListItem(
@@ -263,6 +261,19 @@ public class NavigationDrawerFragment extends AppBaseFragment {
                 });
 
         mPageSelectListView.setAdapter(mPageSelectAdapter);
+    }
+
+    private static int playerImplTypeToModeListIndex(int implType) {
+        switch (implType) {
+            case MediaPlayerStateStore.PLAYER_IMPL_TYPE_STANDARD:
+                return 0;
+            case MediaPlayerStateStore.PLAYER_IMPL_TYPE_OPENSL:
+                return 1;
+            case MediaPlayerStateStore.PLAYER_IMPL_TYPE_HYBRID:
+                return 2;
+            default:
+                throw new IllegalArgumentException();
+        }
     }
 
     private static ModeSelectListAdapter.ListItem makeModeSelectListItem(
@@ -320,29 +331,29 @@ public class NavigationDrawerFragment extends AppBaseFragment {
                 mDrawerLayout,
                 R.string.navigation_drawer_open,
                 R.string.navigation_drawer_close
-                ) {
-                    @Override
-                    public void onDrawerClosed(View drawerView) {
-                        super.onDrawerClosed(drawerView);
-                        if (!isAdded()) {
-                            return;
-                        }
+        ) {
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+                if (!isAdded()) {
+                    return;
+                }
 
-                        // calls onPrepareOptionsMenu()
-                        getActivity().supportInvalidateOptionsMenu();
-                    }
+                // calls onPrepareOptionsMenu()
+                getActivity().supportInvalidateOptionsMenu();
+            }
 
-                    @Override
-                    public void onDrawerOpened(View drawerView) {
-                        super.onDrawerOpened(drawerView);
-                        if (!isAdded()) {
-                            return;
-                        }
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+                if (!isAdded()) {
+                    return;
+                }
 
-                        // calls onPrepareOptionsMenu()
-                        getActivity().supportInvalidateOptionsMenu();
-                    }
-                };
+                // calls onPrepareOptionsMenu()
+                getActivity().supportInvalidateOptionsMenu();
+            }
+        };
 
         // Defer code dependent on restoration of previous instance state.
         mDrawerLayout.post(new Runnable() {
@@ -364,6 +375,9 @@ public class NavigationDrawerFragment extends AppBaseFragment {
                 break;
             case 1:
                 type = NavigationDrawerReqEvents.IMPL_TYPE_OPENSL;
+                break;
+            case 2:
+                type = NavigationDrawerReqEvents.IMPL_TYPE_HYBRID;
                 break;
             default:
                 return;

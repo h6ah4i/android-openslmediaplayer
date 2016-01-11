@@ -77,6 +77,7 @@ public class EventDefs {
         // media player impl. type
         public static final int IMPL_TYPE_STANDARD = MediaPlayerStateStore.PLAYER_IMPL_TYPE_STANDARD;
         public static final int IMPL_TYPE_OPENSL = MediaPlayerStateStore.PLAYER_IMPL_TYPE_OPENSL;
+        public static final int IMPL_TYPE_HYBRID = MediaPlayerStateStore.PLAYER_IMPL_TYPE_HYBRID;
     }
 
     public static final class PlayerControlReqEvents {

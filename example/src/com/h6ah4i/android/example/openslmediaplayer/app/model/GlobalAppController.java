@@ -69,6 +69,7 @@ import com.h6ah4i.android.media.audiofx.IPreAmp;
 import com.h6ah4i.android.media.audiofx.IPresetReverb;
 import com.h6ah4i.android.media.audiofx.IVirtualizer;
 import com.h6ah4i.android.media.audiofx.IVisualizer;
+import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerFactory;
 import com.h6ah4i.android.media.standard.StandardMediaPlayer;
 import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
@@ -1438,6 +1439,7 @@ public class GlobalAppController implements IReleasable {
         switch (type) {
             case MediaPlayerStateStore.PLAYER_IMPL_TYPE_STANDARD:
             case MediaPlayerStateStore.PLAYER_IMPL_TYPE_OPENSL:
+            case MediaPlayerStateStore.PLAYER_IMPL_TYPE_HYBRID:
                 break;
             default:
                 throw new IllegalArgumentException();
@@ -1457,6 +1459,9 @@ public class GlobalAppController implements IReleasable {
                 break;
             case MediaPlayerStateStore.PLAYER_IMPL_TYPE_OPENSL:
                 mFactory = new OpenSLMediaPlayerFactory(mContext);
+                break;
+            case MediaPlayerStateStore.PLAYER_IMPL_TYPE_HYBRID:
+                mFactory = new HybridMediaPlayerFactory(mContext);
                 break;
         }
     }

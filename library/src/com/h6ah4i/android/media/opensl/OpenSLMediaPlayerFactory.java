@@ -293,6 +293,8 @@ public class OpenSLMediaPlayerFactory implements IMediaPlayerFactory {
         final OpenSLMediaPlayerContext.Parameters params = new OpenSLMediaPlayerContext.Parameters();
 
         // override parameters
+        params.sinkBackEndType = OpenSLMediaPlayerContext.SINK_BACKEND_TYPE_OPENSL;
+
         params.options = getDefaultContextOptions();
 
         // FYI: Specify these options to get the best quality & result
@@ -301,8 +303,6 @@ public class OpenSLMediaPlayerFactory implements IMediaPlayerFactory {
         // OpenSLMediaPlayerContext.RESAMPLER_QUALITY_HIGH;
         // params.hqEqualizerImplType =
         // OpenSLMediaPlayerContext.HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPONSE;
-
-        // params.sinkBackEndType = OpenSLMediaPlayerContext.SINK_BACKEND_TYPE_AUDIO_TRACK;
 
         return params;
     }

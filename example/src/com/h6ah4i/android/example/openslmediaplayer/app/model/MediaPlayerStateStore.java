@@ -26,6 +26,7 @@ import com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.PlayerCo
 public class MediaPlayerStateStore implements Parcelable {
     public static final int PLAYER_IMPL_TYPE_STANDARD = 0;
     public static final int PLAYER_IMPL_TYPE_OPENSL = 1;
+    public static final int PLAYER_IMPL_TYPE_HYBRID = 2;
 
     private float mAuxEffectSendLevel;
     private float mVolumeLeft;
