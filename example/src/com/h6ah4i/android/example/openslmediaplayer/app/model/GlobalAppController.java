@@ -25,6 +25,7 @@ import android.app.Service;
 import android.content.Context;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.PowerManager;
 
 import com.h6ah4i.android.example.openslmediaplayer.app.framework.AppEvent;
 import com.h6ah4i.android.example.openslmediaplayer.app.framework.AppEventBus;
@@ -1541,6 +1542,7 @@ public class GlobalAppController implements IReleasable {
         if (mMediaPlayer[index] == null) {
             IBasicMediaPlayer player = mFactory.createMediaPlayer();
 
+            player.setWakeMode(mContext, PowerManager.PARTIAL_WAKE_LOCK);
             player.setOnBufferingUpdateListener(mOnBufferingUpdateListener);
             player.setOnCompletionListener(mOnCompletionListener);
             player.setOnErrorListener(mOnErrorListener);
