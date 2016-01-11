@@ -546,7 +546,7 @@ void OpenSLMediaPlayerInternalContextImpl::onEnterHandlerThread() noexcept
     AndroidHelper::setCurrentThreadName("OSLMPMsgHandler");
 
     // set thread priority
-    // AndroidHelper::setThreadPriority(env, 0, ANDROID_THREAD_PRIORITY_MORE_FAVORABLE);
+    AndroidHelper::setThreadPriority(env, 0, ANDROID_THREAD_PRIORITY_MORE_FAVORABLE);
 
     android::sp<OpenSLMediaPlayerContext::InternalThreadEventListener> listener;
     listener = listener_;
