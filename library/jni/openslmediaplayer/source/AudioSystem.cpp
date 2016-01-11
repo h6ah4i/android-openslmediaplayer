@@ -492,9 +492,10 @@ int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args
     const uint32_t kSourcePipeMaxNumBlocks = static_cast<uint32_t>(AudioSourceDataPipe::MAX_BUFFER_ITEM_COUNT);
 
     const uint32_t kAudioMixerSinkPooledNumBlocks = 4;
-    const uint32_t kSinkPlayerNumBlocks = (uses_opensl_sink) ? 4 : 16;
-    const uint32_t kSinkPipeNumBlocks =
-        kSinkPlayerNumBlocks + kAudioMixerSinkPooledNumBlocks + 1; // +1: silent buffer internally used in AudioSink
+    const uint32_t kSinkPlayerNumBlocks = (uses_opensl_sink) ? 4 : 32;
+    const uint32_t kSinkPipeNumBlocks = (uses_opensl_sink)
+            ? (kSinkPlayerNumBlocks + kAudioMixerSinkPooledNumBlocks + 1) /* +1: silent buffer internally used in AudioSink */
+            : (kSinkPlayerNumBlocks + 4);
 
     const uint32_t kCapturePipeDurationInMsec = 200;
     const uint32_t kCapturePipeMinNumBlocks = 8;
@@ -1163,7 +1164,7 @@ bool AudioSystem::Impl::check_is_low_latency(const initialize_args_t &args) noex
 
 uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t &args, bool is_low_latency) noexcept
 {
-    const bool uses_opensl_sink = (args.sink_backend_type == OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL);
+    // const bool uses_opensl_sink = (args.sink_backend_type == OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL);
 
     // if (is_low_latency && uses_opensl_sink) {
     //     return args.system_out_frames_per_buffer;
