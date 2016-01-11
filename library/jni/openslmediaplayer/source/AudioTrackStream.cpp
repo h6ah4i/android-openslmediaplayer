@@ -272,7 +272,7 @@ void* AudioTrackStream::sinkWriterThreadEntryFunc(void *args) noexcept
 
     if (thiz->vm_->AttachCurrentThread(&env, nullptr) == JNI_OK) {
         // set thread priority
-        // AndroidHelper::setThreadPriority(env, 0, ANDROID_THREAD_PRIORITY_AUDIO + ANDROID_THREAD_PRIORITY_LESS_FAVORABLE);
+        AndroidHelper::setThreadPriority(env, 0, ANDROID_THREAD_PRIORITY_AUDIO + ANDROID_THREAD_PRIORITY_LESS_FAVORABLE);
 
         thiz->sinkWriterThreadProcess(env);
 
