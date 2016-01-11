@@ -229,11 +229,14 @@ private:
 
     int32_t last_buffering_update_notified_position_;
 
+    timespec ts_playback_completed_;
     timespec ts_last_seek_request_;
     bool seek_pending_;
     int32_t pending_seek_position_;
 
     AudioMixer::mixing_stop_cause_t current_source_stop_cause_;
+
+    int32_t output_latency_ms_;
 };
 
 class TimeoutChecker {
@@ -510,7 +513,7 @@ AudioPlayer::Impl::Impl(AudioPlayer *holder)
       event_handler_(nullptr), data_source_(), mixer_control_handle_(), looping_(false), fade_in_out_enabled_(false),
       prepared_(false), started_(false), start_pending_(false), playback_completed_(false), last_stopped_position_(0),
       preparing_source_create_reason_(AUDIO_SOURCE_CREATE_REASON_NONE), next_player_(nullptr),
-      next_player_instance_id_(0), last_buffering_update_notified_position_(0),
+      next_player_instance_id_(0), last_buffering_update_notified_position_(0), ts_playback_completed_(utils::timespec_utils::ZERO()),
       ts_last_seek_request_(utils::timespec_utils::ZERO()), seek_pending_(false), pending_seek_position_(false),
       current_source_stop_cause_(MIXING_STOP_CAUSE_INVALID)
 {
@@ -534,6 +537,16 @@ int AudioPlayer::Impl::initialize(const AudioPlayer::initialize_args_t &args) no
 
     int result;
     uint32_t player_instance_id = 0;
+    uint32_t sampling_rate = 0;
+    uint32_t latency_in_frames = 0;
+
+    result = audio_system->getSystemOutputSamplingRate(&sampling_rate);
+    if (result != OSLMP_RESULT_SUCCESS)
+        return result;
+
+    result = audio_system->getOutputLatencyInFrames(&latency_in_frames);
+    if (result != OSLMP_RESULT_SUCCESS)
+        return result;
 
     // register as audio player client
     result = audio_system->registerAudioPlayer(holder_, player_instance_id);
@@ -557,6 +570,7 @@ int AudioPlayer::Impl::initialize(const AudioPlayer::initialize_args_t &args) no
     event_handler_ = args.event_handler;
     mixer_control_handle_ = reg_src_args.control_handle;
     preparing_source_create_reason_ = AUDIO_SOURCE_CREATE_REASON_NONE;
+    output_latency_ms_ = (latency_in_frames * 1000) / (sampling_rate / 1000);
 
     return OSLMP_RESULT_SUCCESS;
 }
@@ -1058,6 +1072,7 @@ void AudioPlayer::Impl::pollHandlePlaybackCompletion(poll_results_info_t &result
             if (!looped) {
                 playback_completed_ = true;
                 last_stopped_position_ = completed_position;
+                utils::timespec_utils::get_current_time(ts_playback_completed_);
                 setStartedStatus(false, false);
             } else {
                 moveReadySourceToActiveSource(&mixer_da);
@@ -1070,6 +1085,7 @@ void AudioPlayer::Impl::pollHandlePlaybackCompletion(poll_results_info_t &result
 
             playback_completed_ = true;
             last_stopped_position_ = completed_position;
+            utils::timespec_utils::get_current_time(ts_playback_completed_);
         }
 
         refreshCurrentSourceToMixer(&mixer_da);
@@ -1315,7 +1331,14 @@ int AudioPlayer::Impl::getCurrentPosition(int32_t *position) noexcept
 
     if (playback_completed_) {
         // playback completed
-        *position = last_stopped_position_;
+        timespec cur_time;
+        utils::timespec_utils::get_current_time(cur_time);
+        int64_t diff = utils::timespec_utils::sub_ret_ms(cur_time, ts_playback_completed_);
+        if (diff < output_latency_ms_) {
+            *position = (std::max)(0, last_stopped_position_ - static_cast<int32_t>(output_latency_ms_ - diff));
+        } else {
+            *position = last_stopped_position_;
+        }
         result = OSLMP_RESULT_SUCCESS;
     } else if (isSeeking()) {
         // seeking
@@ -1328,6 +1351,9 @@ int AudioPlayer::Impl::getCurrentPosition(int32_t *position) noexcept
     } else if (active_source_) {
         // playing
         result = active_source_->getCurrentPosition(position);
+        if (result == OSLMP_RESULT_SUCCESS && (*position) > 0) {
+            (*position) = (std::max)(0, (*position) - output_latency_ms_);
+        }
     } else if (ready_source_) {
         // paused
         result = ready_source_->getCurrentPosition(position);
