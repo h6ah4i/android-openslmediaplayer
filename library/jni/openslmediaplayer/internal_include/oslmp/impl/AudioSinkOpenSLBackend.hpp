@@ -14,7 +14,7 @@
 //    limitations under the License.
 //
 
-#include <SLESCXX/OpenSLES_CXX.hpp>
+#include <cxxporthelper/memory>
 
 #include "oslmp/impl/AudioSink.hpp"
 #include "oslmp/impl/AudioPipeBufferQueueBinder.hpp"
@@ -35,17 +35,35 @@ public:
     virtual int onPause() noexcept override;
     virtual int onResume() noexcept override;
     virtual int onStop() noexcept override;
-    virtual opensles::CSLObjectItf *onGetPlayerObj() const noexcept override;
     virtual uint32_t onGetLatencyInFrames() const noexcept override;
     virtual int32_t onGetAudioSessionId() const noexcept override;
+    virtual int onSelectActiveAuxEffect(int aux_effect_id) noexcept override;
+    virtual int onSetAuxEffectSendLevel(float level) noexcept override;
+    virtual int onSetAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept override;
+
+    virtual SLresult onGetInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept override;
+    virtual SLresult onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept override;
 
 private:
     void releaseOpenSLResources() noexcept;
 
     static void playbackBufferQueueCallback(SLAndroidSimpleBufferQueueItf caller, void *pContext) noexcept;
 
+    int applyActiveAuxEffectSettings() noexcept;
+
+    static SLresult applyAuxEffectSettings(opensles::CSLEffectSendItf &effect_send, const void *aux_effect, SLboolean enabled,
+                                           SLmillibel sendLevel) noexcept;
+
+    SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept;
+    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
+
 private:
+    struct AuxEffectStatus;
+
+    uint32_t opts_;
+
     AudioPipeBufferQueueBinder queue_binder_;
+    opensles::CSLObjectItf obj_outmix_;
     opensles::CSLObjectItf obj_player_;
 
     opensles::CSLPlayItf player_;
@@ -55,6 +73,8 @@ private:
     int block_size_in_frames_;
     uint32_t num_player_blocks_;
     uint32_t num_pipe_blocks_;
+
+    std::unique_ptr<AuxEffectStatus> aux_;
 };
 
 } // namespace impl

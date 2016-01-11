@@ -44,6 +44,9 @@ public:
 
     int32_t getAudioSessionId() noexcept;
 
+    int32_t setAuxEffectSendLevel(float level) noexcept;
+    int32_t attachAuxEffect(int effect_id) noexcept;
+
 private:
     static void *sinkWriterThreadEntryFunc(void *args) noexcept;
 
@@ -66,6 +69,7 @@ private:
     render_callback_func_t callback_func_;
     void *callback_args_;
     std::atomic_bool stop_request_;
+    uint32_t callback_retry_sleep_us_;
 };
 
 }

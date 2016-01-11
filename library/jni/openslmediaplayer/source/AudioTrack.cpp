@@ -14,7 +14,7 @@
 //    limitations under the License.
 //
 
-#define LOG_TAG "AudioTrack"
+// #define LOG_TAG "AudioTrack"
 
 #include "oslmp/impl/AudioTrack.hpp"
 
@@ -81,11 +81,14 @@ bool AudioTrack::create(
     const jmethodID m_get_state = safeGetMethodId(env, cls, "getState", "()I");
     const jmethodID m_get_play_state = safeGetMethodId(env, cls, "getPlayState", "()I");
     const jmethodID m_get_audio_session = safeGetMethodId(env, cls, "getAudioSessionId", "()I");
+    const jmethodID m_set_aux_effect_send_level = safeGetMethodId(env, cls, "setAuxEffectSendLevel", "(F)I");
+    const jmethodID m_attach_aux_effect = safeGetMethodId(env, cls, "attachAuxEffect", "(I)I");
     const jmethodID m_write_sa = safeGetMethodId(env, cls, "write", "([SII)I");
     const jmethodID m_write_fa = safeGetMethodId(env, cls, "write", "([FIII)I");
     const jmethodID m_write_bb = env->GetMethodID(cls, "write", "(Ljava/nio/ByteBuffer;II)I");
 
-    if (!(m_play && m_pause && m_stop && m_release && m_get_state && m_get_play_state && m_get_audio_session && (
+    if (!(m_play && m_pause && m_stop && m_release && m_get_state && m_get_play_state &&
+        m_get_audio_session && m_set_aux_effect_send_level && m_attach_aux_effect && (
       m_write_bb || (m_write_sa && format == AudioFormat::ENCODING_PCM_16BIT) || (m_write_fa && format == AudioFormat::ENCODING_PCM_FLOAT)))) {
         env->DeleteLocalRef(obj);
         return false;
@@ -101,6 +104,8 @@ bool AudioTrack::create(
     m_get_state_ = m_get_state;
     m_get_play_state_ = m_get_play_state;
     m_get_audio_session_ = m_get_audio_session;
+    m_set_aux_effect_send_level_ = m_set_aux_effect_send_level;
+    m_attach_aux_effect_ = m_attach_aux_effect;
     m_write_sa_ = m_write_sa;
     m_write_fa_ = m_write_fa;
     m_write_bb_ = m_write_bb;
@@ -320,6 +325,44 @@ int32_t AudioTrack::getAudioSessionId(JNIEnv *env) noexcept
     if (CXXPH_UNLIKELY(env->ExceptionCheck())) {
         env->ExceptionClear();
         return 0;
+    }
+
+    return static_cast<int32_t>(result);
+}
+
+int32_t AudioTrack::setAuxEffectSendLevel(JNIEnv *env, float level) noexcept {
+    if (CXXPH_UNLIKELY(!(m_set_aux_effect_send_level_))) {
+        return ERROR_INVALID_OPERATION;
+    }
+
+    if (CXXPH_UNLIKELY(env->ExceptionCheck())) {
+        return ERROR_INVALID_OPERATION;
+    }
+
+    jint result = env->CallNonvirtualIntMethod(obj_, cls_, m_set_aux_effect_send_level_, level);
+
+    if (CXXPH_UNLIKELY(env->ExceptionCheck())) {
+        env->ExceptionClear();
+        return ERROR_INVALID_OPERATION;
+    }
+
+    return static_cast<int32_t>(result);
+}
+
+int32_t AudioTrack::attachAuxEffect(JNIEnv *env, int effect_id) noexcept {
+    if (CXXPH_UNLIKELY(!(m_attach_aux_effect_))) {
+        return ERROR_INVALID_OPERATION;
+    }
+
+    if (CXXPH_UNLIKELY(env->ExceptionCheck())) {
+        return ERROR_INVALID_OPERATION;
+    }
+
+    jint result = env->CallNonvirtualIntMethod(obj_, cls_, m_attach_aux_effect_, effect_id);
+
+    if (CXXPH_UNLIKELY(env->ExceptionCheck())) {
+        env->ExceptionClear();
+        return ERROR_INVALID_OPERATION;
     }
 
     return static_cast<int32_t>(result);

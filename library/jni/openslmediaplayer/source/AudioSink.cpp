@@ -59,7 +59,12 @@ public:
     state_t getState() const noexcept;
     AudioSinkDataPipe *getPipe() const noexcept;
     int32_t getAudioSessionId() const noexcept;
-    opensles::CSLObjectItf *getPlayerObj() const noexcept;
+    int selectActiveAuxEffect(int aux_effect_id) noexcept;
+    int setAuxEffectSendLevel(float level) noexcept;
+    int setAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept;
+
+    SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept;
+    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
 
 private:
     void updateState(state_t state);
@@ -145,12 +150,41 @@ int32_t AudioSink::getAudioSessionId() const noexcept
     return impl_->getAudioSessionId();
 }
 
-opensles::CSLObjectItf *AudioSink::getPlayerObj() const noexcept
+int AudioSink::selectActiveAuxEffect(int aux_effect_id) noexcept
 {
     if (CXXPH_UNLIKELY(!impl_))
-        return nullptr;
-    return impl_->getPlayerObj();
+        return OSLMP_RESULT_ILLEGAL_STATE;
+    return impl_->selectActiveAuxEffect(aux_effect_id);
 }
+
+int AudioSink::setAuxEffectSendLevel(float level) noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return OSLMP_RESULT_ILLEGAL_STATE;
+    return impl_->setAuxEffectSendLevel(level);
+}
+
+int AudioSink::setAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return OSLMP_RESULT_ILLEGAL_STATE;
+    return impl_->setAuxEffectEnabled(aux_effect_id, enabled);
+}
+
+SLresult AudioSink::getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return SL_RESULT_RESOURCE_ERROR;
+    return impl_->getInterfaceFromOutputMixer(itf);
+}
+
+SLresult AudioSink::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return SL_RESULT_RESOURCE_ERROR;
+    return impl_->getInterfaceFromSinkPlayer(itf);
+}
+
 
 //
 // AudioSink::Impl
@@ -317,9 +351,19 @@ int32_t AudioSink::Impl::getAudioSessionId() const noexcept
     return backend_->onGetAudioSessionId();
 }
 
-opensles::CSLObjectItf *AudioSink::Impl::getPlayerObj() const noexcept
+int AudioSink::Impl::selectActiveAuxEffect(int aux_effect_id) noexcept
 {
-    return backend_->onGetPlayerObj();
+    return backend_->onSelectActiveAuxEffect(aux_effect_id);
+}
+
+int AudioSink::Impl::setAuxEffectSendLevel(float level) noexcept
+{
+    return backend_->onSetAuxEffectSendLevel(level);
+}
+
+int AudioSink::Impl::setAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept
+{
+    return backend_->onSetAuxEffectEnabled(aux_effect_id, enabled);
 }
 
 void AudioSink::Impl::updateState(state_t state) {
@@ -344,6 +388,16 @@ void AudioSink::Impl::updateState(state_t state) {
         break;
     }
 #endif
+}
+
+SLresult AudioSink::Impl::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+{
+    return backend_->onGetInterfaceFromSinkPlayer(itf);
+}
+
+SLresult AudioSink::Impl::getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept
+{
+    return backend_->onGetInterfaceFromOutputMixer(itf);
 }
 
 } // namespace impl

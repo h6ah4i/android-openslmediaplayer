@@ -43,9 +43,14 @@ public:
     virtual int onPause() noexcept override;
     virtual int onResume() noexcept override;
     virtual int onStop() noexcept override;
-    virtual opensles::CSLObjectItf *onGetPlayerObj() const noexcept override;
     virtual uint32_t onGetLatencyInFrames() const noexcept override;
     virtual int32_t onGetAudioSessionId() const noexcept override;
+    virtual int onSelectActiveAuxEffect(int aux_effect_id) noexcept override;
+    virtual int onSetAuxEffectSendLevel(float level) noexcept override;
+    virtual int onSetAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept override;
+
+    virtual SLresult onGetInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept override;
+    virtual SLresult onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept override;
 
 private:
     static int32_t audioTrackStreamCallback(void *buffer, sample_format_type format, uint32_t num_channels, uint32_t buffer_size_in_frames, void *args) noexcept;

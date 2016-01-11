@@ -78,7 +78,13 @@ public:
     state_t getState() const noexcept;
     AudioSinkDataPipe *getPipe() const noexcept;
     int32_t getAudioSessionId() const noexcept;
-    opensles::CSLObjectItf *getPlayerObj() const noexcept;
+
+    int selectActiveAuxEffect(int aux_effect_id) noexcept;
+    int setAuxEffectSendLevel(float level) noexcept;
+    int setAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept;
+
+    SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept;
+    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
 
     enum {
         NUM_CHANNELS = 2
@@ -104,9 +110,14 @@ public:
     virtual int onPause() noexcept = 0;
     virtual int onResume() noexcept = 0;
     virtual int onStop() noexcept = 0;
-    virtual opensles::CSLObjectItf *onGetPlayerObj() const noexcept = 0;
     virtual uint32_t onGetLatencyInFrames() const noexcept = 0;
     virtual int32_t onGetAudioSessionId() const noexcept = 0;
+    virtual int onSelectActiveAuxEffect(int aux_effect_id) noexcept = 0;
+    virtual int onSetAuxEffectSendLevel(float level) noexcept = 0;
+    virtual int onSetAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept = 0;
+
+    virtual SLresult onGetInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept = 0;
+    virtual SLresult onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept = 0;
 
 protected:
     AudioSinkDataPipe *pipe_;

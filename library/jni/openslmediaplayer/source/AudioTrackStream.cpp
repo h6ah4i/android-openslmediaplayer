@@ -27,6 +27,10 @@
 
 #include "oslmp/impl/AudioTrack.hpp"
 #include "oslmp/impl/AudioFormat.hpp"
+#include "oslmp/impl/AndroidHelper.hpp"
+#include "oslmp/utils/timespec_utils.hpp"
+
+#define NUM_CALLBACK_RETRIES 2
 
 // #define DEBUG_FLOAT_TONE_GEN
 #ifdef DEBUG_FLOAT_TONE_GEN
@@ -81,10 +85,26 @@ private:
     jmethodID m_rewind_;
 };
 
+static int translate_audio_track_result(int result) {
+    switch (result) {
+    case AudioTrack::SUCCESS:
+        return OSLMP_RESULT_SUCCESS;
+    case AudioTrack::ERROR:
+        return OSLMP_RESULT_ERROR;
+    case AudioTrack::ERROR_BAD_VALUE:
+        return OSLMP_RESULT_ILLEGAL_ARGUMENT;
+    case AudioTrack::ERROR_INVALID_OPERATION:
+        return OSLMP_RESULT_ILLEGAL_STATE;
+    default:    
+        return OSLMP_RESULT_INTERNAL_ERROR;
+    }
+}
+
 AudioTrackStream::AudioTrackStream()
     : vm_(nullptr), track_(nullptr), pt_handle_(0), 
     buffer_size_in_frames_(0), buffer_block_count_(0),
-    callback_func_(nullptr), callback_args_(nullptr), stop_request_(false)
+    callback_func_(nullptr), callback_args_(nullptr), stop_request_(false),
+    callback_retry_sleep_us_(0)
 {
 }
 
@@ -204,6 +224,30 @@ int32_t AudioTrackStream::getAudioSessionId() noexcept
     return track_->getAudioSessionId(env);
 }
 
+int32_t AudioTrackStream::setAuxEffectSendLevel(float level) noexcept {
+    JNIEnv *env = getJNIEnv();
+
+    if (!(track_ && env)) {
+        return OSLMP_RESULT_INTERNAL_ERROR;
+    }
+
+    const int result = track_->setAuxEffectSendLevel(env, level);
+
+    return translate_audio_track_result(result);
+}
+
+int32_t AudioTrackStream::attachAuxEffect(int effect_id) noexcept {
+    JNIEnv *env = getJNIEnv();
+
+    if (!(track_ && env)) {
+        return OSLMP_RESULT_INTERNAL_ERROR;
+    }
+
+    const int result = track_->attachAuxEffect(env, effect_id);
+
+    return translate_audio_track_result(result);
+}
+
 JNIEnv *AudioTrackStream::getJNIEnv() noexcept {
     JNIEnv *env = nullptr;
 
@@ -214,6 +258,7 @@ JNIEnv *AudioTrackStream::getJNIEnv() noexcept {
     }
 }
 
+
 void* AudioTrackStream::sinkWriterThreadEntryFunc(void *args) noexcept
 {
     LOGD("AudioTrackStream::sinkWriterThreadEntryFunc");
@@ -221,7 +266,13 @@ void* AudioTrackStream::sinkWriterThreadEntryFunc(void *args) noexcept
     AudioTrackStream *thiz = static_cast<AudioTrackStream*>(args);
     JNIEnv *env = nullptr;
 
+    // set thread name
+    AndroidHelper::setCurrentThreadName("AudioTrackStrm");
+
     if (thiz->vm_->AttachCurrentThread(&env, nullptr) == JNI_OK) {
+        // set thread priority
+        // AndroidHelper::setThreadPriority(env, 0, ANDROID_THREAD_PRIORITY_AUDIO + ANDROID_THREAD_PRIORITY_LESS_FAVORABLE);
+
         thiz->sinkWriterThreadProcess(env);
 
         thiz->vm_->DetachCurrentThread();

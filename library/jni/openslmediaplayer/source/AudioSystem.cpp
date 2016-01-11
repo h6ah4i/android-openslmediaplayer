@@ -76,20 +76,6 @@ struct audio_player_info_t {
     audio_player_info_t(uint32_t id, AudioPlayer *instance) : id(id), instance(instance), is_active(false) {}
 };
 
-struct AuxEffectStatus {
-    int active_effect_id;
-    bool environmental_reverb_enabled;
-    bool preset_reverb_enabled;
-    float send_level;
-    SLmillibel send_level_millibel;
-
-    AuxEffectStatus()
-        : active_effect_id(OSLMP_AUX_EFFECT_NULL), environmental_reverb_enabled(false), preset_reverb_enabled(false),
-          send_level(0.0f), send_level_millibel(SL_MILLIBEL_MIN)
-    {
-    }
-};
-
 class AudioSystem::Impl {
 public:
     Impl();
@@ -137,7 +123,7 @@ private:
                        std::unique_ptr<AudioSink> &sink, std::unique_ptr<AudioDataPipeManager> &pipe_mgr,
                        std::unique_ptr<AudioMixer> &mixer, MixedOutputAudioEffect *mixout_effects[]) const noexcept;
 
-    int initEngineOutputMix(uint32_t opts, CSLObjectItf &engineObj, CSLObjectItf &outputMixObj) const noexcept;
+    int initEngine(uint32_t opts, CSLObjectItf &engineObj) const noexcept;
 
     int initMixOutAudioEffects(const AudioSystem::initialize_args_t &args, uint32_t opts, uint32_t output_frame_size,
                                uint32_t sampling_rate, std::unique_ptr<HQEqualizer> &hq_equalizer) const noexcept;
@@ -145,14 +131,9 @@ private:
     int initPreAmp(uint32_t opts, std::unique_ptr<PreAmp> &preamp, const std::unique_ptr<AudioMixer> &mixer) const
         noexcept;
 
-    int applyActiveAuxEffectSettings() noexcept;
-
     void pollControlSinkMute() noexcept;
     void pollControlMixerAndSinkSuspendResume() noexcept;
     void pollObtainCapturedAudioData() noexcept;
-
-    static SLresult applyAuxEffectSettings(CSLEffectSendItf &effect_send, const void *aux_effect, SLboolean enabled,
-                                           SLmillibel sendLevel) noexcept;
 
     static bool check_is_low_latency(const initialize_args_t &args) noexcept;
     static uint32_t determine_output_frame_size(const initialize_args_t &args, bool is_low_latency) noexcept;
@@ -165,6 +146,7 @@ private:
 
     bool is_low_latency_mode_;
     uint32_t output_frame_size_;
+    uint32_t mixer_suspend_delay_ms_;
 
     std::unique_ptr<AudioSink> sink_;
     std::unique_ptr<AudioMixer> mixer_;
@@ -177,12 +159,9 @@ private:
     timespec ts_prev_polling_;
 
     CSLObjectItf objEngine_;
-    CSLObjectItf objOutputMixer_;
 
     std::vector<audio_player_info_t> audio_players_info_;
     uint32_t audio_player_player_id_counter_;
-
-    AuxEffectStatus aux_;
 
     std::unique_ptr<PreAmp> preamp_;
     std::unique_ptr<HQEqualizer> mixout_effect_hq_equalizer_;
@@ -193,18 +172,6 @@ private:
 //
 // Utilities
 //
-
-static inline SLmillibel linearToMillibel(float linear) noexcept
-{
-    const float LIMIT_MIN_DB = 0.000251189f; // -72 dB
-    const float clipped = (std::min)((std::max)(linear, 0.0f), 1.0f);
-
-    if (clipped < LIMIT_MIN_DB) {
-        return SL_MILLIBEL_MIN;
-    } else {
-        return static_cast<SLmillibel>((1000 * 2) * std::log10(clipped));
-    }
-}
 
 static inline uint32_t round_up_16(uint32_t x) { return (x + (16U - 1U)) & ~(16U - 1U); }
 
@@ -399,9 +366,9 @@ int AudioSystem::getAudioSessionId(int32_t *p_audio_session_id) const noexcept
 //
 
 AudioSystem::Impl::Impl()
-    : context_(nullptr), init_args_(), is_low_latency_mode_(false), output_frame_size_(0), sink_(), mixer_(),
-      pipe_mgr_(), capture_pipe_(nullptr), audio_capture_event_listener_(nullptr), objEngine_(), objOutputMixer_(),
-      audio_players_info_(), audio_player_player_id_counter_(0), aux_(),
+    : context_(nullptr), init_args_(), is_low_latency_mode_(false), output_frame_size_(0), mixer_suspend_delay_ms_(0),
+      sink_(), mixer_(), pipe_mgr_(), capture_pipe_(nullptr), audio_capture_event_listener_(nullptr), objEngine_(),
+      audio_players_info_(), audio_player_player_id_counter_(0),
       ts_mixer_enter_can_suspend_(utils::timespec_utils::ZERO()), ts_prev_polling_(utils::timespec_utils::ZERO()),
       preamp_(), mixout_effect_hq_equalizer_(), audio_player_instance_updated_(false)
 {
@@ -417,7 +384,6 @@ AudioSystem::Impl::~Impl()
     mixer_.reset();
     sink_.reset();
 
-    objOutputMixer_.Destroy();
     objEngine_.Destroy();
 
     pipe_mgr_.reset();
@@ -430,11 +396,12 @@ AudioSystem::Impl::~Impl()
 
 int AudioSystem::Impl::initialize(const initialize_args_t &args) noexcept
 {
+    const uint32_t kAdditionalMixerSuspendDelayMs = 500;
+
     std::unique_ptr<AudioDataPipeManager> pipe_mgr;
     std::unique_ptr<AudioSink> sink;
     std::unique_ptr<AudioMixer> mixer;
     CSLObjectItf engineObj;
-    CSLObjectItf outputMixObj;
     std::unique_ptr<PreAmp> preamp;
     std::unique_ptr<HQEqualizer> mixout_effect_hq_equalizer;
     MixedOutputAudioEffect *mixout_effects[AudioMixer::NUM_MAX_MIXOOUT_EFFECTS] = { nullptr };
@@ -456,8 +423,8 @@ int AudioSystem::Impl::initialize(const initialize_args_t &args) noexcept
     }
 #endif
 
-    // initialize OpenSL Engine & OutputMixer
-    result = initEngineOutputMix(context_opts, engineObj, outputMixObj);
+    // initialize OpenSL Engine
+    result = initEngine(context_opts, engineObj);
 
     if (result != OSLMP_RESULT_SUCCESS)
         return result;
@@ -470,7 +437,6 @@ int AudioSystem::Impl::initialize(const initialize_args_t &args) noexcept
         return result;
 
     objEngine_ = std::move(engineObj);
-    objOutputMixer_ = std::move(outputMixObj);
     context_ = args.context;
 
     // initialize sub modules
@@ -479,7 +445,6 @@ int AudioSystem::Impl::initialize(const initialize_args_t &args) noexcept
 
     if (result != OSLMP_RESULT_SUCCESS) {
         objEngine_.Destroy();
-        objOutputMixer_.Destroy();
         context_ = nullptr;
         return result;
     }
@@ -490,7 +455,6 @@ int AudioSystem::Impl::initialize(const initialize_args_t &args) noexcept
     result = pipe_mgr->setCapturePipeOutPortUser(capture_pipe, this, true);
     if (result != OSLMP_RESULT_SUCCESS) {
         objEngine_.Destroy();
-        objOutputMixer_.Destroy();
         context_ = nullptr;
         return result;
     }
@@ -504,6 +468,7 @@ int AudioSystem::Impl::initialize(const initialize_args_t &args) noexcept
 
     is_low_latency_mode_ = is_low_latency_mode;
     output_frame_size_ = output_frame_size;
+    mixer_suspend_delay_ms_ = ((sink->getLatencyInFrames() * 1000) / (args.system_out_sampling_rate / 1000)) + kAdditionalMixerSuspendDelayMs;
 
     sink_ = std::move(sink);
     mixer_ = std::move(mixer);
@@ -623,8 +588,7 @@ int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args
     return OSLMP_RESULT_SUCCESS;
 }
 
-int AudioSystem::Impl::initEngineOutputMix(uint32_t opts, CSLObjectItf &engineObj, CSLObjectItf &outputMixObj) const
-    noexcept
+int AudioSystem::Impl::initEngine(uint32_t opts, CSLObjectItf &engineObj) const noexcept
 {
     CSLEngineItf engine;
     SLresult result;
@@ -653,36 +617,6 @@ int AudioSystem::Impl::initEngineOutputMix(uint32_t opts, CSLObjectItf &engineOb
 
     // obtain engine interface
     result = engineObj.GetInterface(&engine);
-    if (result != SL_RESULT_SUCCESS)
-        return TRANSLATE_RESULT(result);
-
-    // create output mix, with reverb objects specified as a non-required interface
-    {
-        SLInterfaceID ids[2];
-        SLboolean req[2];
-        SLuint32 cnt = 0;
-
-        // environmental reverb
-        if (opts & OSLMP_CONTEXT_OPTION_USE_ENVIRONMENAL_REVERB) {
-            ids[cnt] = CSLEnvironmentalReverbItf::sGetIID();
-            req[cnt] = SL_BOOLEAN_FALSE;
-            ++cnt;
-        }
-
-        // preset reverb
-        if (opts & OSLMP_CONTEXT_OPTION_USE_PRESET_REVERB) {
-            ids[cnt] = CSLPresetReverbItf::sGetIID();
-            req[cnt] = SL_BOOLEAN_FALSE;
-            ++cnt;
-        }
-
-        result = engine.CreateOutputMix(&outputMixObj, cnt, ids, req);
-    }
-    if (result != SL_RESULT_SUCCESS)
-        return TRANSLATE_RESULT(result);
-
-    // realize the output mix
-    result = outputMixObj.Realize(SL_BOOLEAN_FALSE);
     if (result != SL_RESULT_SUCCESS)
         return TRANSLATE_RESULT(result);
 
@@ -760,33 +694,11 @@ SLresult AudioSystem::Impl::getInterfaceFromOutputMixer(opensles::CSLInterface *
     if (!itf)
         return SL_RESULT_PARAMETER_INVALID;
 
-    const SLInterfaceID iid = itf->getIID();
-
-    if (iid == CSLObjectItf::sGetIID()) {
-        // if the interface is SLObjectItf, auto-destroying is not permitted
-        if (dynamic_cast<const CSLObjectItf *>(itf)->autoDestroy()) {
-            LOGE("getInterfaceFromOutputMixer() - CSLObjectItf::autoDestroy() is not permitted");
-            return SL_RESULT_PARAMETER_INVALID;
-        }
+    if (!sink_) {
+        return SL_RESULT_RESOURCE_ERROR;
     }
 
-    // masking
-    const uint32_t opts = context_->getContextOptions();
-    uint32_t opts_mask = 0;
-
-    if (iid == CSLEnvironmentalReverbItf::sGetIID()) {
-        opts_mask = OSLMP_CONTEXT_OPTION_USE_ENVIRONMENAL_REVERB;
-    } else if (iid == CSLPresetReverbItf::sGetIID()) {
-        opts_mask = OSLMP_CONTEXT_OPTION_USE_PRESET_REVERB;
-    }
-
-    if (opts_mask) {
-        if (!(opts & opts_mask)) {
-            return SL_RESULT_FEATURE_UNSUPPORTED;
-        }
-    }
-
-    return this->objOutputMixer_.GetInterface(itf);
+    return sink_->getInterfaceFromOutputMixer(itf);
 }
 
 SLresult AudioSystem::Impl::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
@@ -794,41 +706,11 @@ SLresult AudioSystem::Impl::getInterfaceFromSinkPlayer(opensles::CSLInterface *i
     if (!itf)
         return SL_RESULT_PARAMETER_INVALID;
 
-    const SLInterfaceID iid = itf->getIID();
-
-    if (iid == CSLObjectItf::sGetIID()) {
-        // if the interface is SLObjectItf, auto-destroying is not permitted
-        if (dynamic_cast<const CSLObjectItf *>(itf)->autoDestroy()) {
-            LOGE("getInterfaceFromSinkPlayer() - CSLObjectItf::autoDestroy() is not permitted");
-            return SL_RESULT_PARAMETER_INVALID;
-        }
-    }
-
-    // masking
-    const uint32_t opts = context_->getContextOptions();
-    uint32_t opts_mask = 0;
-
-    if (iid == CSLBassBoostItf::sGetIID()) {
-        opts_mask = OSLMP_CONTEXT_OPTION_USE_BASSBOOST;
-    } else if (iid == CSLVirtualizerItf::sGetIID()) {
-        opts_mask = OSLMP_CONTEXT_OPTION_USE_VIRTUALIZER;
-    } else if (iid == CSLEqualizerItf::sGetIID()) {
-        opts_mask = OSLMP_CONTEXT_OPTION_USE_EQUALIZER;
-    }
-
-    if (opts_mask) {
-        if (!(opts & opts_mask)) {
-            return SL_RESULT_FEATURE_UNSUPPORTED;
-        }
-    }
-
-    CSLObjectItf *objSinkPlayer = (this->sink_) ? (this->sink_->getPlayerObj()) : nullptr;
-
-    if (!objSinkPlayer) {
+    if (!sink_) {
         return SL_RESULT_RESOURCE_ERROR;
     }
 
-    return objSinkPlayer->GetInterface(itf);
+    return sink_->getInterfaceFromSinkPlayer(itf);
 }
 
 AudioDataPipeManager *AudioSystem::Impl::getPipeManager() const noexcept { return pipe_mgr_.get(); }
@@ -963,8 +845,6 @@ void AudioSystem::Impl::pollControlSinkMute() noexcept
 
 void AudioSystem::Impl::pollControlMixerAndSinkSuspendResume() noexcept
 {
-    const int kMixerSuspendDelayMs = 250; // to wait all pooled data flushed
-
     if (!mixer_) {
         return;
     }
@@ -987,9 +867,10 @@ void AudioSystem::Impl::pollControlMixerAndSinkSuspendResume() noexcept
     switch (mixer_state) {
     case AudioMixer::MIXER_STATE_STARTED:
         if (mixer_can_suspend) {
-            // enter suspended state after elapsed kMixerSuspendDelayMs delay
+            // to wait all pooled data flushed
+             // enter suspended state after elapsed mixer_suspend_delay_ms_ delay
             if (!utils::timespec_utils::is_zero(ts_mixer_enter_can_suspend_) &&
-                (utils::timespec_utils::sub_ret_ms(now, ts_mixer_enter_can_suspend_) >= kMixerSuspendDelayMs)) {
+                (utils::timespec_utils::sub_ret_ms(now, ts_mixer_enter_can_suspend_) >= mixer_suspend_delay_ms_)) {
 
                 // OnBeforeAudioSinkStateChanged(false)
                 context_->raiseOnBeforeAudioSinkStateChanged(false);
@@ -1138,26 +1019,11 @@ void AudioSystem::Impl::setAudioCaptureEnabled(bool enabled) noexcept { mixer_->
 
 int AudioSystem::Impl::selectActiveAuxEffect(int aux_effect_id) noexcept
 {
-    bool updated = false;
-
-    switch (aux_effect_id) {
-    case OSLMP_AUX_EFFECT_NULL:
-    case OSLMP_AUX_EFFECT_ENVIRONMENTAL_REVERB:
-    case OSLMP_AUX_EFFECT_PRESET_REVERB:
-        if (aux_.active_effect_id != aux_effect_id) {
-            aux_.active_effect_id = aux_effect_id;
-            updated = true;
-        }
-        break;
-    default:
-        return OSLMP_RESULT_ILLEGAL_ARGUMENT;
+    if (!sink_) {
+        return OSLMP_RESULT_ILLEGAL_STATE;
     }
 
-    if (!updated) {
-        return OSLMP_RESULT_SUCCESS;
-    }
-
-    return applyActiveAuxEffectSettings();
+    return sink_->selectActiveAuxEffect(aux_effect_id);
 }
 
 int AudioSystem::Impl::setAuxEffectSendLevel(float level) noexcept
@@ -1166,43 +1032,20 @@ int AudioSystem::Impl::setAuxEffectSendLevel(float level) noexcept
         return OSLMP_RESULT_ILLEGAL_ARGUMENT;
     }
 
-    if (aux_.send_level == level) {
-        return OSLMP_RESULT_SUCCESS;
+    if (!sink_) {
+        return OSLMP_RESULT_ILLEGAL_STATE;
     }
 
-    aux_.send_level = level;
-    aux_.send_level_millibel = linearToMillibel(aux_.send_level);
-
-    return applyActiveAuxEffectSettings();
+    return sink_->setAuxEffectSendLevel(level);
 }
 
 int AudioSystem::Impl::setAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept
 {
-    bool updated = false;
-
-    switch (aux_effect_id) {
-    case OSLMP_AUX_EFFECT_ENVIRONMENTAL_REVERB:
-        if (aux_.environmental_reverb_enabled != enabled) {
-            aux_.environmental_reverb_enabled = enabled;
-            updated = true;
-        }
-        break;
-    case OSLMP_AUX_EFFECT_PRESET_REVERB:
-        if (aux_.preset_reverb_enabled != enabled) {
-            aux_.preset_reverb_enabled = enabled;
-            updated = true;
-        }
-        break;
-    case OSLMP_AUX_EFFECT_NULL:
-    default:
-        return OSLMP_RESULT_ILLEGAL_ARGUMENT;
+    if (!sink_) {
+        return OSLMP_RESULT_ILLEGAL_STATE;
     }
 
-    if (!updated) {
-        return OSLMP_RESULT_SUCCESS;
-    }
-
-    return applyActiveAuxEffectSettings();
+    return sink_->setAuxEffectEnabled(aux_effect_id, enabled);
 }
 
 int AudioSystem::Impl::setAudioStreamType(int streamtype) noexcept
@@ -1299,76 +1142,6 @@ int AudioSystem::Impl::getAudioSessionId(int32_t *p_audio_session_id) const noex
     (*p_audio_session_id) = sink_->getAudioSessionId();
 
     return OSLMP_RESULT_SUCCESS;
-}
-
-int AudioSystem::Impl::applyActiveAuxEffectSettings() noexcept
-{
-    CSLEffectSendItf effect_send;
-    CSLEnvironmentalReverbItf env_reverb;
-    CSLPresetReverbItf preset_reverb;
-
-    (void)getInterfaceFromSinkPlayer(&effect_send);
-    (void)getInterfaceFromOutputMixer(&env_reverb);
-    (void)getInterfaceFromOutputMixer(&preset_reverb);
-
-    SLresult slResult = SL_RESULT_UNKNOWN_ERROR;
-
-    switch (aux_.active_effect_id) {
-    case OSLMP_AUX_EFFECT_NULL:
-        (void)applyAuxEffectSettings(effect_send, env_reverb.self(), SL_BOOLEAN_FALSE, SL_MILLIBEL_MIN);
-        (void)applyAuxEffectSettings(effect_send, preset_reverb.self(), SL_BOOLEAN_FALSE, SL_MILLIBEL_MIN);
-        slResult = SL_RESULT_SUCCESS;
-        break;
-    case OSLMP_AUX_EFFECT_ENVIRONMENTAL_REVERB:
-        (void)applyAuxEffectSettings(effect_send, preset_reverb.self(), SL_BOOLEAN_FALSE, SL_MILLIBEL_MIN);
-        slResult =
-            applyAuxEffectSettings(effect_send, env_reverb.self(), CSLboolean::toSL(aux_.environmental_reverb_enabled),
-                                   aux_.send_level_millibel);
-        break;
-    case OSLMP_AUX_EFFECT_PRESET_REVERB:
-        (void)applyAuxEffectSettings(effect_send, env_reverb.self(), SL_BOOLEAN_FALSE, SL_MILLIBEL_MIN);
-        slResult = applyAuxEffectSettings(effect_send, preset_reverb.self(),
-                                          CSLboolean::toSL(aux_.preset_reverb_enabled), aux_.send_level_millibel);
-        break;
-    default:
-        slResult = SL_RESULT_INTERNAL_ERROR;
-        break;
-    }
-
-    return InternalUtils::sTranslateOpenSLErrorCode(slResult);
-}
-
-SLresult AudioSystem::Impl::applyAuxEffectSettings(CSLEffectSendItf &effect_send, const void *aux_effect,
-                                                   SLboolean enabled, SLmillibel sendLevel) noexcept
-{
-
-    if (!(effect_send && aux_effect))
-        return SL_RESULT_FEATURE_UNSUPPORTED;
-
-    SLboolean cur_is_enabled = SL_BOOLEAN_FALSE;
-    SLresult result;
-
-    result = effect_send.IsEnabled(aux_effect, &cur_is_enabled);
-
-    if (result != SL_RESULT_SUCCESS) {
-        return result;
-    }
-
-    if (enabled && (sendLevel > SL_MILLIBEL_MIN)) {
-        // enabled
-        if (cur_is_enabled) {
-            result = effect_send.SetSendLevel(aux_effect, sendLevel);
-        } else {
-            result = effect_send.EnableEffectSend(aux_effect, SL_BOOLEAN_TRUE, sendLevel);
-        }
-    } else {
-        // disabled
-        if (cur_is_enabled) {
-            result = effect_send.EnableEffectSend(aux_effect, SL_BOOLEAN_FALSE, SL_MILLIBEL_MIN);
-        }
-    }
-
-    return result;
 }
 
 bool AudioSystem::Impl::check_is_low_latency(const initialize_args_t &args) noexcept

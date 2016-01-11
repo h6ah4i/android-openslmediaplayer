@@ -63,6 +63,8 @@ public:
     int32_t getState(JNIEnv *env) noexcept;
     int32_t getPlayState(JNIEnv *env) noexcept;
     int32_t getAudioSessionId(JNIEnv *env) noexcept;
+    int32_t setAuxEffectSendLevel(JNIEnv *env, float level) noexcept;
+    int32_t attachAuxEffect(JNIEnv *env, int effect_id) noexcept;
     int32_t getAudioFormat() const noexcept;
     int32_t getBufferSizeInFrames() const noexcept;
     int32_t getChannelCount() const noexcept;
@@ -79,6 +81,8 @@ private:
     jmethodID m_get_state_;
     jmethodID m_get_play_state_;
     jmethodID m_get_audio_session_;
+    jmethodID m_set_aux_effect_send_level_;
+    jmethodID m_attach_aux_effect_;
     jmethodID m_write_sa_;
     jmethodID m_write_fa_;
     jmethodID m_write_bb_;

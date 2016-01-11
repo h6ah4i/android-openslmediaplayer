@@ -111,11 +111,6 @@ int AudioSinkAudioTrackBackend::onStop() noexcept
     return stream_->stop();
 }
 
-opensles::CSLObjectItf *AudioSinkAudioTrackBackend::onGetPlayerObj() const noexcept
-{
-    return nullptr;
-}
-
 uint32_t AudioSinkAudioTrackBackend::onGetLatencyInFrames() const noexcept
 {
     return static_cast<uint32_t>(block_size_in_frames_ * (num_pipe_blocks_ - 1));
@@ -124,6 +119,31 @@ uint32_t AudioSinkAudioTrackBackend::onGetLatencyInFrames() const noexcept
 int32_t AudioSinkAudioTrackBackend::onGetAudioSessionId() const noexcept
 {
     return audio_session_id_;
+}
+
+int AudioSinkAudioTrackBackend::onSelectActiveAuxEffect(int aux_effect_id) noexcept
+{
+    return stream_->attachAuxEffect(aux_effect_id);
+}
+
+int AudioSinkAudioTrackBackend::onSetAuxEffectSendLevel(float level) noexcept
+{
+    return stream_->setAuxEffectSendLevel(level);
+}
+
+int AudioSinkAudioTrackBackend::onSetAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept
+{
+    return OSLMP_RESULT_SUCCESS;
+}
+
+SLresult AudioSinkAudioTrackBackend::onGetInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept
+{
+    return SL_RESULT_FEATURE_UNSUPPORTED;
+}
+
+SLresult AudioSinkAudioTrackBackend::onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+{
+    return SL_RESULT_FEATURE_UNSUPPORTED;
 }
 
 int32_t AudioSinkAudioTrackBackend::audioTrackStreamCallback(

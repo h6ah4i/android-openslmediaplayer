@@ -14,10 +14,17 @@
 //    limitations under the License.
 //
 
+// #define LOG_TAG "ASOpenSLBackend"
+// #define NB_LOG_TAG "NB ASOpenSLBackend"
+
 #include "oslmp/impl/AudioSinkOpenSLBackend.hpp"
 
 #include <SLESCXX/OpenSLES_CXX.hpp>
+
+#include <oslmp/OpenSLMediaPlayer.hpp>
 #include <oslmp/OpenSLMediaPlayerResultCodes.hpp>
+
+#include <loghelper/loghelper.h>
 
 #include "oslmp/impl/OpenSLES_Android_Complements.h"
 #include "oslmp/impl/OpenSLMediaPlayerInternalUtils.hpp"
@@ -35,14 +42,48 @@ namespace impl {
 
 using namespace ::opensles;
 
+
+struct AudioSinkOpenSLBackend::AuxEffectStatus {
+    int active_effect_id;
+    bool environmental_reverb_enabled;
+    bool preset_reverb_enabled;
+    float send_level;
+    SLmillibel send_level_millibel;
+
+    AuxEffectStatus()
+        : active_effect_id(OSLMP_AUX_EFFECT_NULL), environmental_reverb_enabled(false), preset_reverb_enabled(false),
+          send_level(0.0f), send_level_millibel(SL_MILLIBEL_MIN)
+    {
+    }
+};
+
 typedef OpenSLMediaPlayerInternalUtils InternalUtils;
+
+
+//
+// Utilities
+//
+
+static inline SLmillibel linearToMillibel(float linear) noexcept
+{
+    const float LIMIT_MIN_DB = 0.000251189f; // -72 dB
+    const float clipped = (std::min)((std::max)(linear, 0.0f), 1.0f);
+
+    if (clipped < LIMIT_MIN_DB) {
+        return SL_MILLIBEL_MIN;
+    } else {
+        return static_cast<SLmillibel>((1000 * 2) * std::log10(clipped));
+    }
+}
+
 
 //
 // AudioSinkOpenSLBackend
 //
 AudioSinkOpenSLBackend::AudioSinkOpenSLBackend()
-    : AudioSinkBackend(), block_size_in_frames_(0), num_player_blocks_(0), num_pipe_blocks_(0) 
+    : opts_(0), AudioSinkBackend(), block_size_in_frames_(0), num_player_blocks_(0), num_pipe_blocks_(0), aux_()
 {
+    aux_.reset(new(std::nothrow) AuxEffectStatus());
 }
 
 AudioSinkOpenSLBackend::~AudioSinkOpenSLBackend() {
@@ -67,17 +108,43 @@ int AudioSinkOpenSLBackend::onInitialize(const AudioSink::initialize_args_t &arg
         return OSLMP_RESULT_INTERNAL_ERROR;
     }
 
-    // create SLPlayer
     CSLEngineItf engine;
-    CSLObjectItf obj_outmix(false); // No auto-destroy
+    CSLObjectItf obj_outmix;
 
     slResult = args.context->getInterfaceFromEngine(&engine);
     if (!IS_SL_RESULT_SUCCESS(slResult))
         return TRANSLATE_RESULT(slResult);
 
-    slResult = args.context->getInterfaceFromOutputMixer(&obj_outmix);
-    if (!IS_SL_RESULT_SUCCESS(slResult))
-        return TRANSLATE_RESULT(slResult);
+    // create output mix, with reverb objects specified as a non-required interface
+    {
+        SLInterfaceID ids[2];
+        SLboolean req[2];
+        SLuint32 cnt = 0;
+
+        // environmental reverb
+        if (args.opts & OSLMP_CONTEXT_OPTION_USE_ENVIRONMENAL_REVERB) {
+            ids[cnt] = CSLEnvironmentalReverbItf::sGetIID();
+            req[cnt] = SL_BOOLEAN_FALSE;
+            ++cnt;
+        }
+
+        // preset reverb
+        if (args.opts & OSLMP_CONTEXT_OPTION_USE_PRESET_REVERB) {
+            ids[cnt] = CSLPresetReverbItf::sGetIID();
+            req[cnt] = SL_BOOLEAN_FALSE;
+            ++cnt;
+        }
+
+        result = engine.CreateOutputMix(&obj_outmix, cnt, ids, req);
+    }
+
+    if (result != SL_RESULT_SUCCESS)
+        return TRANSLATE_RESULT(result);
+
+    // realize the output mix
+    result = obj_outmix.Realize(SL_BOOLEAN_FALSE);
+    if (result != SL_RESULT_SUCCESS)
+        return TRANSLATE_RESULT(result);
 
     // configure audio source
     SLDataLocator_AndroidSimpleBufferQueue src_loc_bufq = {};
@@ -228,11 +295,13 @@ int AudioSinkOpenSLBackend::onInitialize(const AudioSink::initialize_args_t &arg
     buffer_queue_ = std::move(buffer_queue);
     volume_ = std::move(volume);
 
+    obj_outmix_ = std::move(obj_outmix);
     obj_player_ = std::move(obj_player);
 
     block_size_in_frames_ = block_size_in_frames;
     num_player_blocks_ = num_player_blocks;
     num_pipe_blocks_ = num_pipe_blocks;
+    opts_ = args.opts;
     pipe_ = args.pipe;
 
     return OSLMP_RESULT_SUCCESS;
@@ -286,11 +355,6 @@ int AudioSinkOpenSLBackend::onStop() noexcept
     return OSLMP_RESULT_SUCCESS;
 }
 
-opensles::CSLObjectItf *AudioSinkOpenSLBackend::onGetPlayerObj() const noexcept
-{
-    return const_cast<opensles::CSLObjectItf *>(&obj_player_);
-}
-
 uint32_t AudioSinkOpenSLBackend::onGetLatencyInFrames() const noexcept
 {
     return static_cast<uint32_t>(block_size_in_frames_ * (num_pipe_blocks_ - 1));
@@ -302,6 +366,222 @@ int32_t AudioSinkOpenSLBackend::onGetAudioSessionId() const noexcept
     return 0;
 }
 
+int AudioSinkOpenSLBackend::onSelectActiveAuxEffect(int aux_effect_id) noexcept
+{
+    if (!aux_) {
+        return OSLMP_RESULT_INTERNAL_ERROR;
+    }
+
+    bool updated = false;
+
+    switch (aux_effect_id) {
+    case OSLMP_AUX_EFFECT_NULL:
+    case OSLMP_AUX_EFFECT_ENVIRONMENTAL_REVERB:
+    case OSLMP_AUX_EFFECT_PRESET_REVERB:
+        if (aux_->active_effect_id != aux_effect_id) {
+            aux_->active_effect_id = aux_effect_id;
+            updated = true;
+        }
+        break;
+    default:
+        return OSLMP_RESULT_ILLEGAL_ARGUMENT;
+    }
+
+    if (!updated) {
+        return OSLMP_RESULT_SUCCESS;
+    }
+
+    return applyActiveAuxEffectSettings();
+}
+
+int AudioSinkOpenSLBackend::onSetAuxEffectSendLevel(float level) noexcept
+{
+    if (!aux_) {
+        return OSLMP_RESULT_INTERNAL_ERROR;
+    }
+
+    if (aux_->send_level == level) {
+        return OSLMP_RESULT_SUCCESS;
+    }
+
+    aux_->send_level = level;
+    aux_->send_level_millibel = linearToMillibel(aux_->send_level);
+
+    return applyActiveAuxEffectSettings();
+}
+
+int AudioSinkOpenSLBackend::onSetAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept
+{
+    if (!aux_) {
+        return OSLMP_RESULT_INTERNAL_ERROR;
+    }
+
+    bool updated = false;
+
+    switch (aux_effect_id) {
+    case OSLMP_AUX_EFFECT_ENVIRONMENTAL_REVERB:
+        if (aux_->environmental_reverb_enabled != enabled) {
+            aux_->environmental_reverb_enabled = enabled;
+            updated = true;
+        }
+        break;
+    case OSLMP_AUX_EFFECT_PRESET_REVERB:
+        if (aux_->preset_reverb_enabled != enabled) {
+            aux_->preset_reverb_enabled = enabled;
+            updated = true;
+        }
+        break;
+    case OSLMP_AUX_EFFECT_NULL:
+    default:
+        return OSLMP_RESULT_ILLEGAL_ARGUMENT;
+    }
+
+    if (!updated) {
+        return OSLMP_RESULT_SUCCESS;
+    }
+
+    return applyActiveAuxEffectSettings();
+}
+
+SLresult AudioSinkOpenSLBackend::onGetInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept
+{
+    const SLInterfaceID iid = itf->getIID();
+
+    if (iid == CSLObjectItf::sGetIID()) {
+        // if the interface is SLObjectItf, auto-destroying is not permitted
+        if (dynamic_cast<const CSLObjectItf *>(itf)->autoDestroy()) {
+            LOGE("getInterfaceFromOutputMixer() - CSLObjectItf::autoDestroy() is not permitted");
+            return SL_RESULT_PARAMETER_INVALID;
+        }
+    }
+
+    // masking
+    uint32_t opts_mask = 0;
+
+    if (iid == CSLEnvironmentalReverbItf::sGetIID()) {
+        opts_mask = OSLMP_CONTEXT_OPTION_USE_ENVIRONMENAL_REVERB;
+    } else if (iid == CSLPresetReverbItf::sGetIID()) {
+        opts_mask = OSLMP_CONTEXT_OPTION_USE_PRESET_REVERB;
+    }
+
+    if (opts_mask) {
+        if (!(opts_ & opts_mask)) {
+            return SL_RESULT_FEATURE_UNSUPPORTED;
+        }
+    }
+
+    if (!obj_outmix_) {
+        return SL_RESULT_RESOURCE_ERROR;
+    }
+
+    return obj_outmix_.GetInterface(itf);
+}
+
+SLresult AudioSinkOpenSLBackend::onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+{
+    const SLInterfaceID iid = itf->getIID();
+
+    if (iid == CSLObjectItf::sGetIID()) {
+        // if the interface is SLObjectItf, auto-destroying is not permitted
+        if (dynamic_cast<const CSLObjectItf *>(itf)->autoDestroy()) {
+            LOGE("getInterfaceFromSinkPlayer() - CSLObjectItf::autoDestroy() is not permitted");
+            return SL_RESULT_PARAMETER_INVALID;
+        }
+    }
+
+    // masking
+    uint32_t opts_mask = 0;
+
+    if (iid == CSLBassBoostItf::sGetIID()) {
+        opts_mask = OSLMP_CONTEXT_OPTION_USE_BASSBOOST;
+    } else if (iid == CSLVirtualizerItf::sGetIID()) {
+        opts_mask = OSLMP_CONTEXT_OPTION_USE_VIRTUALIZER;
+    } else if (iid == CSLEqualizerItf::sGetIID()) {
+        opts_mask = OSLMP_CONTEXT_OPTION_USE_EQUALIZER;
+    }
+
+    if (opts_mask) {
+        if (!(opts_ & opts_mask)) {
+            return SL_RESULT_FEATURE_UNSUPPORTED;
+        }
+    }
+
+    if (!obj_player_) {
+        return SL_RESULT_RESOURCE_ERROR;
+    }
+
+    return obj_player_.GetInterface(itf);
+}
+
+int AudioSinkOpenSLBackend::applyActiveAuxEffectSettings() noexcept
+{
+    CSLEffectSendItf effect_send;
+    CSLEnvironmentalReverbItf env_reverb;
+    CSLPresetReverbItf preset_reverb;
+
+    (void)onGetInterfaceFromSinkPlayer(&effect_send);
+    (void)onGetInterfaceFromOutputMixer(&env_reverb);
+    (void)onGetInterfaceFromOutputMixer(&preset_reverb);
+
+    SLresult slResult = SL_RESULT_UNKNOWN_ERROR;
+
+    switch (aux_->active_effect_id) {
+    case OSLMP_AUX_EFFECT_NULL:
+        (void)applyAuxEffectSettings(effect_send, env_reverb.self(), SL_BOOLEAN_FALSE, SL_MILLIBEL_MIN);
+        (void)applyAuxEffectSettings(effect_send, preset_reverb.self(), SL_BOOLEAN_FALSE, SL_MILLIBEL_MIN);
+        slResult = SL_RESULT_SUCCESS;
+        break;
+    case OSLMP_AUX_EFFECT_ENVIRONMENTAL_REVERB:
+        (void)applyAuxEffectSettings(effect_send, preset_reverb.self(), SL_BOOLEAN_FALSE, SL_MILLIBEL_MIN);
+        slResult =
+            applyAuxEffectSettings(effect_send, env_reverb.self(), CSLboolean::toSL(aux_->environmental_reverb_enabled),
+                                   aux_->send_level_millibel);
+        break;
+    case OSLMP_AUX_EFFECT_PRESET_REVERB:
+        (void)applyAuxEffectSettings(effect_send, env_reverb.self(), SL_BOOLEAN_FALSE, SL_MILLIBEL_MIN);
+        slResult = applyAuxEffectSettings(effect_send, preset_reverb.self(),
+                                          CSLboolean::toSL(aux_->preset_reverb_enabled), aux_->send_level_millibel);
+        break;
+    default:
+        slResult = SL_RESULT_INTERNAL_ERROR;
+        break;
+    }
+
+    return InternalUtils::sTranslateOpenSLErrorCode(slResult);
+}
+
+SLresult AudioSinkOpenSLBackend::applyAuxEffectSettings(opensles::CSLEffectSendItf &effect_send, const void *aux_effect,
+                                                   SLboolean enabled, SLmillibel sendLevel) noexcept
+{
+    if (!(effect_send && aux_effect))
+        return SL_RESULT_FEATURE_UNSUPPORTED;
+
+    SLboolean cur_is_enabled = SL_BOOLEAN_FALSE;
+    SLresult result;
+
+    result = effect_send.IsEnabled(aux_effect, &cur_is_enabled);
+
+    if (result != SL_RESULT_SUCCESS) {
+        return result;
+    }
+
+    if (enabled && (sendLevel > SL_MILLIBEL_MIN)) {
+        // enabled
+        if (cur_is_enabled) {
+            result = effect_send.SetSendLevel(aux_effect, sendLevel);
+        } else {
+            result = effect_send.EnableEffectSend(aux_effect, SL_BOOLEAN_TRUE, sendLevel);
+        }
+    } else {
+        // disabled
+        if (cur_is_enabled) {
+            result = effect_send.EnableEffectSend(aux_effect, SL_BOOLEAN_FALSE, SL_MILLIBEL_MIN);
+        }
+    }
+
+    return result;
+}
+
 void AudioSinkOpenSLBackend::releaseOpenSLResources() noexcept
 {
     volume_.unbind();
@@ -309,6 +589,7 @@ void AudioSinkOpenSLBackend::releaseOpenSLResources() noexcept
     player_.unbind();
 
     obj_player_.Destroy();
+    obj_outmix_.Destroy();
 }
 
 void AudioSinkOpenSLBackend::playbackBufferQueueCallback(SLAndroidSimpleBufferQueueItf caller, void *pContext) noexcept
