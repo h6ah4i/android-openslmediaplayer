@@ -168,8 +168,7 @@ int32_t AudioSinkAudioTrackBackend::audioTrackStreamCallback(
         (void) ::memcpy(buffer, rb.src, (bytes_per_sample * size_in_frames * num_channels));
         pipe->unlockRead(rb);
     } else {
-        size_in_frames = buffer_size_in_frames;
-        (void) ::memset(buffer, 0, (bytes_per_sample * size_in_frames * num_channels));
+        size_in_frames = 0;
     }
 
     return size_in_frames;

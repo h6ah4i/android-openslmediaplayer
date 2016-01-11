@@ -163,6 +163,7 @@ int AudioTrackStream::init(
     track_ = std::move(track);
     buffer_size_in_frames_ = buffer_size_in_frames;
     buffer_block_count_ = buffer_block_count;
+    callback_retry_sleep_us_ = static_cast<uint32_t>((buffer_size_in_frames * 1000000ull) / sample_rate_in_hz);
 
     return OSLMP_RESULT_SUCCESS;
 }
@@ -322,6 +323,7 @@ void AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
     const int32_t num_channels = track_->getChannelCount();
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
     const int32_t num_data_write = num_channels * buffer_size_in_frames;
+    const size_t bytes_per_sample = getBytesPerSample(format);
 
     jshortArray buffer = env->NewShortArray(num_channels * buffer_size_in_frames);
 
@@ -352,6 +354,7 @@ void AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
     const int32_t num_channels = track_->getChannelCount();
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
     const int32_t num_data_write = num_channels * buffer_size_in_frames;
+    const size_t bytes_per_sample = getBytesPerSample(format);
 
     jfloatArray buffer = env->NewFloatArray(num_channels * buffer_size_in_frames);
 
