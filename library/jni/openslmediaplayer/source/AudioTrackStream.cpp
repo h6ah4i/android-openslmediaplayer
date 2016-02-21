@@ -19,6 +19,7 @@
 #include "oslmp/impl/AudioTrackStream.hpp"
 
 #include <new>
+#include <cmath>
 #include <cxxporthelper/compiler.hpp>
 #include <jni_utils/jni_utils.hpp>
 #include <loghelper/loghelper.h>
@@ -203,8 +204,8 @@ void AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
 
     while (CXXPH_UNLIKELY(!stop_request_)) {
         {
-            jshort_critical_array data_critical_array(env, data);
-            (*callback_func_)(data_critical_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
+            jshort_array data_array(env, data);
+            (*callback_func_)(data_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
         }
 
         const int32_t write_result = track_->write(env, data, 0, num_data_write);
@@ -231,11 +232,23 @@ void AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
     jlocal_ref_wrapper<jfloatArray> data_ref;
     data_ref.assign(env, data, jref_type::local_reference);
 
-    while (CXXPH_UNLIKELY(!stop_request_)) {
+    {
+        jfloat_array data_array(env, data);
+
+        double delta = 2 * M_PI * 16 / buffer_size_in_frames;
+
+        float *p = data_array.data();
+        for (int i = 0; i < buffer_size_in_frames_; ++i)
         {
-            jfloat_critical_array data_critical_array(env, data);
-            (void) (*callback_func_)(data_critical_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
+            p[2 * i + 0] = p[2 * i + 1] = static_cast<float>(std::sin(delta * i));
         }
+    }
+
+    while (CXXPH_UNLIKELY(!stop_request_)) {
+        // {
+        //     jfloat_array data_array(env, data);
+        //     (void) (*callback_func_)(data_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
+        // }
 
         const int32_t write_result = track_->write(env, data, 0, num_data_write, AudioTrack::WRITE_BLOCKING);
 
