@@ -48,6 +48,8 @@ private:
     void sinkWriterThreadProcess(JNIEnv *env) noexcept;
     void sinkWriterThreadLoopS16(JNIEnv *env) noexcept;
     void sinkWriterThreadLoopFloat(JNIEnv *env) noexcept;
+    void sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcept;
+    void sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept;
 
 private:
     JavaVM *vm_;

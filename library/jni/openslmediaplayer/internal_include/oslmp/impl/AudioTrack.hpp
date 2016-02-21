@@ -59,12 +59,15 @@ public:
     int32_t stop(JNIEnv *env) noexcept;
     int32_t write(JNIEnv *env, jshortArray data, size_t offset, size_t size) noexcept;
     int32_t write(JNIEnv *env, jfloatArray data, size_t offset, size_t size, write_mode_t mode) noexcept;
+    int32_t write(JNIEnv *env, jobject data, size_t size_in_bytes, write_mode_t mode) noexcept;
     int32_t getState(JNIEnv *env) noexcept;
     int32_t getPlayState(JNIEnv *env) noexcept;
     int32_t getAudioSessionId(JNIEnv *env) noexcept;
     int32_t getAudioFormat() const noexcept;
     int32_t getBufferSizeInFrames() const noexcept;
     int32_t getChannelCount() const noexcept;
+
+    bool supportsByteBufferMethods() const noexcept;
 
 private:
     jclass cls_;
@@ -78,6 +81,7 @@ private:
     jmethodID m_get_audio_session_;
     jmethodID m_write_sa_;
     jmethodID m_write_fa_;
+    jmethodID m_write_bb_;
     int32_t audio_format_;
     int32_t channel_count_;
     int32_t buffer_size_in_frames_;

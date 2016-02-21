@@ -28,7 +28,7 @@ namespace impl {
 
 AudioTrack::AudioTrack()
     : cls_(nullptr), obj_(nullptr), m_play_(0), m_pause_(0), m_stop_(0), m_release_(0),
-      m_get_state_(0), m_get_play_state_(0), m_get_audio_session_(0), m_write_sa_(0), m_write_fa_(0),
+      m_get_state_(0), m_get_play_state_(0), m_get_audio_session_(0), m_write_sa_(0), m_write_fa_(0), m_write_bb_(0),
       audio_format_(AudioFormat::ENCODING_INVALID), channel_count_(AudioFormat::CHANNEL_INVALID),
       buffer_size_in_frames_(0)
 {
@@ -74,9 +74,10 @@ bool AudioTrack::create(
     const jmethodID m_get_audio_session = env->GetMethodID(cls, "getAudioSessionId", "()I");
     const jmethodID m_write_sa = env->GetMethodID(cls, "write", "([SII)I");
     const jmethodID m_write_fa = env->GetMethodID(cls, "write", "([FIII)I");
+    const jmethodID m_write_bb = env->GetMethodID(cls, "write", "(Ljava/nio/ByteBuffer;II)I");
 
     if (!(m_play && m_pause && m_stop && m_release && m_get_state && m_get_play_state && m_get_audio_session && (
-      (m_write_sa && format == AudioFormat::ENCODING_PCM_16BIT) || (m_write_fa && format == AudioFormat::ENCODING_PCM_FLOAT)))) {
+      m_write_bb || (m_write_sa && format == AudioFormat::ENCODING_PCM_16BIT) || (m_write_fa && format == AudioFormat::ENCODING_PCM_FLOAT)))) {
         env->DeleteLocalRef(obj);
         return false;
     }
@@ -93,6 +94,7 @@ bool AudioTrack::create(
     m_get_audio_session_ = m_get_audio_session;
     m_write_sa_ = m_write_sa;
     m_write_fa_ = m_write_fa;
+    m_write_bb_ = m_write_bb;
     audio_format_ = format;
     channel_count_ = num_channels;
     buffer_size_in_frames_ = buffer_size_in_frames;
@@ -121,6 +123,7 @@ void AudioTrack::release(JNIEnv *env) noexcept
     m_get_audio_session_ = 0;
     m_write_sa_ = 0;
     m_write_fa_ = 0;
+    m_write_bb_ = 0;
     audio_format_ = AudioFormat::ENCODING_INVALID;
     channel_count_ = AudioFormat::CHANNEL_INVALID;
     obj_ = nullptr;
@@ -231,6 +234,28 @@ int32_t AudioTrack::write(JNIEnv *env, jfloatArray data, size_t offset, size_t s
     return static_cast<int32_t>(result);
 }
 
+int32_t AudioTrack::write(JNIEnv *env, jobject data, size_t size_in_bytes, AudioTrack::write_mode_t mode) noexcept
+{
+    if (CXXPH_UNLIKELY(!(m_write_bb_))) {
+        return ERROR_INVALID_OPERATION;
+    }
+
+    if (CXXPH_UNLIKELY(env->ExceptionCheck())) {
+        return ERROR_INVALID_OPERATION;
+    }
+
+    jint result = env->CallNonvirtualIntMethod(
+            obj_, cls_, m_write_bb_,
+            data, static_cast<jint>(size_in_bytes), static_cast<jint>(mode));
+
+    if (CXXPH_UNLIKELY(env->ExceptionCheck())) {
+        env->ExceptionClear();
+        return ERROR_INVALID_OPERATION;
+    }
+
+    return static_cast<int32_t>(result);
+}
+
 int32_t AudioTrack::getState(JNIEnv *env) noexcept
 {
     if (CXXPH_UNLIKELY(!(m_get_state_))) {
@@ -304,6 +329,11 @@ int32_t AudioTrack::getBufferSizeInFrames() const noexcept
 int32_t AudioTrack::getChannelCount() const noexcept
 {
     return channel_count_;
+}
+
+bool AudioTrack::supportsByteBufferMethods() const noexcept
+{
+    return (m_write_bb_ != 0);
 }
 
 }
