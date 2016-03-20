@@ -84,7 +84,7 @@ int AudioTrackStream::init(
 
     if (!(track && track->create(
         env, stream_type, sample_rate_in_hz, num_channels, encoding, 
-        (buffer_size_in_frames * buffer_block_count), AudioTrack::MODE_STREAM, 0))) {
+        (buffer_size_in_frames * buffer_block_count * 1), AudioTrack::MODE_STREAM, 0))) {
         return OSLMP_RESULT_INTERNAL_ERROR;
     }
 
