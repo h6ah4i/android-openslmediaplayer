@@ -1411,7 +1411,7 @@ uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t 
     //     return args.system_out_frames_per_buffer;
     // } else {
         return calc_android_NormalMixer_FrameCount(args.system_out_frames_per_buffer,
-                                                   args.system_out_sampling_rate / 1000);
+                                                   args.system_out_sampling_rate / 1000) * 2;
     // }
 }
 
