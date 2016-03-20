@@ -19,7 +19,6 @@
 #include "oslmp/impl/AudioTrackStream.hpp"
 
 #include <new>
-#include <cmath>
 #include <cxxporthelper/compiler.hpp>
 #include <jni_utils/jni_utils.hpp>
 #include <loghelper/loghelper.h>
@@ -28,6 +27,11 @@
 
 #include "oslmp/impl/AudioTrack.hpp"
 #include "oslmp/impl/AudioFormat.hpp"
+
+// #define DEBUG_FLOAT_TONE_GEN
+#ifdef DEBUG_FLOAT_TONE_GEN
+#include <cmath>
+#endif
 
 namespace oslmp {
 namespace impl {
@@ -257,15 +261,15 @@ void AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
     buffer_ref.assign(env, buffer, jref_type::local_reference);
 
     while (CXXPH_UNLIKELY(!stop_request_)) {
-        {
-            jshort_array buffer_array(env, buffer);
-            (*callback_func_)(buffer_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
-        }
-
         const int32_t write_result = track_->write(env, buffer, 0, num_data_write);
 
         if (write_result != num_data_write) {
             break;
+        }
+
+        {
+            jshort_array buffer_array(env, buffer);
+            (*callback_func_)(buffer_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
         }
     }
 }
@@ -286,29 +290,32 @@ void AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
     jlocal_ref_wrapper<jfloatArray> buffer_ref;
     buffer_ref.assign(env, buffer, jref_type::local_reference);
 
+#ifdef DEBUG_FLOAT_TONE_GEN
     {
         jfloat_array buffer_array(env, buffer);
 
         double delta = 2 * M_PI * 16 / buffer_size_in_frames;
 
         float *p = buffer_array.data();
-        for (int i = 0; i < buffer_size_in_frames_; ++i)
-        {
+        for (int i = 0; i < buffer_size_in_frames_; ++i) {
             p[2 * i + 0] = p[2 * i + 1] = static_cast<float>(std::sin(delta * i));
         }
     }
+#endif
 
     while (CXXPH_UNLIKELY(!stop_request_)) {
-        // {
-        //     jfloat_array data_array(env, buffer);
-        //     (void) (*callback_func_)(buffer_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
-        // }
-
         const int32_t write_result = track_->write(env, buffer, 0, num_data_write, AudioTrack::WRITE_BLOCKING);
 
         if (write_result != num_data_write) {
             break;
         }
+
+#ifndef DEBUG_FLOAT_TONE_GEN
+        {
+            jfloat_array buffer_array(env, buffer);
+            (void) (*callback_func_)(buffer_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
+        }
+#endif
     }
 }
 
@@ -328,8 +335,6 @@ void AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcept
     }
 
     while (CXXPH_UNLIKELY(!stop_request_)) {
-        (*callback_func_)(buffer.get(), format, num_channels, buffer_size_in_frames, callback_args_);
-
         const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
 
         if (write_result != bb.size()) {
@@ -337,6 +342,8 @@ void AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcept
         }
 
         bb.rewind();
+
+        (*callback_func_)(buffer.get(), format, num_channels, buffer_size_in_frames, callback_args_);
     }
 }
 
@@ -355,9 +362,17 @@ void AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept
         return;
     }
 
-    while (CXXPH_UNLIKELY(!stop_request_)) {
-        (*callback_func_)(buffer.get(), format, num_channels, buffer_size_in_frames, callback_args_);
+#ifdef DEBUG_FLOAT_TONE_GEN
+    {
+        double delta = 2 * M_PI * 16 / buffer_size_in_frames;
 
+        for (int i = 0; i < buffer_size_in_frames_; ++i) {
+            buffer[2 * i + 0] = buffer[2 * i + 1] = static_cast<float>(std::sin(delta * i));
+        }
+    }
+#endif
+
+    while (CXXPH_UNLIKELY(!stop_request_)) {
         const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
 
         if (write_result != bb.size()) {
@@ -365,6 +380,10 @@ void AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept
         }
 
         bb.rewind();
+
+#ifndef DEBUG_FLOAT_TONE_GEN
+        (*callback_func_)(buffer.get(), format, num_channels, buffer_size_in_frames, callback_args_);
+#endif
     }
 }
 
