@@ -517,7 +517,7 @@ private:
 #define TYPEDEF_READONLY_JARRAY_WRAPPER(jtype_)                 \
     typedef jarray_wrapper<                                     \
             jarray_accessor<const jtype_, jtype_ ## Array>,     \
-            const jtype_, jtype_ ## Array, 0>                   \
+            const jtype_, jtype_ ## Array, JNI_ABORT>           \
             const_ ## jtype_ ## _array;
 
 #define TYPEDEF_CRITICAL_JARRAY_WRAPPER(jtype_)                 \
@@ -529,7 +529,7 @@ private:
 #define TYPEDEF_CRITICAL_READONLY_JARRAY_WRAPPER(jtype_)        \
     typedef jarray_wrapper<                                     \
             jarray_accessor<const jtype_, jtype_ ## Array>,     \
-            const jtype_, jtype_ ## Array, 0>                   \
+            const jtype_, jtype_ ## Array, JNI_ABORT>           \
             const_ ## jtype_ ## _critical_array;
 
 // Non-critical, read/write access
