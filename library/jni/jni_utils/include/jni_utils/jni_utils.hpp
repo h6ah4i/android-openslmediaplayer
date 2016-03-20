@@ -434,7 +434,7 @@ public:
         :
         env_(env), array_(array),
         release_mode_(ReleaseMode),
-        ptr_(0), length_(0)
+        ptr_(0), length_(0), is_copy_(JNI_FALSE)
     {
         if (!(env_ && array_)) {
             return;
@@ -444,7 +444,7 @@ public:
             return;
         }
 
-        ptr_ = TArrayAccessor::get_carray(env_, array_, 0);
+        ptr_ = TArrayAccessor::get_carray(env_, array_, &is_copy_);
 
         if (env_->ExceptionCheck()) {
             ptr_ = 0;
@@ -485,6 +485,14 @@ public:
         return ptr_[index];
     }
 
+    const bool is_copy() const noexcept {
+        return (is_copy_ == JNI_TRUE);
+    }
+
+    const jint release_mode() const noexcept {
+        return release_mode_;
+    }
+
 private:
     // inhibit copy operations
     jarray_wrapper(const self_t &) = delete;
@@ -496,6 +504,7 @@ private:
     jint release_mode_;
     T *ptr_;
     size_t length_;
+    jboolean is_copy_;
 };
 
 // helper macros
