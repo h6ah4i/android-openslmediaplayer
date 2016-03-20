@@ -1934,9 +1934,18 @@ void AudioMixer::Impl::mixerThreadProcess() noexcept
 
             ts_prev = ts_next;
 
-            timespec ts_sleep(utils::timespec_utils::ZERO());
-            ts_sleep = utils::timespec_utils::add_ns(ts_sleep, sleep_ns);
-            ::clock_nanosleep(CLOCK_MONOTONIC, 0, &ts_sleep, nullptr);
+            // timespec ts_sleep(utils::timespec_utils::ZERO());
+            // ts_sleep = utils::timespec_utils::add_ns(ts_sleep, sleep_ns);
+            // ::clock_nanosleep(CLOCK_MONOTONIC, 0, &ts_sleep, nullptr);
+            {
+                utils::pt_unique_lock lock(mutex_mixer_thread_, true);
+
+                lock.try_lock();
+                
+                if (lock.owns_lock()) {
+                    cond_mixer_thread_.wait_relative_us(lock, sleep_ns / 1000);
+                }
+            }
         }
     }
 
