@@ -1779,7 +1779,7 @@ void *AudioMixer::Impl::mixerThreadEntry(void *args) noexcept
     AndroidHelper::setCurrentThreadName("OSLMPAudioMixer");
 
     // set thread priority
-    AndroidHelper::setThreadPriority(thiz->context_->getJavaVM(), 0, ANDROID_THREAD_PRIORITY_AUDIO);
+    AndroidHelper::setThreadPriority(thiz->context_->getJavaVM(), 0, ANDROID_THREAD_PRIORITY_AUDIO + ANDROID_THREAD_PRIORITY_LESS_FAVORABLE);
 
     thiz->mixerThreadProcess();
 
