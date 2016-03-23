@@ -53,7 +53,7 @@ public:
         release();
     }
 
-    jlocal_ref_wrapper &assign(JNIEnv *env, T &ref, ref_type_t ref_type) noexcept {
+    jlocal_ref_wrapper &assign(JNIEnv *env, T const &ref, ref_type_t ref_type) noexcept {
         release();
 
         if (ref && env) {
@@ -107,6 +107,12 @@ public:
         return *this;
     }
 
+    T detach() noexcept {
+        T ref = ref_;
+        clear();
+        return ref;
+    }
+
     ref_type_t ref_type() const noexcept {
         return ref_type_;
     }
@@ -117,6 +123,10 @@ public:
 
     const T& operator ()() const noexcept {
         return ref_;
+    }
+
+    operator bool() const noexcept {
+        return (!!ref_);
     }
 
 private:
