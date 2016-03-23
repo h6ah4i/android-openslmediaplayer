@@ -1775,11 +1775,11 @@ void *AudioMixer::Impl::mixerThreadEntry(void *args) noexcept
 {
     Impl *thiz = static_cast<Impl *>(args);
 
-    // set thread name
-    AndroidHelper::setCurrentThreadName("OSLMPAudioMixer");
-
     // set thread priority
-    AndroidHelper::setThreadPriority(thiz->context_->getJavaVM(), 0, ANDROID_THREAD_PRIORITY_AUDIO + ANDROID_THREAD_PRIORITY_LESS_FAVORABLE);
+    AndroidHelper::setThreadPriority(thiz->context_->getJavaVM(), 0, ANDROID_THREAD_PRIORITY_AUDIO + ANDROID_THREAD_PRIORITY_LESS_FAVORABLE * 6);
+
+    // set thread name
+    AndroidHelper::setCurrentThreadName("OSLMPAudioMix");
 
     thiz->mixerThreadProcess();
 
