@@ -30,11 +30,18 @@
 #include "oslmp/impl/AndroidHelper.hpp"
 #include "oslmp/utils/timespec_utils.hpp"
 
-#define NUM_CALLBACK_RETRIES 2
-
 // #define DEBUG_FLOAT_TONE_GEN
 #ifdef DEBUG_FLOAT_TONE_GEN
+#define TONE_FREQ_MULTIPLE  64
 #include <cmath>
+#endif
+
+#ifdef USE_OSLMP_DEBUG_FEATURES
+#define STREAM_COUNTER_INIT()   int32_t callback_counter_ = 0;
+#define STREAM_COUNTER_LOG()    do { callback_counter_ = ((callback_counter_ + 1) & 0xf); ATRACE_COUNTER("AudioTrackStreamCallbackCount", callback_counter_); } while(0)
+#else
+#define STREAM_COUNTER_INIT()
+#define STREAM_COUNTER_LOG()
 #endif
 
 namespace oslmp {
@@ -103,8 +110,7 @@ static int translate_audio_track_result(int result) {
 AudioTrackStream::AudioTrackStream()
     : vm_(nullptr), track_(nullptr), pt_handle_(0), 
     buffer_size_in_frames_(0), buffer_block_count_(0),
-    callback_func_(nullptr), callback_args_(nullptr), stop_request_(false),
-    callback_retry_sleep_us_(0)
+    callback_func_(nullptr), callback_args_(nullptr), stop_request_(false)
 {
 }
 
@@ -155,7 +161,7 @@ int AudioTrackStream::init(
 
     if (!(track && track->create(
         env, stream_type, sample_rate_in_hz, num_channels, encoding, 
-        (buffer_size_in_frames * buffer_block_count * 1), AudioTrack::MODE_STREAM, 0))) {
+        (buffer_size_in_frames * buffer_block_count), AudioTrack::MODE_STREAM, 0))) {
         return OSLMP_RESULT_INTERNAL_ERROR;
     }
 
@@ -163,7 +169,6 @@ int AudioTrackStream::init(
     track_ = std::move(track);
     buffer_size_in_frames_ = buffer_size_in_frames;
     buffer_block_count_ = buffer_block_count;
-    callback_retry_sleep_us_ = static_cast<uint32_t>((buffer_size_in_frames * 1000000ull) / sample_rate_in_hz);
 
     return OSLMP_RESULT_SUCCESS;
 }
@@ -267,12 +272,13 @@ void* AudioTrackStream::sinkWriterThreadEntryFunc(void *args) noexcept
     AudioTrackStream *thiz = static_cast<AudioTrackStream*>(args);
     JNIEnv *env = nullptr;
 
-    // set thread name
-    AndroidHelper::setCurrentThreadName("AudioTrackStrm");
-
     if (thiz->vm_->AttachCurrentThread(&env, nullptr) == JNI_OK) {
         // set thread priority
-        AndroidHelper::setThreadPriority(env, 0, ANDROID_THREAD_PRIORITY_AUDIO + ANDROID_THREAD_PRIORITY_LESS_FAVORABLE);
+        // AndroidHelper::setThreadPriority(env, 0, ANDROID_THREAD_PRIORITY_AUDIO + ANDROID_THREAD_PRIORITY_LESS_FAVORABLE);
+        AndroidHelper::setThreadPriority(env, 0, ANDROID_THREAD_PRIORITY_MORE_FAVORABLE * 2);
+
+        // set thread name
+        AndroidHelper::setCurrentThreadName("AudioTrackStrm");
 
         thiz->sinkWriterThreadProcess(env);
 
@@ -287,38 +293,43 @@ void AudioTrackStream::sinkWriterThreadProcess(JNIEnv *env) noexcept
 {
     LOGD("AudioTrackStream::sinkWriterThreadProcess");
 
+    ATRACE_BEGIN_SECTION("AudioTrackStream");
+
     const int32_t format = track_->getAudioFormat();
 
-    const int32_t play_result = track_->play(env);
+    int32_t play_result = AudioTrack::ERROR;
     const bool supports_bb = track_->supportsByteBufferMethods();
 
-    if (play_result == AudioTrack::SUCCESS) {
-        switch (format) {
-            case AudioFormat::ENCODING_PCM_16BIT:
-                if (supports_bb) {
-                    sinkWriterThreadLoopS16ByteBuffer(env);
-                } else {
-                    sinkWriterThreadLoopS16(env);
-                }
-                break;
-            case AudioFormat::ENCODING_PCM_FLOAT:
-                if (supports_bb) {
-                    sinkWriterThreadLoopFloatByteBuffer(env);
-                } else {
-                    sinkWriterThreadLoopFloat(env);
-                }
-                break;
-            default:
-                break;
-        }
+    switch (format) {
+        case AudioFormat::ENCODING_PCM_16BIT:
+            if (supports_bb) {
+                play_result = sinkWriterThreadLoopS16ByteBuffer(env);
+            } else {
+                play_result = sinkWriterThreadLoopS16(env);
+            }
+            break;
+        case AudioFormat::ENCODING_PCM_FLOAT:
+            if (supports_bb) {
+                play_result = sinkWriterThreadLoopFloatByteBuffer(env);
+            } else {
+                play_result = sinkWriterThreadLoopFloat(env);
+            }
+            break;
+        default:
+            break;
+    }
 
+    if (play_result == AudioTrack::SUCCESS) {
         track_->pause(env);
         track_->stop(env);
     }
+
+    ATRACE_END_SECTION();
 }
 
-void AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
+int32_t AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
 {
+    int32_t play_result = AudioTrack::ERROR;
     const sample_format_type format = kAudioSampleFormatType_S16;
     const int32_t num_channels = track_->getChannelCount();
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
@@ -328,28 +339,44 @@ void AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
     jshortArray buffer = env->NewShortArray(num_channels * buffer_size_in_frames);
 
     if (!buffer) {
-        return;
+        return play_result;
     }
 
     jlocal_ref_wrapper<jshortArray> buffer_ref;
     buffer_ref.assign(env, buffer, jref_type::local_reference);
 
+    const int32_t write_result = track_->write(env, buffer, 0, num_data_write);
+    if (write_result != num_data_write) {
+        return play_result;
+    }
+
+    play_result = track_->play(env);
+    if (play_result != AudioTrack::SUCCESS) {
+        return play_result;
+    }
+
+    STREAM_COUNTER_INIT();
+
     while (CXXPH_UNLIKELY(!stop_request_)) {
+        STREAM_COUNTER_LOG();
+        {
+            jshort_array buffer_array(env, buffer);
+            (*callback_func_)(buffer_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
+        }
+
         const int32_t write_result = track_->write(env, buffer, 0, num_data_write);
 
         if (write_result != num_data_write) {
             break;
         }
-
-        {
-            jshort_array buffer_array(env, buffer);
-            (*callback_func_)(buffer_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
-        }
     }
+
+    return play_result;
 }
 
-void AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
+int32_t AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
 {
+    int32_t play_result = AudioTrack::ERROR;
     const sample_format_type format = kAudioSampleFormatType_F32;
     const int32_t num_channels = track_->getChannelCount();
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
@@ -359,7 +386,7 @@ void AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
     jfloatArray buffer = env->NewFloatArray(num_channels * buffer_size_in_frames);
 
     if (!buffer) {
-        return;
+        return play_result;
     }
 
     jlocal_ref_wrapper<jfloatArray> buffer_ref;
@@ -369,7 +396,7 @@ void AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
     {
         jfloat_array buffer_array(env, buffer);
 
-        double delta = 2 * M_PI * 16 / buffer_size_in_frames;
+        double delta = 2 * M_PI * TONE_FREQ_MULTIPLE / buffer_size_in_frames;
 
         float *p = buffer_array.data();
         for (int i = 0; i < buffer_size_in_frames_; ++i) {
@@ -378,12 +405,20 @@ void AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
     }
 #endif
 
-    while (CXXPH_UNLIKELY(!stop_request_)) {
-        const int32_t write_result = track_->write(env, buffer, 0, num_data_write, AudioTrack::WRITE_BLOCKING);
+    const int32_t write_result = track_->write(env, buffer, 0, num_data_write, AudioTrack::WRITE_BLOCKING);
+    if (write_result != num_data_write) {
+        return play_result;
+    }
 
-        if (write_result != num_data_write) {
-            break;
-        }
+    play_result = track_->play(env);
+    if (play_result != AudioTrack::SUCCESS) {
+        return play_result;
+    }
+
+    STREAM_COUNTER_INIT();
+
+    while (CXXPH_UNLIKELY(!stop_request_)) {
+        STREAM_COUNTER_LOG();
 
 #ifndef DEBUG_FLOAT_TONE_GEN
         {
@@ -391,25 +426,51 @@ void AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
             (void) (*callback_func_)(buffer_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
         }
 #endif
+
+        const int32_t write_result = track_->write(env, buffer, 0, num_data_write, AudioTrack::WRITE_BLOCKING);
+
+        if (write_result != num_data_write) {
+            break;
+        }
     }
+
+    return play_result;
 }
 
-void AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcept
+int32_t AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcept
 {
+    int32_t play_result = AudioTrack::ERROR;
     const sample_format_type format = kAudioSampleFormatType_S16;
     const int32_t num_channels = track_->getChannelCount();
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
     const int32_t num_data_write = num_channels * buffer_size_in_frames;
-    const size_t num_data_write_in_bytes = num_data_write * sizeof(int16_t);
+    const size_t num_data_write_in_bytes = num_data_write * getBytesPerSample(format);
     std::unique_ptr<int16_t[]> buffer(new int16_t[num_data_write]);
 
     LocalByteBuffer bb(env, buffer.get(), num_data_write_in_bytes);
 
     if (!bb.is_valid()) {
-        return;
+        return play_result;
     }
 
+    const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
+
+    if (write_result != bb.size()) {
+        return play_result;
+    }
+
+    bb.rewind();
+
+    play_result = track_->play(env);
+    if (play_result != AudioTrack::SUCCESS) {
+        return play_result;
+    }
+
+    STREAM_COUNTER_INIT();
+
     while (CXXPH_UNLIKELY(!stop_request_)) {
+        STREAM_COUNTER_LOG();
+        (*callback_func_)(buffer.get(), format, num_channels, buffer_size_in_frames, callback_args_);
         const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
 
         if (write_result != bb.size()) {
@@ -417,29 +478,30 @@ void AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcept
         }
 
         bb.rewind();
-
-        (*callback_func_)(buffer.get(), format, num_channels, buffer_size_in_frames, callback_args_);
     }
+
+    return play_result;
 }
 
-void AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept
+int32_t AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept
 {
+    int32_t play_result = AudioTrack::ERROR;
     const sample_format_type format = kAudioSampleFormatType_F32;
     const int32_t num_channels = track_->getChannelCount();
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
     const int32_t num_data_write = num_channels * buffer_size_in_frames;
-    const size_t num_data_write_in_bytes = num_data_write * sizeof(float);
+    const size_t num_data_write_in_bytes = num_data_write * getBytesPerSample(format);
     std::unique_ptr<float[]> buffer(new float[num_data_write]);
 
     LocalByteBuffer bb(env, buffer.get(), num_data_write_in_bytes);
 
     if (!bb.is_valid()) {
-        return;
+        return play_result;
     }
 
 #ifdef DEBUG_FLOAT_TONE_GEN
     {
-        double delta = 2 * M_PI * 16 / buffer_size_in_frames;
+        double delta = 2 * M_PI * TONE_FREQ_MULTIPLE / buffer_size_in_frames;
 
         for (int i = 0; i < buffer_size_in_frames_; ++i) {
             buffer[2 * i + 0] = buffer[2 * i + 1] = static_cast<float>(std::sin(delta * i));
@@ -447,7 +509,28 @@ void AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept
     }
 #endif
 
+    const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
+    track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
+
+    if (write_result != bb.size()) {
+        return play_result;
+    }
+
+    bb.rewind();
+
+    play_result = track_->play(env);
+    if (play_result != AudioTrack::SUCCESS) {
+        return play_result;
+    }
+
+    STREAM_COUNTER_INIT();
+
     while (CXXPH_UNLIKELY(!stop_request_)) {
+        STREAM_COUNTER_LOG();
+#ifndef DEBUG_FLOAT_TONE_GEN
+        (*callback_func_)(buffer.get(), format, num_channels, buffer_size_in_frames, callback_args_);
+#endif
+
         const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
 
         if (write_result != bb.size()) {
@@ -455,11 +538,9 @@ void AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept
         }
 
         bb.rewind();
-
-#ifndef DEBUG_FLOAT_TONE_GEN
-        (*callback_func_)(buffer.get(), format, num_channels, buffer_size_in_frames, callback_args_);
-#endif
     }
+
+    return play_result;
 }
 
 }

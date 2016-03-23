@@ -51,10 +51,10 @@ private:
     static void *sinkWriterThreadEntryFunc(void *args) noexcept;
 
     void sinkWriterThreadProcess(JNIEnv *env) noexcept;
-    void sinkWriterThreadLoopS16(JNIEnv *env) noexcept;
-    void sinkWriterThreadLoopFloat(JNIEnv *env) noexcept;
-    void sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcept;
-    void sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept;
+    int32_t sinkWriterThreadLoopS16(JNIEnv *env) noexcept;
+    int32_t sinkWriterThreadLoopFloat(JNIEnv *env) noexcept;
+    int32_t sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcept;
+    int32_t sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept;
 
     JNIEnv *getJNIEnv() noexcept;
 
@@ -69,7 +69,6 @@ private:
     render_callback_func_t callback_func_;
     void *callback_args_;
     std::atomic_bool stop_request_;
-    uint32_t callback_retry_sleep_us_;
 };
 
 }
