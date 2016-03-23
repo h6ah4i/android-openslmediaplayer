@@ -137,6 +137,8 @@ int OpenSLMediaPlayerInternalContextImpl::initialize(JNIEnv *env, OpenSLMediaPla
         return OSLMP_RESULT_INTERNAL_ERROR;
     }
 
+    AndroidHelper::init();
+
 #ifdef USE_OSLMP_DEBUG_FEATURES
     // start non blocing trace logger
     if (!non_block_trace_logger_.start_output_worker(jvm_, 50)) {

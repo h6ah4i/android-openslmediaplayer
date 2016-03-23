@@ -28,9 +28,20 @@ class AndroidHelper {
     AndroidHelper() = delete;
 
 public:
+    static void init() noexcept;
+
     static bool setThreadPriority(JNIEnv *env, pid_t tid, int prio) noexcept;
     static bool setThreadPriority(JavaVM *vm, pid_t tid, int prio) noexcept;
     static bool setCurrentThreadName(const char *name) noexcept;
+
+#ifdef USE_OSLMP_DEBUG_FEATURES
+    // http://stackoverflow.com/questions/28001915/is-logging-android-systrace-events-directly-from-native-code-possible-without-j
+    static void traceBeginSection(const char *name) noexcept;
+    static void traceEndSection() noexcept;
+    static void traceCounter(const char *name, int32_t value) noexcept;
+
+    static int atrace_marker_fd_;
+#endif
 };
 
 // sync. with android.os.Process
@@ -45,6 +56,16 @@ enum AndroidThreadPriority {
     ANDROID_THREAD_PRIORITY_AUDIO = -16,
     ANDROID_THREAD_PRIORITY_URGENT_AUDIO = -19
 };
+
+#ifdef USE_OSLMP_DEBUG_FEATURES
+#define ATRACE_BEGIN_SECTION(name)  AndroidHelper::traceBeginSection(name)
+#define ATRACE_END_SECTION()  AndroidHelper::traceEndSection()
+#define ATRACE_COUNTER(name, value)  AndroidHelper::traceCounter((name), (value))
+#else
+#define ATRACE_BEGIN_SECTION(name)
+#define ATRACE_END_SECTION()
+#define ATRACE_COUNTER(name, value)
+#endif
 
 } // namespace impl
 } // namespace oslmp

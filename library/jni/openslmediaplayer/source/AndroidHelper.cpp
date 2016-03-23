@@ -26,6 +26,14 @@
 
 #include <loghelper/loghelper.h>
 
+#ifdef USE_OSLMP_DEBUG_FEATURES
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+
+#define ATRACE_MESSAGE_LEN 256
+#endif
+
 namespace oslmp {
 namespace impl {
 
@@ -59,6 +67,17 @@ struct local_ref_deleter {
 typedef std::unique_ptr<JNIEnv, jni_env_deleter> jni_env_unique_ptr_t;
 typedef local_ref_deleter<std::remove_pointer<jclass>::type> jclass_local_ref_deleter_t;
 typedef std::unique_ptr<std::remove_pointer<jclass>::type, jclass_local_ref_deleter_t> jclass_unique_ptr_t;
+
+#ifdef USE_OSLMP_DEBUG_FEATURES
+int AndroidHelper::atrace_marker_fd_ = -1;
+#endif
+
+void AndroidHelper::init() noexcept
+{
+#ifdef USE_OSLMP_DEBUG_FEATURES
+    atrace_marker_fd_ = ::open("/sys/kernel/debug/tracing/trace_marker", O_WRONLY);
+#endif
+}
 
 
 bool AndroidHelper::setThreadPriority(JNIEnv *env, pid_t tid, int prio) noexcept
@@ -127,6 +146,41 @@ bool AndroidHelper::setCurrentThreadName(const char *name) noexcept
 
     return true;
 }
+
+#ifdef USE_OSLMP_DEBUG_FEATURES
+void AndroidHelper::traceBeginSection(const char *name) noexcept
+{
+    if (atrace_marker_fd_ == -1) {
+        return;
+    }
+
+    char buf[ATRACE_MESSAGE_LEN];
+    int len = ::snprintf(buf, ATRACE_MESSAGE_LEN, "B|%d|%s", ::getpid(), name);
+    ::write(atrace_marker_fd_, buf, len);
+}
+
+void AndroidHelper::traceEndSection() noexcept
+{
+    if (atrace_marker_fd_ == -1) {
+        return;
+    }
+
+    char c = 'E';
+    ::write(atrace_marker_fd_, &c, 1);
+}
+
+void AndroidHelper::traceCounter(const char *name, int32_t value) noexcept
+{
+    if (atrace_marker_fd_ == -1) {
+        return;
+    }
+
+    char buf[ATRACE_MESSAGE_LEN];
+    int len = ::snprintf(buf, ATRACE_MESSAGE_LEN, "C|%d|%s|%i", ::getpid(), name, value);
+    ::write(atrace_marker_fd_, buf, len);
+}
+#endif
+
 
 } // namespace impl
 } // namespace oslmp
