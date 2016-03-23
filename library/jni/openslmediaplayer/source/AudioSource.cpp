@@ -52,15 +52,6 @@
 
 #define PREFETCHEVENT_ERROR_CANDIDATE (SL_PREFETCHEVENT_STATUSCHANGE | SL_PREFETCHEVENT_FILLLEVELCHANGE)
 
-/* NOTE: MIN_CAPACITY >= (ROOM_FOR_AUDIO_DATA_WHILE_PLAYING + PREFETCH_COUNT) */
-#define DECODE_QUEUE_REQUIRED_MIN_CAPACITY 31
-#define DECODE_QUEUE_ROOM_FOR_AUDIO_DATA_WHILE_PLAYING 8
-#ifdef ENABLE_DECODER_PAUSING
-#define DECODE_QUEUE_ROOM_FOR_AUDIO_DATA_WHILE_PAUSED 4
-#else
-#define DECODE_QUEUE_ROOM_FOR_AUDIO_DATA_WHILE_PAUSED 8
-#endif
-#define DECODE_QUEUE_PREFETCH_COUNT 8
 #define PRODUCER_QUEUE_PUSH_POLLING_INTERVAL_MS 100
 
 #define TRANSLATE_RESULT(result) InternalUtils::sTranslateOpenSLErrorCode(result)
@@ -78,6 +69,17 @@ namespace impl {
 using namespace ::opensles;
 
 typedef OpenSLMediaPlayerInternalUtils InternalUtils;
+
+class DecodeQueueParams {
+public:
+    DecodeQueueParams();
+    DecodeQueueParams(const AudioSource::initialize_args_t &args);
+
+    uint32_t room_for_audio_data_while_playing;
+    uint32_t room_for_audio_data_while_paused;
+    uint32_t prefetch_count;
+    uint32_t required_capacity;
+};
 
 class AudioSourcePrepareContext {
 public:
@@ -253,6 +255,8 @@ private:
 
     playback_completion_type_t playback_completed_;
 
+    DecodeQueueParams queue_params_;
+
 #ifdef USE_OSLMP_DEBUG_FEATURES
     std::unique_ptr<NonBlockingTraceLoggerClient> decoder_callback_nb_logger_;
 #endif
@@ -396,7 +400,8 @@ AudioSource::Impl::Impl(AudioSource *holder)
       decoderBufferBlockSize_(0), pipeBufferBlockSize_(0), pipe_mgr_(nullptr), pipe_(nullptr), pushed_block_count_(0),
       decoder_end_of_data_detected_(false), decoder_callback_mutex_(), decoder_callback_cv_(),
       current_position_msec_(0), init_seek_position_msec_(0), current_position_calc_coeff_(0),
-      buffered_position_msec_(0), playback_completed_(PLAYBACK_NOT_COMPLETED)
+      buffered_position_msec_(0), playback_completed_(PLAYBACK_NOT_COMPLETED),
+      queue_params_()
 {
 }
 
@@ -444,7 +449,9 @@ int AudioSource::Impl::initialize(const initialize_args_t &args) noexcept
     if (!args.pipe)
         return OSLMP_RESULT_ILLEGAL_ARGUMENT;
 
-    if (args.pipe->getCapacity() < DECODE_QUEUE_REQUIRED_MIN_CAPACITY) {
+    DecodeQueueParams queue_params(args);
+
+    if (args.pipe->getCapacity() < queue_params.required_capacity) {
         return OSLMP_RESULT_ILLEGAL_ARGUMENT;
     }
 
@@ -478,6 +485,8 @@ int AudioSource::Impl::initialize(const initialize_args_t &args) noexcept
     pipeBufferBlockSize_ = pipeBlockSize;
 
     current_position_calc_coeff_ = (pipeBlockSize * 1000) / (args.sampling_rate * 0.001);
+
+    queue_params_ = queue_params;
 
     init_args_ = args;
     context_ = args.context;
@@ -1401,7 +1410,7 @@ int AudioSource::Impl::prepareInternalPollQueuePrefetch(int timeout_ms, bool &co
         }
     }
 
-    if (decoder_end_of_data_detected_ || (pushed_block_count_ >= DECODE_QUEUE_PREFETCH_COUNT)) {
+    if (decoder_end_of_data_detected_ || (pushed_block_count_ >= queue_params_.prefetch_count)) {
         // completed
 
         completed = true;
@@ -1564,7 +1573,7 @@ bool AudioSource::Impl::waitForProducerQueueAudioDataItem(utils::pt_unique_lock 
         // lock
         if (CXXPH_LIKELY(decoder_play_state_ == SL_PLAYSTATE_PLAYING)) {
             // active & playing
-            if (pipe_->lockProduce(pb, DECODE_QUEUE_ROOM_FOR_AUDIO_DATA_WHILE_PLAYING)) {
+            if (pipe_->lockProduce(pb, queue_params_.room_for_audio_data_while_playing)) {
                 return true;
             } else {
                 if (CXXPH_LIKELY(retry_cnt < max_retries)) {
@@ -1579,7 +1588,7 @@ bool AudioSource::Impl::waitForProducerQueueAudioDataItem(utils::pt_unique_lock 
             }
         } else if (decoder_play_state_ == SL_PLAYSTATE_PAUSED) {
             // not active or not playing
-            if (pipe_->lockProduce(pb, DECODE_QUEUE_ROOM_FOR_AUDIO_DATA_WHILE_PAUSED)) {
+            if (pipe_->lockProduce(pb, queue_params_.room_for_audio_data_while_paused)) {
                 return true;
             } else {
 #ifdef ENABLE_DECODER_PAUSING
@@ -1714,6 +1723,44 @@ int32_t AudioSource::Impl::calcCurrentPositionInMsec() noexcept
 
     return (std::min)(position_in_msec, duration);
 }
+
+DecodeQueueParams::DecodeQueueParams()
+: room_for_audio_data_while_playing(0),
+  room_for_audio_data_while_paused(0),
+  prefetch_count(0),
+  required_capacity(0)
+{
+
+}
+
+DecodeQueueParams::DecodeQueueParams(const AudioSource::initialize_args_t &args)
+: room_for_audio_data_while_playing(0),
+  room_for_audio_data_while_paused(0),
+  prefetch_count(0),
+  required_capacity(0)
+{
+    const uint32_t kMinRoomForWhilePlaying = 2;
+    const uint32_t kMinRoomForWhilePaused = 2;
+    const uint32_t kMinPrefetchCount = 4;
+    const uint32_t kRoomForWhilePlayingMsec = 100;
+    const uint32_t kRoomForWhilePausedMsec = 100;
+    const uint32_t kPrefetchCountMsec = 500;
+
+    const uint32_t pipe_block_size = args.pipe_manager->getBlockSizeInFrames();
+    const uint32_t sampling_rate_hz = args.sampling_rate / 1000;
+
+    room_for_audio_data_while_playing = (std::max)(
+        kMinRoomForWhilePlaying, ((sampling_rate_hz * kRoomForWhilePlayingMsec + (pipe_block_size * 500u)) / (pipe_block_size * 1000u)));
+
+    room_for_audio_data_while_paused = (std::max)(
+        kMinRoomForWhilePaused, ((sampling_rate_hz * kRoomForWhilePausedMsec + (pipe_block_size * 500u)) / (pipe_block_size * 1000u)));
+
+    prefetch_count = (std::max)(
+        kMinPrefetchCount, ((sampling_rate_hz * kPrefetchCountMsec + (pipe_block_size * 500u)) / (pipe_block_size * 1000u)));
+
+    required_capacity = (std::max)(room_for_audio_data_while_playing, room_for_audio_data_while_paused) + prefetch_count;
+}
+
 
 } // namespace impl
 } // namespace oslmp
