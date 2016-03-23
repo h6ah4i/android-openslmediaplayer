@@ -78,8 +78,10 @@ public:
     NonBlockingTraceLoggerClient *create_new_client() noexcept;
     void detach_client(uint32_t client_id) noexcept;
 
-    bool start_output_worker(uint32_t polling_period_ms) noexcept;
+    bool start_output_worker(JavaVM *jvm, uint32_t polling_period_ms) noexcept;
     bool stop_output_worker() noexcept;
+
+    void trigger_periodic_process() noexcept;
 
 private:
     bool is_initialized() const noexcept;
@@ -99,6 +101,7 @@ private:
     std::atomic<log_seq_no_t> producer_sequence_no_counter_;
     log_seq_no_t consumer_sequence_no_counter_;
 
+    JavaVM *jvm_;
     pthread_t worker_thread_;
     utils::pt_mutex worker_mutex_;
     utils::pt_condition_variable worker_cv_;
@@ -178,11 +181,11 @@ NonBlockingTraceLoggerClient *NonBlockingTraceLogger::create_new_client() noexce
     return impl_->create_new_client();
 }
 
-bool NonBlockingTraceLogger::start_output_worker(uint32_t polling_period_ms) noexcept
+bool NonBlockingTraceLogger::start_output_worker(JavaVM *jvm, uint32_t polling_period_ms) noexcept
 {
     if (!impl_)
         return false;
-    return impl_->start_output_worker(polling_period_ms);
+    return impl_->start_output_worker(jvm, polling_period_ms);
 }
 
 bool NonBlockingTraceLogger::stop_output_worker() noexcept
@@ -192,12 +195,20 @@ bool NonBlockingTraceLogger::stop_output_worker() noexcept
     return impl_->stop_output_worker();
 }
 
+void NonBlockingTraceLogger::trigger_periodic_process() noexcept
+{
+    if (!impl_)
+        return;
+
+    impl_->trigger_periodic_process();
+}
+
 //
 // NonBlockingTraceLogger::WorkerImpl
 //
 NonBlockingTraceLogger::WorkerImpl::WorkerImpl()
     : polling_period_ms_(0), log_entry_queue_pool_(), producer_sequence_no_counter_(0),
-      consumer_sequence_no_counter_(0), worker_thread_(0), worker_mutex_(), worker_cv_(), active_client_map_(0)
+      consumer_sequence_no_counter_(0), jvm_(0), worker_thread_(0), worker_mutex_(), worker_cv_(), active_client_map_(0)
 {
     const size_t pool_size = NUM_CLIENTS * LOG_ENTRY_BUFFER_NUM_PER_CLIENT;
     log_entry_queue_pool_.reset(new (std::nothrow) lf_log_entry_queue_t[pool_size]);
@@ -291,7 +302,7 @@ void NonBlockingTraceLogger::WorkerImpl::detach_client(uint32_t client_id) noexc
 }
 
 // NOTE: this method is not thread safe
-bool NonBlockingTraceLogger::WorkerImpl::start_output_worker(uint32_t polling_period_ms) noexcept
+bool NonBlockingTraceLogger::WorkerImpl::start_output_worker(JavaVM *jvm, uint32_t polling_period_ms) noexcept
 {
     // check is initialized
     if (CXXPH_UNLIKELY(!is_initialized())) {
@@ -307,6 +318,8 @@ bool NonBlockingTraceLogger::WorkerImpl::start_output_worker(uint32_t polling_pe
 
     // clear stop request
     stop_request_worker_tread_ = false;
+
+    jvm_ = jvm;
 
     // start thread
     int s = ::pthread_create(&worker_thread_, nullptr, outputWorkerThreadEntry, this);
@@ -335,9 +348,22 @@ bool NonBlockingTraceLogger::WorkerImpl::stop_output_worker() noexcept
     return true;
 }
 
+// NOTE: this method is not thread safe
+void NonBlockingTraceLogger::WorkerImpl::trigger_periodic_process() noexcept
+{
+    // check is initialized
+    if (CXXPH_UNLIKELY(!is_initialized())) {
+        return;
+    }
+
+    worker_cv_.notify_one();
+}
+
 void *NonBlockingTraceLogger::WorkerImpl::outputWorkerThreadEntry(void *args) noexcept
 {
     WorkerImpl *impl = static_cast<WorkerImpl *>(args);
+
+    AndroidHelper::setThreadPriority(impl->jvm_, 0, ANDROID_THREAD_PRIORITY_LESS_FAVORABLE);
 
     // set thread name
     AndroidHelper::setCurrentThreadName("NBTraceLogger");

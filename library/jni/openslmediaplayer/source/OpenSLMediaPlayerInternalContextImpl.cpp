@@ -139,7 +139,7 @@ int OpenSLMediaPlayerInternalContextImpl::initialize(JNIEnv *env, OpenSLMediaPla
 
 #ifdef USE_OSLMP_DEBUG_FEATURES
     // start non blocing trace logger
-    if (!non_block_trace_logger_.start_output_worker(10)) {
+    if (!non_block_trace_logger_.start_output_worker(jvm_, 50)) {
         return OSLMP_RESULT_INTERNAL_ERROR;
     }
 #endif

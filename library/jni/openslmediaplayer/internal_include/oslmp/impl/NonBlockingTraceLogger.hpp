@@ -19,6 +19,7 @@
 
 #ifdef USE_OSLMP_DEBUG_FEATURES
 
+#include <jni.h>
 #include <cstdarg>
 #include <cxxporthelper/cstdint>
 #include <cxxporthelper/memory>
@@ -52,8 +53,10 @@ public:
 
     NonBlockingTraceLoggerClient *create_new_client() noexcept;
 
-    bool start_output_worker(uint32_t polling_period_ms) noexcept;
+    bool start_output_worker(JavaVM *jvm, uint32_t polling_period_ms) noexcept;
     bool stop_output_worker() noexcept;
+
+    void trigger_periodic_process() noexcept;
 
 private:
     class WorkerImpl;

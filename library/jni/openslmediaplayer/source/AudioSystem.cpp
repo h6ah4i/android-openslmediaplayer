@@ -836,6 +836,10 @@ int AudioSystem::Impl::poll() noexcept
          static_cast<int>(utils::timespec_utils::sub_ret_us(ts_profile[6], ts_profile[5])));
 #endif
 
+#if USE_OSLMP_DEBUG_FEATURES
+    context_->getNonBlockingTraceLogger().trigger_periodic_process();
+#endif
+
     return OSLMP_RESULT_SUCCESS;
 }
 
