@@ -67,6 +67,7 @@ public:
     int32_t attachAuxEffect(JNIEnv *env, int effect_id) noexcept;
     int32_t getAudioFormat() const noexcept;
     int32_t getBufferSizeInFrames() const noexcept;
+    int32_t getBufferSizeInBytes() const noexcept;
     int32_t getChannelCount() const noexcept;
 
     bool supportsByteBufferMethods() const noexcept;
@@ -89,6 +90,7 @@ private:
     int32_t audio_format_;
     int32_t channel_count_;
     int32_t buffer_size_in_frames_;
+    int32_t buffer_size_in_bytes_;
 };
 
 }

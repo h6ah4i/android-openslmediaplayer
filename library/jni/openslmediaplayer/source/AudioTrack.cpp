@@ -14,12 +14,13 @@
 //    limitations under the License.
 //
 
-// #define LOG_TAG "AudioTrack"
+//#define LOG_TAG "AudioTrack"
 
 #include "oslmp/impl/AudioTrack.hpp"
 
 #include <cxxporthelper/compiler.hpp>
 #include <loghelper/loghelper.h>
+#include <jni_utils/jni_utils.hpp>
 
 #include "oslmp/impl/AudioFormat.hpp"
 
@@ -39,7 +40,7 @@ AudioTrack::AudioTrack()
     : cls_(nullptr), obj_(nullptr), m_play_(0), m_pause_(0), m_stop_(0), m_release_(0),
       m_get_state_(0), m_get_play_state_(0), m_get_audio_session_(0), m_write_sa_(0), m_write_fa_(0), m_write_bb_(0),
       audio_format_(AudioFormat::ENCODING_INVALID), channel_count_(AudioFormat::CHANNEL_INVALID),
-      buffer_size_in_frames_(0)
+      buffer_size_in_frames_(0), buffer_size_in_bytes_(0)
 {
 }
 
@@ -56,47 +57,57 @@ bool AudioTrack::create(
         return false;
     }
 
-    jclass cls = env->FindClass("android/media/AudioTrack");
-    jmethodID constructor = env->GetMethodID(cls, "<init>", "(IIIIIII)V");
+    // AudioTrack(int streamType, int sampleRateInHz, int channelConfig, int audioFormat, int bufferSizeInBytes, int mode)
+    jlocal_ref_wrapper<jclass> cls;
+    cls.assign(env, env->FindClass("android/media/AudioTrack"), jref_type::local_reference_explicit_delete);
+    jmethodID constructor = env->GetMethodID(cls(), "<init>", "(IIIIII)V");
 
+    size_t bytes_per_sample = AudioFormat::get_sample_size_from_encoding(format);
     jint channelConfig = (num_channels == 2) ? AudioFormat::CHANNEL_OUT_STEREO : AudioFormat::CHANNEL_OUT_MONO;
-    jint bufferSizeInBytes = buffer_size_in_frames * sizeof(float);
+    jint bufferSizeInBytes = buffer_size_in_frames * num_channels * bytes_per_sample;
 
-    jobject obj = env->NewObject(
-            cls, constructor,
+    LOGD("create(streamType = %d, sampleRateInHz = %d, channelConfig = %d, audioFormat = %d, bufferSizeInBytes = %d, mode = %d)",
+        stream_type, sample_rate, channelConfig, format, bufferSizeInBytes, mode);
+
+    jlocal_ref_wrapper<jobject> obj;
+
+    obj.assign(
+        env, 
+        env->NewObject(
+            cls(), constructor,
             static_cast<jint>(stream_type),
             static_cast<jint>(sample_rate),
             channelConfig, static_cast<int32_t>(format),
             bufferSizeInBytes,
-            mode,
-            static_cast<int32_t>(mode));
+            static_cast<int32_t>(mode)),
+        jref_type::local_reference_explicit_delete);
+
     if (!obj) {
         return false;
     }
 
-    const jmethodID m_play = safeGetMethodId(env, cls, "play", "()V");
-    const jmethodID m_pause = safeGetMethodId(env, cls, "pause", "()V");
-    const jmethodID m_stop = safeGetMethodId(env, cls, "stop", "()V");
-    const jmethodID m_release = safeGetMethodId(env, cls, "release", "()V");
-    const jmethodID m_get_state = safeGetMethodId(env, cls, "getState", "()I");
-    const jmethodID m_get_play_state = safeGetMethodId(env, cls, "getPlayState", "()I");
-    const jmethodID m_get_audio_session = safeGetMethodId(env, cls, "getAudioSessionId", "()I");
-    const jmethodID m_set_aux_effect_send_level = safeGetMethodId(env, cls, "setAuxEffectSendLevel", "(F)I");
-    const jmethodID m_attach_aux_effect = safeGetMethodId(env, cls, "attachAuxEffect", "(I)I");
-    const jmethodID m_write_sa = safeGetMethodId(env, cls, "write", "([SII)I");
-    const jmethodID m_write_fa = safeGetMethodId(env, cls, "write", "([FIII)I");
-    const jmethodID m_write_bb = env->GetMethodID(cls, "write", "(Ljava/nio/ByteBuffer;II)I");
+    const jmethodID m_play = safeGetMethodId(env, cls(), "play", "()V");
+    const jmethodID m_pause = safeGetMethodId(env, cls(), "pause", "()V");
+    const jmethodID m_stop = safeGetMethodId(env, cls(), "stop", "()V");
+    const jmethodID m_release = safeGetMethodId(env, cls(), "release", "()V");
+    const jmethodID m_get_state = safeGetMethodId(env, cls(), "getState", "()I");
+    const jmethodID m_get_play_state = safeGetMethodId(env, cls(), "getPlayState", "()I");
+    const jmethodID m_get_audio_session = safeGetMethodId(env, cls(), "getAudioSessionId", "()I");
+    const jmethodID m_set_aux_effect_send_level = safeGetMethodId(env, cls(), "setAuxEffectSendLevel", "(F)I");
+    const jmethodID m_attach_aux_effect = safeGetMethodId(env, cls(), "attachAuxEffect", "(I)I");
+    const jmethodID m_write_sa = safeGetMethodId(env, cls(), "write", "([SII)I");
+    const jmethodID m_write_fa = safeGetMethodId(env, cls(), "write", "([FIII)I");
+    const jmethodID m_write_bb = safeGetMethodId(env, cls(), "write", "(Ljava/nio/ByteBuffer;II)I");
 
     if (!(m_play && m_pause && m_stop && m_release && m_get_state && m_get_play_state &&
         m_get_audio_session && m_set_aux_effect_send_level && m_attach_aux_effect && (
       m_write_bb || (m_write_sa && format == AudioFormat::ENCODING_PCM_16BIT) || (m_write_fa && format == AudioFormat::ENCODING_PCM_FLOAT)))) {
-        env->DeleteLocalRef(obj);
         return false;
     }
 
     // update fields
-    cls_ = reinterpret_cast<jclass>(env->NewGlobalRef(cls));
-    obj_ = env->NewGlobalRef(obj);
+    cls_ = reinterpret_cast<jclass>(env->NewGlobalRef(cls.detach()));
+    obj_ = env->NewGlobalRef(obj.detach());
     m_play_ = m_play;
     m_pause_ = m_pause;
     m_stop_ = m_stop;
@@ -112,6 +123,7 @@ bool AudioTrack::create(
     audio_format_ = format;
     channel_count_ = num_channels;
     buffer_size_in_frames_ = buffer_size_in_frames;
+    buffer_size_in_bytes_ = bufferSizeInBytes;
 
     return true;
 }
@@ -142,6 +154,8 @@ void AudioTrack::release(JNIEnv *env) noexcept
     channel_count_ = AudioFormat::CHANNEL_INVALID;
     obj_ = nullptr;
     cls_ = nullptr;
+    buffer_size_in_frames_ = 0;
+    buffer_size_in_bytes_ = 0;
 }
 
 int32_t AudioTrack::play(JNIEnv *env) noexcept
@@ -376,6 +390,11 @@ int32_t AudioTrack::getAudioFormat() const noexcept
 int32_t AudioTrack::getBufferSizeInFrames() const noexcept
 {
     return buffer_size_in_frames_;
+}
+
+int32_t AudioTrack::getBufferSizeInBytes() const noexcept
+{
+    return buffer_size_in_bytes_;
 }
 
 int32_t AudioTrack::getChannelCount() const noexcept

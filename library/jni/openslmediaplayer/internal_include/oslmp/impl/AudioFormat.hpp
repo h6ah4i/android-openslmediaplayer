@@ -74,6 +74,16 @@ public:
     static const int32_t ENCODING_PCM_16BIT = 0x00000002;
     static const int32_t ENCODING_PCM_8BIT = 0x00000003;
     static const int32_t ENCODING_PCM_FLOAT = 0x00000004; // since API level 21
+
+    static size_t get_sample_size_from_encoding(int32_t encoding) {
+        switch (encoding) {
+            case ENCODING_PCM_8BIT: return 1;
+            case ENCODING_PCM_16BIT: return 2;
+            case ENCODING_PCM_FLOAT: return 4;
+            default: break;
+        }
+        return -1;
+    }
 };
 
 }
