@@ -33,6 +33,9 @@
 #include <oslmp/OpenSLMediaPlayer.hpp>
 
 #include <loghelper/loghelper.h>
+#include <jni_utils/jni_utils.hpp>
+
+#include "oslmp/impl/AudioFormat.hpp"
 
 #include "oslmp/impl/AudioPlayer.hpp"
 #include "oslmp/impl/AudioSink.hpp"
@@ -138,6 +141,7 @@ private:
     static bool check_is_low_latency(const initialize_args_t &args) noexcept;
     static uint32_t determine_output_frame_size(const initialize_args_t &args, bool is_low_latency) noexcept;
     static uint32_t calc_android_NormalMixer_FrameCount(uint32_t frame_count, uint32_t sample_rate_hz) noexcept;
+    static int32_t audio_track_get_min_buffer_size(JNIEnv *env, int32_t sample_rate_in_hz, int32_t channel_config, int32_t audio_format);
 
 private:
     OpenSLMediaPlayerInternalContext *context_;
@@ -492,10 +496,10 @@ int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args
     const uint32_t kSourcePipeMaxNumBlocks = static_cast<uint32_t>(AudioSourceDataPipe::MAX_BUFFER_ITEM_COUNT);
 
     const uint32_t kAudioMixerSinkPooledNumBlocks = 4;
-    const uint32_t kSinkPlayerNumBlocks = (uses_opensl_sink) ? 4 : 32;
+    const uint32_t kSinkPlayerNumBlocks = (uses_opensl_sink) ? 4 : 2;
     const uint32_t kSinkPipeNumBlocks = (uses_opensl_sink)
             ? (kSinkPlayerNumBlocks + kAudioMixerSinkPooledNumBlocks + 1) /* +1: silent buffer internally used in AudioSink */
-            : (kSinkPlayerNumBlocks + 4);
+            : (kSinkPlayerNumBlocks + kAudioMixerSinkPooledNumBlocks);
 
     const uint32_t kCapturePipeDurationInMsec = 200;
     const uint32_t kCapturePipeMinNumBlocks = 8;
@@ -1168,14 +1172,44 @@ bool AudioSystem::Impl::check_is_low_latency(const initialize_args_t &args) noex
 
 uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t &args, bool is_low_latency) noexcept
 {
-    // const bool uses_opensl_sink = (args.sink_backend_type == OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL);
+    const bool uses_opensl_sink = (args.sink_backend_type == OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL);
+    const int kBufferSizeMultiple = (uses_opensl_sink) ? 2 : 1;
 
-    // if (is_low_latency && uses_opensl_sink) {
+    if (uses_opensl_sink) {
+    // if (is_low_latency) {
     //     return args.system_out_frames_per_buffer;
     // } else {
         return calc_android_NormalMixer_FrameCount(args.system_out_frames_per_buffer,
-                                                   args.system_out_sampling_rate / 1000) * 2;
+                                                   args.system_out_sampling_rate / 1000) * kBufferSizeMultiple;
     // }
+    } else {
+        JavaVM *vm = args.context->getJavaVM();
+        JNIEnv *env = nullptr;
+        int result;
+
+        (void) vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
+
+        if (!env) {
+            return OSLMP_RESULT_INTERNAL_ERROR;
+        }
+
+        const int32_t encoding = args.system_supports_floating_point ? AudioFormat::ENCODING_PCM_FLOAT : AudioFormat::ENCODING_PCM_16BIT;
+        const int32_t min_buffer_size_in_bytes = audio_track_get_min_buffer_size(
+            env, args.system_out_sampling_rate / 1000,
+            AudioFormat::CHANNEL_OUT_STEREO,
+            encoding);
+        const int32_t bytes_per_sample = AudioFormat::get_sample_size_from_encoding(encoding);
+        const int32_t min_buffer_size_in_frames = (min_buffer_size_in_bytes / (2 * bytes_per_sample));
+        const int32_t normal_mixer_frame_count = calc_android_NormalMixer_FrameCount(
+            args.system_out_frames_per_buffer, args.system_out_sampling_rate / 1000);
+
+        int32_t frame_count = 0;
+        while (frame_count < min_buffer_size_in_frames) {
+            frame_count += normal_mixer_frame_count;
+        }
+
+        return frame_count * kBufferSizeMultiple;
+    }
 }
 
 // This function refers to Android framework's implementation
@@ -1215,6 +1249,16 @@ uint32_t AudioSystem::Impl::calc_android_NormalMixer_FrameCount(uint32_t frame_c
 
     return normalFrameCount;
 }
+
+int32_t AudioSystem::Impl::audio_track_get_min_buffer_size(JNIEnv *env, int32_t sample_rate_in_hz, int32_t channel_config, int32_t audio_format) {
+    jlocal_ref_wrapper<jclass> cls;
+    cls.assign(env, env->FindClass("android/media/AudioTrack"), jref_type::local_reference_explicit_delete);
+
+    // static int getMinBufferSize (int sampleRateInHz, int channelConfig, int audioFormat)
+    jmethodID methodId = env->GetStaticMethodID(cls(), "getMinBufferSize", "(III)I");
+    return env->CallStaticIntMethod(cls(), methodId, sample_rate_in_hz, channel_config, audio_format);
+}
+
 
 } // namespace impl
 } // namespace oslmp
