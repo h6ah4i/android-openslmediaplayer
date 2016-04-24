@@ -590,6 +590,16 @@ int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args
             return result;
     }
 
+    // bind sink pull listener callback
+    {
+        void (*pfunc)(void *) = nullptr;
+        void *args = nullptr;
+
+        if (mixer->getSinkPullListenerCallback(&pfunc, &args) == OSLMP_RESULT_SUCCESS) {
+            (void) sink->setNotifyPullCallback(pfunc, args);
+        }
+    }
+
     return OSLMP_RESULT_SUCCESS;
 }
 

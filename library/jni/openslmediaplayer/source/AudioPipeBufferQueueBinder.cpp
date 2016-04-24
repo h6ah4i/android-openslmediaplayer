@@ -24,12 +24,14 @@
 
 #include <loghelper/loghelper.h>
 
+#include "oslmp/impl/AndroidHelper.hpp"
 #include "oslmp/impl/OpenSLMediaPlayerInternalUtils.hpp"
 #include "oslmp/impl/OpenSLMediaPlayerInternalContext.hpp"
 
 #define TRANSLATE_RESULT(result) InternalUtils::sTranslateOpenSLErrorCode(result)
 
 #define IS_SL_RESULT_SUCCESS(slresult) (CXXPH_LIKELY((slresult) == SL_RESULT_SUCCESS))
+
 
 namespace oslmp {
 namespace impl {
@@ -53,7 +55,14 @@ static inline size_t getSize(const AudioSinkDataPipe::write_block_t &wb) noexcep
 // AudioPipeBufferQueueBinder
 //
 
-AudioPipeBufferQueueBinder::AudioPipeBufferQueueBinder() : context_(nullptr), num_blocks_(0), wait_buffering_(0) {}
+AudioPipeBufferQueueBinder::AudioPipeBufferQueueBinder()
+ : context_(nullptr), num_blocks_(0), wait_buffering_(0)
+#ifdef USE_OSLMP_DEBUG_FEATURES
+    , callback_trace_toggle_(0)
+#endif
+{
+
+}
 
 AudioPipeBufferQueueBinder::~AudioPipeBufferQueueBinder() {}
 
@@ -88,7 +97,7 @@ int AudioPipeBufferQueueBinder::beforeStart(CSLAndroidSimpleBufferQueueItf *buff
     wait_completion_blocks_.clear();
 
     // fill silent block
-    for (int i = 0; i < num_blocks_; ++i) {
+    for (int i = 0; i < (num_blocks_ / 2); ++i) {
         wait_completion_blocks_.enqueue(silent_block_);
 
         slResult = buffer_queue->Enqueue(silent_block_.src, getSize(silent_block_));
@@ -193,6 +202,13 @@ void AudioPipeBufferQueueBinder::handleCallback(AudioSinkDataPipe *pipe,
         LOGW("AudioPipeBufferQueueBinder::handleCallback  buffer_queue->Enqueue() returns an error");
         NB_LOGW("AudioPipeBufferQueueBinder::handleCallback  buffer_queue->Enqueue() returns an error");
     }
+
+#ifdef USE_OSLMP_DEBUG_FEATURES
+    callback_trace_toggle_ = (callback_trace_toggle_) ? 0 : 1;
+    ATRACE_COUNTER("callback_trace_toggle", callback_trace_toggle_);
+    ATRACE_COUNTER("wait_completion_blocks", wait_completion_blocks_.count());
+    ATRACE_COUNTER("pooled_blocks", pooled_blocks_.count());
+#endif
 }
 
 } // namespace impl

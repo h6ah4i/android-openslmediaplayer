@@ -66,6 +66,8 @@ public:
     SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept;
     SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
 
+    int setNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept;
+
 private:
     void updateState(state_t state);
 
@@ -185,6 +187,12 @@ SLresult AudioSink::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noex
     return impl_->getInterfaceFromSinkPlayer(itf);
 }
 
+int AudioSink::setNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return SL_RESULT_RESOURCE_ERROR;
+    return impl_->setNotifyPullCallback(pfunc, args);
+}
 
 //
 // AudioSink::Impl
@@ -399,6 +407,13 @@ SLresult AudioSink::Impl::getInterfaceFromOutputMixer(opensles::CSLInterface *it
 {
     return backend_->onGetInterfaceFromOutputMixer(itf);
 }
+
+int AudioSink::Impl::setNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept
+{
+    return backend_->onSetNotifyPullCallback(pfunc, args);
+}
+
+
 
 } // namespace impl
 } // namespace oslmp

@@ -81,7 +81,8 @@ static inline SLmillibel linearToMillibel(float linear) noexcept
 // AudioSinkOpenSLBackend
 //
 AudioSinkOpenSLBackend::AudioSinkOpenSLBackend()
-    : opts_(0), AudioSinkBackend(), block_size_in_frames_(0), num_player_blocks_(0), num_pipe_blocks_(0), aux_()
+    : opts_(0), AudioSinkBackend(), block_size_in_frames_(0), num_player_blocks_(0), num_pipe_blocks_(0), aux_(),
+      notify_pull_callback_pfunc_(nullptr), notify_pull_callback_args_(nullptr)
 {
     aux_.reset(new(std::nothrow) AuxEffectStatus());
 }
@@ -513,6 +514,14 @@ SLresult AudioSinkOpenSLBackend::onGetInterfaceFromSinkPlayer(opensles::CSLInter
     return obj_player_.GetInterface(itf);
 }
 
+int AudioSinkOpenSLBackend::onSetNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept
+{
+    notify_pull_callback_pfunc_ = pfunc;
+    notify_pull_callback_args_ = args;
+
+    return OSLMP_RESULT_SUCCESS;
+}
+
 int AudioSinkOpenSLBackend::applyActiveAuxEffectSettings() noexcept
 {
     CSLEffectSendItf effect_send;
@@ -601,6 +610,10 @@ void AudioSinkOpenSLBackend::playbackBufferQueueCallback(SLAndroidSimpleBufferQu
     buffer_queue.assign(caller);
 
     thiz->queue_binder_.handleCallback(pipe, &buffer_queue);
+
+    if (thiz->notify_pull_callback_pfunc_) {
+        (*(thiz->notify_pull_callback_pfunc_))(thiz->notify_pull_callback_args_);
+    }
 }
 
 } // namespace impl

@@ -52,6 +52,14 @@
 #define SOURCE_CLIENT_CONTROL_HANDLE_PATTERN 0xC3A76A00UL
 #define VERIFY_CALLING_CONTEXT_IS_NORMAL() assert(calling_context_ == CALLING_CONTEXT_NORMAL)
 
+#ifdef USE_OSLMP_DEBUG_FEATURES
+#define MIXER_TRACE_ACTIVE()    ATRACE_COUNTER("AudioMixerState", 1)
+#define MIXER_TRACE_INACTIVE()    ATRACE_COUNTER("AudioMixerState", 0)
+#else
+#define MIXER_TRACE_ACTIVE()
+#define MIXER_TRACE_INACTIVE()
+#endif
+
 namespace oslmp {
 namespace impl {
 
@@ -411,6 +419,8 @@ public:
 
     int setGlobalPreMixVolumeLevel(float level) noexcept;
 
+    int getSinkPullListenerCallback(void (**ppfunc)(void *), void **pargs) noexcept;
+
 #ifdef LOG_TAG
     void dump_request_thread_source_source_slot_usage() noexcept;
     void dump_mixer_thread_source_source_slot_usage(const MixerThreadContext &c) noexcept;
@@ -453,6 +463,8 @@ private:
     static int isFadeOut(MixingUnit::mode_t mode) noexcept;
     static int getMixingDirection(MixingUnit::mode_t mode) noexcept;
     static float calcMixingPhase(MixingUnit::mode_t cur_mode, MixingUnit::mode_t next_mode, float cur_phase) noexcept;
+
+    static void onSinkPullListenerCallback(void *args);
 
 private:
     OpenSLMediaPlayerInternalContext *context_;
@@ -827,6 +839,14 @@ int AudioMixer::setGlobalPreMixVolumeLevel(float level) noexcept
     return impl_->setGlobalPreMixVolumeLevel(level);
 }
 
+int AudioMixer::getSinkPullListenerCallback(void (**ppfunc)(void *), void **pargs) noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return OSLMP_RESULT_ILLEGAL_STATE;
+    return impl_->getSinkPullListenerCallback(ppfunc, pargs);
+}
+
+
 //
 // AudioMixer::Impl
 //
@@ -940,10 +960,9 @@ int AudioMixer::Impl::initialize(const AudioMixer::initialize_args_t &args) noex
     {
         const uint32_t sink_player_num_blocks = args.num_sink_player_blocks;
         const uint32_t sink_pipe_num_blocks = args.sink_pipe->getNumberOfBufferItems();
-        const uint32_t sink_buffer_size_us =
-            (block_size * sink_player_num_blocks * 1000000) / (args.sampling_rate / 1000);
+        const uint32_t sink_buffer_size_us = static_cast<uint32_t>((block_size * sink_player_num_blocks * 1000000ull) / (args.sampling_rate / 1000));
 
-        sleep_duration_ns = (sink_buffer_size_us * 1000) / 2;
+        sleep_duration_ns = static_cast<uint32_t>((sink_buffer_size_us * 1000) * 1.5f);
         max_process_block_at_once = (std::min)((sink_player_num_blocks * 2), sink_pipe_num_blocks);
     }
 
@@ -1494,6 +1513,14 @@ int AudioMixer::Impl::setGlobalPreMixVolumeLevel(float level) noexcept
     return OSLMP_RESULT_SUCCESS;
 }
 
+int AudioMixer::Impl::getSinkPullListenerCallback(void (**ppfunc)(void *), void **pargs) noexcept
+{
+    *ppfunc = onSinkPullListenerCallback;
+    *pargs = this;
+
+    return OSLMP_RESULT_SUCCESS;
+}
+
 bool AudioMixer::Impl::requestThreadApplyAudioSourceSetItems() noexcept
 {
     if (requested_source_set_.updated_bitmap == 0)
@@ -1835,8 +1862,9 @@ void AudioMixer::Impl::mixerThreadProcess() noexcept
     // process loop
     int processed_count = 0;
 
-    timespec ts_prev;
-    utils::timespec_utils::get_current_time(ts_prev);
+    // timespec ts_prev;
+    // utils::timespec_utils::get_current_time(ts_prev);
+    MIXER_TRACE_ACTIVE();
     while (true) {
         uint32_t ctrl_flg = ref_ctrl_flg.load(std::memory_order_acquire);
 
@@ -1917,22 +1945,22 @@ void AudioMixer::Impl::mixerThreadProcess() noexcept
             // determine sleep duration
             uint32_t sleep_ns = sleep_duration_ns_;
 
-            timespec ts_now, ts_next;
-            utils::timespec_utils::get_current_time(ts_now);
-            ts_next = utils::timespec_utils::add_ns(ts_prev, sleep_duration_ns_);
+            // timespec ts_now, ts_next;
+            // utils::timespec_utils::get_current_time(ts_now);
+            // ts_next = utils::timespec_utils::add_ns(ts_prev, sleep_duration_ns_);
 
-            if (utils::timespec_utils::compare_greater_than_or_equals(ts_next, ts_now)) {
-                const int64_t diff_ns = utils::timespec_utils::sub_ret_ns(ts_next, ts_now);
-                sleep_ns = (std::min)(static_cast<uint32_t>(diff_ns), sleep_duration_ns_);
-                NB_LOGV("mixerThreadProcess() - (ts_next >= ts_now)");
-            } else {
-                // may be audio glitch has been generated
-                NB_LOGI("mixerThreadProcess() - (ts_next < ts_now)");
-                sleep_ns = (sleep_duration_ns_ / 2);
-                ts_next = utils::timespec_utils::add_ns(ts_now, sleep_ns);
-            }
+            // if (utils::timespec_utils::compare_greater_than_or_equals(ts_next, ts_now)) {
+            //     const int64_t diff_ns = utils::timespec_utils::sub_ret_ns(ts_next, ts_now);
+            //     sleep_ns = (std::min)(static_cast<uint32_t>(diff_ns), sleep_duration_ns_);
+            //     NB_LOGV("mixerThreadProcess() - (ts_next >= ts_now)");
+            // } else {
+            //     // may be audio glitch has been generated
+            //     NB_LOGI("mixerThreadProcess() - (ts_next < ts_now)");
+            //     sleep_ns = (sleep_duration_ns_ / 2);
+            //     ts_next = utils::timespec_utils::add_ns(ts_now, sleep_ns);
+            // }
 
-            ts_prev = ts_next;
+            // ts_prev = ts_next;
 
             // timespec ts_sleep(utils::timespec_utils::ZERO());
             // ts_sleep = utils::timespec_utils::add_ns(ts_sleep, sleep_ns);
@@ -1943,7 +1971,9 @@ void AudioMixer::Impl::mixerThreadProcess() noexcept
                 lock.try_lock();
                 
                 if (lock.owns_lock()) {
-                    cond_mixer_thread_.wait_relative_us(lock, sleep_ns / 1000);
+                    MIXER_TRACE_INACTIVE();
+                    cond_mixer_thread_.wait_relative_ns(lock, sleep_ns);
+                    MIXER_TRACE_ACTIVE();
                 }
             }
         }
@@ -2583,6 +2613,13 @@ bool AudioMixer::Impl::isStarted() const noexcept
 }
 
 bool AudioMixer::Impl::isStopped() const noexcept { return (state_ == MIXER_STATE_STOPPED); }
+
+void AudioMixer::Impl::onSinkPullListenerCallback(void *args) {
+    AudioMixer::Impl *thiz = static_cast<AudioMixer::Impl*>(args);
+
+    thiz->cond_mixer_thread_.notify_one();
+}
+
 
 #ifdef LOG_TAG
 void AudioMixer::Impl::dump_request_thread_source_source_slot_usage() noexcept

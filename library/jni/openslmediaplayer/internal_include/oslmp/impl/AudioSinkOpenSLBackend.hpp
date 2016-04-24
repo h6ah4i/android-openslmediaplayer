@@ -44,6 +44,8 @@ public:
     virtual SLresult onGetInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept override;
     virtual SLresult onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept override;
 
+    virtual int onSetNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept override;
+
 private:
     void releaseOpenSLResources() noexcept;
 
@@ -75,6 +77,9 @@ private:
     uint32_t num_pipe_blocks_;
 
     std::unique_ptr<AuxEffectStatus> aux_;
+
+    void (*notify_pull_callback_pfunc_)(void *);
+    void *notify_pull_callback_args_;
 };
 
 } // namespace impl

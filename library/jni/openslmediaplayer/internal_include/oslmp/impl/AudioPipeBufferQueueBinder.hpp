@@ -60,6 +60,7 @@ private:
 
 #ifdef USE_OSLMP_DEBUG_FEATURES
     std::unique_ptr<NonBlockingTraceLoggerClient> nb_logger_;
+    int callback_trace_toggle_;
 #endif
 };
 

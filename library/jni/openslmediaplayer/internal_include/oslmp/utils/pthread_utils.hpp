@@ -179,6 +179,12 @@ public:
         return timedwait_relative(lock, ts);
     }
 
+    int wait_relative_ns(pt_unique_lock &lock, int timeout_ns) noexcept
+    {
+        timespec ts({ 0, timeout_ns });
+        return timedwait_relative(lock, ts);
+    }
+
     int wait_relative(pt_unique_lock &lock, const timespec &timeout_ts) noexcept
     {
         return timedwait_relative(lock, timeout_ts);

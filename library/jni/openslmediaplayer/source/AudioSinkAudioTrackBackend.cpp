@@ -37,7 +37,8 @@ namespace impl {
 // AudioSinkAudioTrackBackend
 //
 AudioSinkAudioTrackBackend::AudioSinkAudioTrackBackend()
-    : AudioSinkBackend(), block_size_in_frames_(0), num_player_blocks_(0), num_pipe_blocks_(0), audio_session_id_(0)
+    : AudioSinkBackend(), block_size_in_frames_(0), num_player_blocks_(0), num_pipe_blocks_(0), audio_session_id_(0),
+      notify_pull_callback_pfunc_(nullptr), notify_pull_callback_args_(nullptr)
 {
 }
 
@@ -146,6 +147,14 @@ SLresult AudioSinkAudioTrackBackend::onGetInterfaceFromSinkPlayer(opensles::CSLI
     return SL_RESULT_FEATURE_UNSUPPORTED;
 }
 
+int AudioSinkAudioTrackBackend::onSetNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept
+{
+    notify_pull_callback_pfunc_ = pfunc;
+    notify_pull_callback_args_ = args;
+
+    return OSLMP_RESULT_SUCCESS;
+}
+
 int32_t AudioSinkAudioTrackBackend::audioTrackStreamCallback(
     void *buffer, sample_format_type format, uint32_t num_channels, uint32_t buffer_size_in_frames, void *args) noexcept
 {
@@ -169,6 +178,10 @@ int32_t AudioSinkAudioTrackBackend::audioTrackStreamCallback(
         pipe->unlockRead(rb);
     } else {
         size_in_frames = 0;
+    }
+
+    if (thiz->notify_pull_callback_pfunc_) {
+        (*(thiz->notify_pull_callback_pfunc_))(thiz->notify_pull_callback_args_);
     }
 
     return size_in_frames;

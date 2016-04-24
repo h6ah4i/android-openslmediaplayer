@@ -86,6 +86,8 @@ public:
     SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept;
     SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
 
+    int setNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept;
+
     enum {
         NUM_CHANNELS = 2
     };
@@ -118,6 +120,8 @@ public:
 
     virtual SLresult onGetInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept = 0;
     virtual SLresult onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept = 0;
+
+    virtual int onSetNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept = 0;
 
 protected:
     AudioSinkDataPipe *pipe_;

@@ -220,6 +220,8 @@ public:
 
     int setGlobalPreMixVolumeLevel(float level) noexcept;
 
+    int getSinkPullListenerCallback(void (**ppfunc)(void *), void **pargs) noexcept;
+
 private:
     class Impl;
     std::unique_ptr<Impl> impl_;
