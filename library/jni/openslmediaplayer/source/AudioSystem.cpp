@@ -122,7 +122,7 @@ public:
     int getAudioSessionId(int32_t *audio_session_id) const noexcept;
 
 private:
-    int initSubmodules(const AudioSystem::initialize_args_t &args, uint32_t output_frame_size,
+    int initSubmodules(const AudioSystem::initialize_args_t &args, uint32_t output_frame_size, bool is_low_latency_mode,
                        std::unique_ptr<AudioSink> &sink, std::unique_ptr<AudioDataPipeManager> &pipe_mgr,
                        std::unique_ptr<AudioMixer> &mixer, MixedOutputAudioEffect *mixout_effects[]) const noexcept;
 
@@ -139,7 +139,8 @@ private:
     void pollObtainCapturedAudioData() noexcept;
 
     static bool check_is_low_latency(const initialize_args_t &args) noexcept;
-    static uint32_t determine_output_frame_size(const initialize_args_t &args, bool is_low_latency) noexcept;
+    static bool check_use_floating_point_output(const initialize_args_t &args) noexcept;
+    static uint32_t determine_output_frame_size(const initialize_args_t &args, bool is_low_latency, bool floating_point) noexcept;
     static uint32_t calc_android_NormalMixer_FrameCount(uint32_t frame_count, uint32_t sample_rate_hz) noexcept;
     static int32_t audio_track_get_min_buffer_size(JNIEnv *env, int32_t sample_rate_in_hz, int32_t channel_config, int32_t audio_format);
 
@@ -381,6 +382,14 @@ AudioSystem::Impl::Impl()
 
 AudioSystem::Impl::~Impl()
 {
+    if (mixer_) {
+        mixer_->stop();
+    }
+
+    if (sink_) {
+        sink_->stop();
+    }
+
     if (pipe_mgr_ && capture_pipe_) {
         pipe_mgr_->setCapturePipeOutPortUser(capture_pipe_, this, false);
     }
@@ -412,7 +421,8 @@ int AudioSystem::Impl::initialize(const initialize_args_t &args) noexcept
     int result;
 
     const bool is_low_latency_mode = check_is_low_latency(args);
-    const uint32_t output_frame_size = determine_output_frame_size(args, is_low_latency_mode);
+    const bool use_floating_point_output = check_use_floating_point_output(args);
+    const uint32_t output_frame_size = determine_output_frame_size(args, is_low_latency_mode, use_floating_point_output);
     const uint32_t context_opts = args.context->getContextOptions();
 
 // check parameter
@@ -445,7 +455,7 @@ int AudioSystem::Impl::initialize(const initialize_args_t &args) noexcept
 
     // initialize sub modules
     mixout_effects[0] = mixout_effect_hq_equalizer.get();
-    result = initSubmodules(args, output_frame_size, sink, pipe_mgr, mixer, mixout_effects);
+    result = initSubmodules(args, output_frame_size, is_low_latency_mode, sink, pipe_mgr, mixer, mixout_effects);
 
     if (result != OSLMP_RESULT_SUCCESS) {
         objEngine_.Destroy();
@@ -484,7 +494,7 @@ int AudioSystem::Impl::initialize(const initialize_args_t &args) noexcept
     return OSLMP_RESULT_SUCCESS;
 }
 
-int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args, uint32_t output_frame_size,
+int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args, uint32_t output_frame_size, bool is_low_latency_mode,
                                       std::unique_ptr<AudioSink> &sink, std::unique_ptr<AudioDataPipeManager> &pipe_mgr,
                                       std::unique_ptr<AudioMixer> &mixer,
                                       MixedOutputAudioEffect *mixout_effects[]) const noexcept
@@ -495,8 +505,8 @@ int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args
     const uint32_t kSourcePipeRoomDurationInMsec = 1000; // 1 sec.
     const uint32_t kSourcePipeMaxNumBlocks = static_cast<uint32_t>(AudioSourceDataPipe::MAX_BUFFER_ITEM_COUNT);
 
-    const uint32_t kAudioMixerSinkPooledNumBlocks = 4;
-    const uint32_t kSinkPlayerNumBlocks = (uses_opensl_sink) ? 4 : 2;
+    const uint32_t kAudioMixerSinkPooledNumBlocks = (uses_opensl_sink) ? 4 : 2;
+    const uint32_t kSinkPlayerNumBlocks = (uses_opensl_sink) ? ((is_low_latency_mode) ? 8 : 4) : 1;
     const uint32_t kSinkPipeNumBlocks = (uses_opensl_sink)
             ? (kSinkPlayerNumBlocks + kAudioMixerSinkPooledNumBlocks + 1) /* +1: silent buffer internally used in AudioSink */
             : (kSinkPlayerNumBlocks + kAudioMixerSinkPooledNumBlocks);
@@ -522,8 +532,8 @@ int AudioSystem::Impl::initSubmodules(const AudioSystem::initialize_args_t &args
     AudioSinkDataPipe *sink_pipe = nullptr;
     AudioCaptureDataPipe *capture_pipe = nullptr;
     AudioDataPipeManager::initialize_args_t pipe_mgr_args;
-    sample_format_type sink_sample_format =
-        (args.system_supports_floating_point) ? kAudioSampleFormatType_F32 : kAudioSampleFormatType_S16;
+    sample_format_type sink_sample_format = (args.system_supports_floating_point && args.use_floating_point_if_available)
+        ? kAudioSampleFormatType_F32 : kAudioSampleFormatType_S16;
 
     pipe_mgr_args.sink_format_type = sink_sample_format;
     pipe_mgr_args.source_num_items =
@@ -1172,7 +1182,7 @@ bool AudioSystem::Impl::check_is_low_latency(const initialize_args_t &args) noex
 
     const bool uses_opensl_sink = (args.sink_backend_type == OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL);
 
-    if (args.system_supports_low_latency && uses_opensl_sink) {
+    if (args.system_supports_low_latency && uses_opensl_sink && args.use_low_latency_if_available) {
         const uint32_t options = args.context->getContextOptions();
         return ((options & normal_mixer_used_condition_mask) == 0);
     } else {
@@ -1180,19 +1190,26 @@ bool AudioSystem::Impl::check_is_low_latency(const initialize_args_t &args) noex
     }
 }
 
-uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t &args, bool is_low_latency) noexcept
+bool AudioSystem::Impl::check_use_floating_point_output(const initialize_args_t &args) noexcept
+{
+    return (args.system_supports_floating_point && args.use_low_latency_if_available);
+}
+
+uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t &args, bool is_low_latency, bool floating_point) noexcept
 {
     const bool uses_opensl_sink = (args.sink_backend_type == OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL);
-    const int kBufferSizeMultiple = (uses_opensl_sink) ? 2 : 1;
+    const int kBufferSizeMultiple = (uses_opensl_sink) ? 1 : 1;
 
     if (uses_opensl_sink) {
-    // if (is_low_latency) {
-    //     return args.system_out_frames_per_buffer;
-    // } else {
-        return calc_android_NormalMixer_FrameCount(args.system_out_frames_per_buffer,
-                                                   args.system_out_sampling_rate / 1000) * kBufferSizeMultiple;
-    // }
+        if (is_low_latency) {
+            LOGD("uses_opensl_sink = true && is_low_latency = true  / %d", args.system_out_frames_per_buffer);
+            return args.system_out_frames_per_buffer;
+        } else {
+            return calc_android_NormalMixer_FrameCount(args.system_out_frames_per_buffer,
+                                                       args.system_out_sampling_rate / 1000) * kBufferSizeMultiple;
+        }
     } else {
+#if 1
         JavaVM *vm = args.context->getJavaVM();
         JNIEnv *env = nullptr;
         int result;
@@ -1203,7 +1220,7 @@ uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t 
             return OSLMP_RESULT_INTERNAL_ERROR;
         }
 
-        const int32_t encoding = args.system_supports_floating_point ? AudioFormat::ENCODING_PCM_FLOAT : AudioFormat::ENCODING_PCM_16BIT;
+        const int32_t encoding = floating_point ? AudioFormat::ENCODING_PCM_FLOAT : AudioFormat::ENCODING_PCM_16BIT;
         const int32_t min_buffer_size_in_bytes = audio_track_get_min_buffer_size(
             env, args.system_out_sampling_rate / 1000,
             AudioFormat::CHANNEL_OUT_STEREO,
@@ -1218,7 +1235,11 @@ uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t 
             frame_count += normal_mixer_frame_count;
         }
 
-        return frame_count * kBufferSizeMultiple;
+        return frame_count;
+#else
+        return calc_android_NormalMixer_FrameCount(args.system_out_frames_per_buffer,
+                                                   args.system_out_sampling_rate / 1000) * kBufferSizeMultiple;
+#endif
     }
 }
 

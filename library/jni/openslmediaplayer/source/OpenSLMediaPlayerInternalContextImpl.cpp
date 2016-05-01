@@ -173,6 +173,8 @@ int OpenSLMediaPlayerInternalContextImpl::initialize(JNIEnv *env, OpenSLMediaPla
         init_args.resampler_quality = args.resampler_quality;
         init_args.hq_equalizer_impl_type = args.hq_equalizer_impl_type;
         init_args.sink_backend_type = args.sink_backend_type;
+        init_args.use_low_latency_if_available = args.use_low_latency_if_available;
+        init_args.use_floating_point_if_available = args.use_floating_point_if_available;
 
         result = audio_system_->initialize(init_args);
     }

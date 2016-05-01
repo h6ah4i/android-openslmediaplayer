@@ -102,6 +102,8 @@ Java_com_h6ah4i_android_media_opensl_OpenSLMediaPlayerContext_createNativeImplHa
         create_args.resampler_quality = params_[8];
         create_args.hq_equalizer_impl_type = params_[9];
         create_args.sink_backend_type = params_[10];
+        create_args.use_low_latency_if_available = (params_[11]) ? true : false;
+        create_args.use_floating_point_if_available = (params_[12]) ? true : false;
 
         holder->context = oslmp::OpenSLMediaPlayerContext::create(env, create_args);
 

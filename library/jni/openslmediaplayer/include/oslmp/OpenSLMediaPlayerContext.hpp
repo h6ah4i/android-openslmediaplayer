@@ -76,6 +76,8 @@ public:
         uint32_t resampler_quality;
         uint32_t hq_equalizer_impl_type;
         uint32_t sink_backend_type;
+        bool use_low_latency_if_available;
+        bool use_floating_point_if_available;
         InternalThreadEventListener *listener;
 
         create_args_t() OSLMP_API_ABI : system_out_sampling_rate(44100000),
@@ -89,7 +91,9 @@ public:
                                         listener(nullptr),
                                         resampler_quality(OSLMP_CONTEXT_RESAMPLER_QUALITY_MIDDLE),
                                         hq_equalizer_impl_type(OSLMP_CONTEXT_HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER),
-                                        sink_backend_type(OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL)
+                                        sink_backend_type(OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL),
+                                        use_low_latency_if_available(false),
+                                        use_floating_point_if_available(false)
         {
         }
     };

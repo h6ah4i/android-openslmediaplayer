@@ -70,6 +70,8 @@ public class OpenSLMediaPlayerContext implements IReleasable {
         public int resamplerQuality = RESAMPLER_QUALITY_MIDDLE;
         public int hqEqualizerImplType = HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER;
         public int sinkBackEndType = SINK_BACKEND_TYPE_OPENSL;
+        public boolean useLowLatencyIfAvailable = false;
+        public boolean useFloatingPointIfAvailable = true;
     }
 
     public OpenSLMediaPlayerContext(Context context, Parameters params) {
@@ -82,7 +84,7 @@ public class OpenSLMediaPlayerContext implements IReleasable {
         boolean hasNative = false;
         if (HAS_NATIVE) {
             try {
-                final int[] iparams = new int[11];
+                final int[] iparams = new int[13];
 
                 iparams[0] = props.outputSampleRate * 1000; // [Hz] -> [milli hertz]
                 iparams[1] = props.outputFramesPerBuffer;
@@ -95,6 +97,8 @@ public class OpenSLMediaPlayerContext implements IReleasable {
                 iparams[8] = params.resamplerQuality;
                 iparams[9] = params.hqEqualizerImplType;
                 iparams[10] = params.sinkBackEndType;
+                iparams[11] = params.useLowLatencyIfAvailable ? 1 : 0;
+                iparams[12] = params.useFloatingPointIfAvailable ? 1 : 0;
 
                 mNativeHandle = createNativeImplHandle(iparams);
                 if (mNativeHandle != 0) {

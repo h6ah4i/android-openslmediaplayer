@@ -60,12 +60,14 @@ public:
         uint32_t resampler_quality;
         uint32_t hq_equalizer_impl_type;
         uint32_t sink_backend_type;
+        bool use_low_latency_if_available;
+        bool use_floating_point_if_available;
 
         initialize_args_t()
             : context(nullptr), system_out_sampling_rate(0), system_out_frames_per_buffer(0),
               system_supports_low_latency(false), system_supports_floating_point(false), stream_type(0),
               short_fade_duration_ms(0), long_fade_duration_ms(0), resampler_quality(0), hq_equalizer_impl_type(0),
-              sink_backend_type(0)
+              sink_backend_type(0), use_low_latency_if_available(false), use_floating_point_if_available(false)
         {
         }
     };
