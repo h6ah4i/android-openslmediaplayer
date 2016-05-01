@@ -41,6 +41,7 @@
 #include "oslmp/impl/AudioSystem.hpp"
 #include "oslmp/impl/AudioDataPipeManager.hpp"
 #include "oslmp/impl/AudioDataAdapter.hpp"
+#include "oslmp/impl/AndroidHelper.hpp"
 #include "oslmp/utils/timespec_utils.hpp"
 #include "oslmp/utils/pthread_utils.hpp"
 
@@ -62,6 +63,12 @@
 // of which cannot be deviced by DECODE_BLOCK_SIZE_IN_FRAMES will be discarded.
 // So, if this value is increased, more larger part of the end of the audio track will be lost.
 #define DECODE_BLOCK_SIZE_IN_FRAMES 1024
+
+#ifdef USE_OSLMP_DEBUG_FEATURES
+#define TRACE_DECODER_BUFFER_QUEUE_CALLBACK_STATE(state)    ATRACE_COUNTER("DecoderQueueCallbackState", (state))
+#else
+#define TRACE_DECODER_BUFFER_QUEUE_CALLBACK_STATE(state)
+#endif
 
 namespace oslmp {
 namespace impl {
@@ -198,7 +205,7 @@ private:
     bool waitForProducerQueueEventItem(utils::pt_unique_lock &lock, AudioSourceDataPipe::produce_block_t &pb,
                                        uint32_t retry_wait_ms, uint32_t max_retries) noexcept;
 
-    bool pushConvertedDataIntoProducerQueue(utils::pt_unique_lock &lock) noexcept;
+    bool pushConvertedDataIntoProducerQueue(utils::pt_unique_lock &lock, bool called_from_queue_callback) noexcept;
 
     int32_t calcCurrentPositionInMsec() noexcept;
 
@@ -1530,7 +1537,7 @@ void AudioSource::Impl::decoderPlayCallback(SLPlayItf caller, SLuint32 event) no
         // flush adapter pooled data
         adapter_->flush();
 
-        pushConvertedDataIntoProducerQueue(lock);
+        pushConvertedDataIntoProducerQueue(lock, false);
 
         const int32_t position_in_msec = calcCurrentPositionInMsec();
 
@@ -1560,7 +1567,9 @@ void AudioSource::Impl::decoderPlayCallbackEntry(SLPlayItf caller, void *pContex
 
 void AudioSource::Impl::decodeBufferQueueCallbackEntry(SLAndroidSimpleBufferQueueItf caller, void *pContext) noexcept
 {
+    TRACE_DECODER_BUFFER_QUEUE_CALLBACK_STATE(1);
     static_cast<Impl *>(pContext)->decodeBufferQueueCallback(caller);
+    TRACE_DECODER_BUFFER_QUEUE_CALLBACK_STATE(0);
 }
 
 bool AudioSource::Impl::waitForProducerQueueAudioDataItem(utils::pt_unique_lock &lock,
@@ -1636,7 +1645,7 @@ bool AudioSource::Impl::waitForProducerQueueEventItem(utils::pt_unique_lock &loc
     return false;
 }
 
-bool AudioSource::Impl::pushConvertedDataIntoProducerQueue(utils::pt_unique_lock &lock) noexcept
+bool AudioSource::Impl::pushConvertedDataIntoProducerQueue(utils::pt_unique_lock &lock, bool called_from_queue_callback) noexcept
 {
     REF_NB_LOGGER_CLIENT(decoder_callback_nb_logger_);
 
@@ -1649,7 +1658,9 @@ bool AudioSource::Impl::pushConvertedDataIntoProducerQueue(utils::pt_unique_lock
         AudioSourceDataPipe::produce_block_t pb;
 
         if (CXXPH_LIKELY(waitForProducerQueueAudioDataItem(lock, pb, PRODUCER_QUEUE_PUSH_POLLING_INTERVAL_MS, 500))) {
+            TRACE_DECODER_BUFFER_QUEUE_CALLBACK_STATE(4);
             adapter_->get_output_data(pb.dest, 2, out_block_size_in_frames);
+            TRACE_DECODER_BUFFER_QUEUE_CALLBACK_STATE(3);
             // update info
             pb.tag = AudioSourceDataPipe::TAG_AUDIO_DATA;
             pb.position_msec = position_in_msec;
@@ -1699,13 +1710,15 @@ void AudioSource::Impl::decodeBufferQueueCallback(SLAndroidSimpleBufferQueueItf 
         AudioSourceDataPipe::produce_block_t pb;
 
         // put decoded data
+        TRACE_DECODER_BUFFER_QUEUE_CALLBACK_STATE(2);
         adapter_->put_input_data(block, numChannels, block_size_in_frames);
+        TRACE_DECODER_BUFFER_QUEUE_CALLBACK_STATE(3);
 
         // re-enqueue the empty buffer
         decoderBufferQueue_.Enqueue(block, block_size_in_bytes);
     }
 
-    pushConvertedDataIntoProducerQueue(lock);
+    pushConvertedDataIntoProducerQueue(lock, true);
 }
 
 int32_t AudioSource::Impl::calcCurrentPositionInMsec() noexcept
