@@ -284,11 +284,12 @@ public class HQVisualizerFragment
     }
 
     private void updateCaptureSettings() {
-        final IHQVisualizer visualizer = getVisualizer();
         final HQVisualizerStateStore state = getStateStore();
 
         final boolean captureWaveform = state.isCaptureWaveformEnabled();
         final boolean captureFft = state.isCaptureFftEnabled();
+
+        final IHQVisualizer visualizer = getVisualizer(captureWaveform || captureFft);
 
         if (visualizer != null) {
             // stop visualizer
@@ -320,7 +321,7 @@ public class HQVisualizerFragment
     }
 
     private void updateWindowType() {
-        final IHQVisualizer visualizer = getVisualizer();
+        final IHQVisualizer visualizer = getVisualizer(false);
         final HQVisualizerStateStore state = getStateStore();
 
         if (visualizer != null) {
@@ -332,12 +333,12 @@ public class HQVisualizerFragment
         return getAppController().getHQVisualizerStateStore();
     }
 
-    private IHQVisualizer getVisualizer() {
-        return getAppController().getHQVisualizer();
+    private IHQVisualizer getVisualizer(boolean createIfNotExists) {
+        return (createIfNotExists) ? getAppController().createHQVisualizer() : getAppController().getHQVisualizer();
     }
 
     private void cleanupVisualizer() {
-        IHQVisualizer visualizer = getVisualizer();
+        IHQVisualizer visualizer = getVisualizer(false);
 
         if (visualizer != null) {
             visualizer.setEnabled(false);

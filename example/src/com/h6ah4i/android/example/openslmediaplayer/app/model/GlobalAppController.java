@@ -14,11 +14,7 @@
  *    limitations under the License.
  */
 
-
 package com.h6ah4i.android.example.openslmediaplayer.app.model;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
 
 import android.app.Notification;
 import android.app.Service;
@@ -60,7 +56,6 @@ import com.h6ah4i.android.example.openslmediaplayer.app.utils.NotificationBuilde
 import com.h6ah4i.android.media.IBasicMediaPlayer;
 import com.h6ah4i.android.media.IMediaPlayerFactory;
 import com.h6ah4i.android.media.IReleasable;
-import com.h6ah4i.android.media.audiofx.IAudioEffect;
 import com.h6ah4i.android.media.audiofx.IBassBoost;
 import com.h6ah4i.android.media.audiofx.IEnvironmentalReverb;
 import com.h6ah4i.android.media.audiofx.IEqualizer;
@@ -74,6 +69,9 @@ import com.h6ah4i.android.media.hybrid.HybridMediaPlayerFactory;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerFactory;
 import com.h6ah4i.android.media.standard.StandardMediaPlayer;
 import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 public class GlobalAppController implements IReleasable {
     // constants
@@ -106,7 +104,7 @@ public class GlobalAppController implements IReleasable {
 
     // internal classes
     private static class AppEventReceiver extends AppEventBus.Receiver<GlobalAppController> {
-        private static final int[] FILTER = new int[] {
+        private static final int[] FILTER = new int[]{
                 EventDefs.Category.NAVIGATION_DRAWER,
                 EventDefs.Category.PLAYER_CONTROL,
                 EventDefs.Category.BASSBOOST,
@@ -152,7 +150,7 @@ public class GlobalAppController implements IReleasable {
     private int mActivePlayerIndex = 0;
     private boolean mNextPlayerPrepared = false;
     private boolean mSwapPlayerPending = false;
-    private int[] mPlayerState = new int[] {
+    private int[] mPlayerState = new int[]{
             PLAYER_STATE_END, PLAYER_STATE_END
     };
     private MediaMetadata[] mMetadata = new MediaMetadata[2];
@@ -241,28 +239,18 @@ public class GlobalAppController implements IReleasable {
             mHQVisualizerStateStore = new HQVisualizerStateStore();
         } else {
             // restore from savedInstanceState
-            mPlayerStateStore = (MediaPlayerStateStore) savedInstanceState
-                    .getParcelable(PARCEL_KEY_MEDIA_PLAYER_STATE_STORE);
-            mBassBoostStateStore = (BassBoostStateStore) savedInstanceState
-                    .getParcelable(PARCEL_KEY_BASS_BOOST_STATE_STORE);
-            mVirtualizerStateStore = (VirtualizerStateStore) savedInstanceState
-                    .getParcelable(PARCEL_KEY_VIRTUALIZER_STATE_STORE);
-            mEqualizerStateStore = (EqualizerStateStore) savedInstanceState
-                    .getParcelable(PARCEL_KEY_EQUALIZER_STATE_STORE);
-            mLoudnessEnhancerStateStore = (LoudnessEnhancerStateStore) savedInstanceState
-                    .getParcelable(PARCEL_KEY_LOUDNESS_ENHANCER_STATE_STORE);
-            mEnvironmentalReverbStateStore = (EnvironmentalReverbStateStore) savedInstanceState
-                    .getParcelable(PARCEL_KEY_ENVIRONMENTAL_REVERB_STATE_STORE);
-            mPresetReverbStateStore = (PresetReverbStateStore) savedInstanceState
-                    .getParcelable(PARCEL_KEY_PRESET_REVERB_STATE_STORE);
-            mVisualizerStateStore = (VisualizerStateStore) savedInstanceState.getParcelable(
-                    PARCEL_KEY_VISUALIZER_STATE_STORE);
-            mHQEqualizerStateStore = (HQEqualizerStateStore) savedInstanceState.getParcelable(
-                    PARCEL_KEY_HQ_EQUALIZER_STATE_STORE);
-            mPreAmpStateStore = (PreAmpStateStore) savedInstanceState.getParcelable(
-                    PARCEL_KEY_PREAMP_STATE_STORE);
-            mHQVisualizerStateStore = (HQVisualizerStateStore) savedInstanceState.getParcelable(
-                    PARCEL_KEY_HQ_VISUALIZER_STATE_STORE);
+            final Bundle s = savedInstanceState;
+            mPlayerStateStore = s.getParcelable(PARCEL_KEY_MEDIA_PLAYER_STATE_STORE);
+            mBassBoostStateStore = s.getParcelable(PARCEL_KEY_BASS_BOOST_STATE_STORE);
+            mVirtualizerStateStore = s.getParcelable(PARCEL_KEY_VIRTUALIZER_STATE_STORE);
+            mEqualizerStateStore = s.getParcelable(PARCEL_KEY_EQUALIZER_STATE_STORE);
+            mLoudnessEnhancerStateStore = s.getParcelable(PARCEL_KEY_LOUDNESS_ENHANCER_STATE_STORE);
+            mEnvironmentalReverbStateStore = s.getParcelable(PARCEL_KEY_ENVIRONMENTAL_REVERB_STATE_STORE);
+            mPresetReverbStateStore = s.getParcelable(PARCEL_KEY_PRESET_REVERB_STATE_STORE);
+            mVisualizerStateStore = s.getParcelable(PARCEL_KEY_VISUALIZER_STATE_STORE);
+            mHQEqualizerStateStore = s.getParcelable(PARCEL_KEY_HQ_EQUALIZER_STATE_STORE);
+            mPreAmpStateStore = s.getParcelable(PARCEL_KEY_PREAMP_STATE_STORE);
+            mHQVisualizerStateStore = s.getParcelable(PARCEL_KEY_HQ_VISUALIZER_STATE_STORE);
         }
 
         // create media player factory
@@ -337,7 +325,7 @@ public class GlobalAppController implements IReleasable {
     public EqualizerStateStore getEqualizerStateStore() {
         return mEqualizerStateStore;
     }
-    
+
     public LoudnessEnhancerStateStore getLoudnessEnhancerStateStore() {
         return mLoudnessEnhancerStateStore;
     }
@@ -557,7 +545,7 @@ public class GlobalAppController implements IReleasable {
                 int type = event.arg1;
                 setPlayerImplType(type, false);
             }
-                break;
+            break;
             case NavigationDrawerReqEvents.CLICK_ITEM_ENABLE_SWITCH: {
                 // enable/disable audio effects
 
@@ -587,7 +575,7 @@ public class GlobalAppController implements IReleasable {
                         break;
                 }
             }
-                break;
+            break;
         }
     }
 
@@ -598,27 +586,30 @@ public class GlobalAppController implements IReleasable {
                 Uri uri = (Uri) event.extras.getParcelable(PlayerControlReqEvents.EXTRA_URI);
                 state.setMediaUri(event.arg1, uri);
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_CREATE: {
                 releaseAllPlayerResources();
 
-                createPlayer(0);
-                createPlayer(1);
+                IBasicMediaPlayer player0 = createPlayer(0);
+                IBasicMediaPlayer player1 = createPlayer(1);
 
-                createNormalAudioEffects();
-                createAuxAudioEffects();
-                createVisualizer();
-                createHQEqualizer();
-                createPreAmp();
-                createHQVisualizer();
+                if (player0 instanceof StandardMediaPlayer) {
+                    // Share the same audio session
+                    player1.setAudioSessionId(player0.getAudioSessionId());
+                } else {
+                    // OpenSLMediaPlayer does not support setAudioSessionId() method.
+                    // However audio effects are shared if player instances were created
+                    // by the same factory instance.
+                }
 
-                applyBassBoostStates(mBassBoost, mBassBoostStateStore);
-                applyVirtualizerStates(mVirtualizer, mVirtualizerStateStore);
-                applyEqualizerStates(mEqualizer, mEqualizerStateStore);
-                applyLoudnessEnhancerStates(mLoudnessEnhancer, mLoudnessEnhancerStateStore);
-                applyEnvironmentalReverbStates(mEnvironmentalReverb, mEnvironmentalReverbStateStore);
-                applyPresetReverbStates(mPresetReverb, mPresetReverbStateStore);
-                applyHQEqualizerStates(mHQEqualizer, mHQEqualizerStateStore);
+                applyBassBoostStates(mBassBoostStateStore);
+                applyVirtualizerStates(mVirtualizerStateStore);
+                applyEqualizerStates(mEqualizerStateStore);
+                applyLoudnessEnhancerStates(mLoudnessEnhancerStateStore);
+                applyEnvironmentalReverbStates(mEnvironmentalReverbStateStore);
+                applyPresetReverbStates(mPresetReverbStateStore);
+                applyHQEqualizerStates(mHQEqualizerStateStore);
+                applyPreAmpStates(mPreAmpStateStore);
 
                 playerSetLooping(0, state.isLooping());
                 playerSetLooping(1, state.isLooping());
@@ -635,23 +626,23 @@ public class GlobalAppController implements IReleasable {
                 // enable pre.amp
                 setPreAmpEnabled(true);
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_SET_DATA_SOURCE: {
 
                 playerSetDataSource(0);
                 playerSetDataSource(1);
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_PREPARE: {
                 playerPrepare(0);
                 playerPrepare(1);
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_PREPARE_ASYNC: {
                 playerPrepareAsync(0);
                 playerPrepareAsync(1);
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_START: {
 
                 // process pending player swapping
@@ -665,34 +656,34 @@ public class GlobalAppController implements IReleasable {
 
                 playerStart(getActivePlayerIndex());
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_PAUSE: {
                 playerPause(getActivePlayerIndex());
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_STOP: {
                 playerStop(0);
                 playerStop(1);
                 resetPlayerStateControlVariables();
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_RESET: {
                 playerReset(0);
                 playerReset(1);
                 resetPlayerStateControlVariables();
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_RELEASE: {
                 playerRelease(0);
                 playerRelease(1);
                 resetPlayerStateControlVariables();
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_SEEK_TO: {
                 float position = event.getArg2AsFloat();
                 activePlayerSeekTo(position);
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_SET_VOLUME_LEFT: {
                 state.setVolumeLeft(event.getArg2AsFloat());
 
@@ -700,7 +691,7 @@ public class GlobalAppController implements IReleasable {
                 playerSetVolume(0, state.getVolumeLeft(), state.getVolumeRight());
                 playerSetVolume(1, state.getVolumeLeft(), state.getVolumeRight());
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_SET_VOLUME_RIGHT: {
                 state.setVolumeRight(event.getArg2AsFloat());
 
@@ -708,7 +699,7 @@ public class GlobalAppController implements IReleasable {
                 playerSetVolume(0, state.getVolumeLeft(), state.getVolumeRight());
                 playerSetVolume(1, state.getVolumeLeft(), state.getVolumeRight());
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_SET_LOOPING: {
                 boolean looping = (event.arg1 != 0);
 
@@ -718,7 +709,7 @@ public class GlobalAppController implements IReleasable {
                 playerSetLooping(0, state.isLooping());
                 playerSetLooping(1, state.isLooping());
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_ATTACH_AUX_EFFECT: {
                 int effectType = event.arg1;
 
@@ -731,7 +722,7 @@ public class GlobalAppController implements IReleasable {
                 checkStateAndApplyAttachedAuxEffectSettings(0);
                 checkStateAndApplyAttachedAuxEffectSettings(1);
             }
-                break;
+            break;
             case PlayerControlReqEvents.PLAYER_SET_AUX_SEND_LEVEL: {
                 state.setAuxEffectSendLevel(event.getArg2AsFloat());
 
@@ -739,7 +730,7 @@ public class GlobalAppController implements IReleasable {
                 playerSetAuxSendLevel(0, state.getAuxEffectSendLevel());
                 playerSetAuxSendLevel(1, state.getAuxEffectSendLevel());
             }
-                break;
+            break;
         }
     }
 
@@ -923,7 +914,7 @@ public class GlobalAppController implements IReleasable {
                 boolean enabled = (event.arg1 != 0);
                 setBassBoostEnabled(enabled);
             }
-                break;
+            break;
             case BassBoostReqEvents.SET_STRENGTH: {
                 float strength = event.getArg2AsFloat();
                 IBassBoost bassboost = getBassBoost();
@@ -935,7 +926,7 @@ public class GlobalAppController implements IReleasable {
                     bassboost.setStrength(state.getSettings().strength);
                 }
             }
-                break;
+            break;
         }
     }
 
@@ -945,7 +936,7 @@ public class GlobalAppController implements IReleasable {
                 boolean enabled = (event.arg1 != 0);
                 setVirtualizerEnabled(enabled);
             }
-                break;
+            break;
             case VirtualizerReqEvents.SET_STRENGTH: {
                 float strength = event.getArg2AsFloat();
                 IVirtualizer virtualizer = getVirtualizer();
@@ -957,7 +948,7 @@ public class GlobalAppController implements IReleasable {
                     virtualizer.setStrength(state.getSettings().strength);
                 }
             }
-                break;
+            break;
         }
     }
 
@@ -967,7 +958,7 @@ public class GlobalAppController implements IReleasable {
                 boolean enabled = (event.arg1 != 0);
                 setEqualizerEnabled(enabled);
             }
-                break;
+            break;
             case EqualizerReqEvents.SET_PRESET: {
                 short preset = (short) event.arg1;
                 IEqualizer equalizer = getEqualizer();
@@ -993,7 +984,7 @@ public class GlobalAppController implements IReleasable {
                         EqualizerNotifyEvents.BAND_LEVEL_UPDATED,
                         -1 /* all bands */, 0);
             }
-                break;
+            break;
             case EqualizerReqEvents.SET_BAND_LEVEL: {
                 short band = (short) event.arg1;
                 float level = event.getArg2AsFloat();
@@ -1013,7 +1004,7 @@ public class GlobalAppController implements IReleasable {
                         EventDefs.Category.NOTIFY_EQUALIZER,
                         EqualizerNotifyEvents.BAND_LEVEL_UPDATED, band, 0);
             }
-                break;
+            break;
         }
     }
 
@@ -1023,7 +1014,7 @@ public class GlobalAppController implements IReleasable {
                 boolean enabled = (event.arg1 != 0);
                 setLoudnessEnhancerEnabled(enabled);
             }
-                break;
+            break;
             case LoudnessEnhancerReqEvents.SET_TARGET_GAIN: {
                 float gainmB = event.getArg2AsFloat();
                 ILoudnessEnhancer loudnessEnhancer = getLoudnessEnhancer();
@@ -1035,7 +1026,7 @@ public class GlobalAppController implements IReleasable {
                     loudnessEnhancer.setTargetGain(state.getSettings().targetGainmB);
                 }
             }
-                break;
+            break;
         }
     }
 
@@ -1048,7 +1039,7 @@ public class GlobalAppController implements IReleasable {
                 boolean enabled = (event.arg1 != 0);
                 setPresetReverbEnabled(enabled);
             }
-                break;
+            break;
             case PresetReverbReqEvents.SET_PRESET:
                 state.getSettings().preset = (short) event.arg1;
 
@@ -1075,7 +1066,7 @@ public class GlobalAppController implements IReleasable {
                 boolean enabled = (event.arg1 != 0);
                 setEnvironmentalReverbEnabled(enabled);
             }
-                break;
+            break;
             case EnvironmentalReverbReqEvents.SET_PRESET:
                 state.setPreset(event.arg1);
                 if (state.getPreset() >= 0) {
@@ -1146,7 +1137,7 @@ public class GlobalAppController implements IReleasable {
                         state.isCaptureWaveformEnabled() ? 1 : 0,
                         0);
             }
-                break;
+            break;
             case VisualizerReqEvents.SET_FFT_ENABLED: {
                 boolean enabled = (event.arg1 != 0);
 
@@ -1159,7 +1150,7 @@ public class GlobalAppController implements IReleasable {
                         state.isCaptureFftEnabled() ? 1 : 0,
                         0);
             }
-                break;
+            break;
             case VisualizerReqEvents.SET_SCALING_MODE:
                 int scalingMode = event.arg1;
 
@@ -1184,7 +1175,7 @@ public class GlobalAppController implements IReleasable {
                         state.isMeasurementPeakEnabled() ? 1 : 0,
                         0);
             }
-                break;
+            break;
             case VisualizerReqEvents.SET_MEASURE_RMS_ENABLED: {
                 boolean enabled = (event.arg1 != 0);
 
@@ -1197,7 +1188,7 @@ public class GlobalAppController implements IReleasable {
                         state.isMeasurementRmsEnabled() ? 1 : 0,
                         0);
             }
-                break;
+            break;
         }
     }
 
@@ -1207,7 +1198,7 @@ public class GlobalAppController implements IReleasable {
                 boolean enabled = (event.arg1 != 0);
                 setHQEqualizerEnabled(enabled);
             }
-                break;
+            break;
             case HQEqualizerReqEvents.SET_PRESET: {
                 short preset = (short) event.arg1;
                 IEqualizer equalizer = getHQEqualizer();
@@ -1233,7 +1224,7 @@ public class GlobalAppController implements IReleasable {
                         HQEqualizerNotifyEvents.BAND_LEVEL_UPDATED,
                         -1 /* all bands */, 0);
             }
-                break;
+            break;
             case HQEqualizerReqEvents.SET_BAND_LEVEL: {
                 short band = (short) event.arg1;
                 float level = event.getArg2AsFloat();
@@ -1253,7 +1244,7 @@ public class GlobalAppController implements IReleasable {
                         EventDefs.Category.NOTIFY_HQ_EQUALIZER,
                         HQEqualizerNotifyEvents.BAND_LEVEL_UPDATED, band, 0);
             }
-                break;
+            break;
         }
     }
 
@@ -1263,7 +1254,7 @@ public class GlobalAppController implements IReleasable {
                 boolean enabled = (event.arg1 != 0);
                 setPreAmpEnabled(enabled);
             }
-                break;
+            break;
             case PreAmpReqEvents.SET_LEVEL: {
                 float level = event.getArg1AsFloat();
                 IPreAmp preamp = getPreAmp();
@@ -1281,7 +1272,7 @@ public class GlobalAppController implements IReleasable {
                         EventDefs.Category.NOTIFY_PRE_AMP,
                         PreAmpNotifyEvents.LEVEL_UPDATED, 0, 0);
             }
-                break;
+            break;
         }
     }
 
@@ -1305,7 +1296,7 @@ public class GlobalAppController implements IReleasable {
                         state.isCaptureWaveformEnabled() ? 1 : 0,
                         0);
             }
-                break;
+            break;
             case HQVisualizerReqEvents.SET_FFT_ENABLED: {
                 boolean enabled = (event.arg1 != 0);
 
@@ -1318,7 +1309,7 @@ public class GlobalAppController implements IReleasable {
                         state.isCaptureFftEnabled() ? 1 : 0,
                         0);
             }
-                break;
+            break;
             case HQVisualizerReqEvents.SET_WINDOW_TYPE: {
                 int windowType = event.arg1;
 
@@ -1331,7 +1322,7 @@ public class GlobalAppController implements IReleasable {
                         state.getWindowType(),
                         0);
             }
-                break;
+            break;
         }
     }
 
@@ -1423,8 +1414,7 @@ public class GlobalAppController implements IReleasable {
         eventBus().post(new AppEvent(category, event, arg1, arg2));
     }
 
-    private void postInfoOrErrorAppEvent(int category, int event, int arg1, int arg2, int what,
-            int extra) {
+    private void postInfoOrErrorAppEvent(int category, int event, int arg1, int arg2, int what, int extra) {
         AppEvent eventObj = new AppEvent(category, event, arg1, arg2);
 
         eventObj.extras = new Bundle();
@@ -1475,175 +1465,115 @@ public class GlobalAppController implements IReleasable {
         player.setAuxEffectSendLevel(states.getAuxEffectSendLevel());
     }
 
-    private void applyBassBoostStates(
-            IBassBoost bassboost, BassBoostStateStore states) {
-        if (bassboost == null)
-            return;
+    private void applyBassBoostStates(BassBoostStateStore states) {
+        final boolean enabled = states.isEnabled();
+        final IBassBoost bassBoost = (enabled) ? createBassBoost() : getBassBoost();
 
-        bassboost.setProperties(states.getSettings());
-        bassboost.setEnabled(states.isEnabled());
+        if (bassBoost == null) return;
+
+        bassBoost.setProperties(states.getSettings());
+        bassBoost.setEnabled(enabled);
+
+        if (!enabled) {
+            releaseBassBoost();
+        }
     }
 
-    private void applyVirtualizerStates(
-            IVirtualizer virtualizer, VirtualizerStateStore states) {
-        if (virtualizer == null)
-            return;
+    private void applyVirtualizerStates(VirtualizerStateStore states) {
+        final boolean enabled = states.isEnabled();
+        final IVirtualizer virtualizer = (enabled) ? createVirtualizer() : getVirtualizer();
+
+        if (virtualizer == null) return;
 
         virtualizer.setProperties(states.getSettings());
-        virtualizer.setEnabled(states.isEnabled());
+        virtualizer.setEnabled(enabled);
+
+        if (!enabled) {
+            releaseVirtualizer();
+        }
     }
 
-    private void applyEqualizerStates(
-            IEqualizer equalizer, EqualizerStateStore states) {
-        if (equalizer == null)
-            return;
+    private void applyEqualizerStates(EqualizerStateStore states) {
+        final boolean enabled = states.isEnabled();
+        final IEqualizer equalizer = (enabled) ? createEqualizer() : getEqualizer();
+
+        if (equalizer == null) return;
 
         equalizer.setProperties(states.getSettings());
-        equalizer.setEnabled(states.isEnabled());
+        equalizer.setEnabled(enabled);
+
+        if (!enabled) {
+            releaseEqualizer();
+        }
     }
 
-    private void applyLoudnessEnhancerStates(
-            ILoudnessEnhancer loudnessEnhancer, LoudnessEnhancerStateStore states) {
-        if (loudnessEnhancer == null)
-            return;
+    private void applyLoudnessEnhancerStates(LoudnessEnhancerStateStore states) {
+        final boolean enabled = states.isEnabled();
+        final ILoudnessEnhancer loudnessEnhancer = (enabled) ? createLoudnessEnhancer() : getLoudnessEnhancer();
+
+        if (loudnessEnhancer == null) return;
 
         loudnessEnhancer.setProperties(states.getSettings());
-        loudnessEnhancer.setEnabled(states.isEnabled());
+        loudnessEnhancer.setEnabled(enabled);
+
+        if (!enabled) {
+            releaseLoudnessEnhancer();
+        }
     }
 
-    private void applyPresetReverbStates(
-            IPresetReverb presetreverb, PresetReverbStateStore states) {
-        if (presetreverb == null)
-            return;
+    private void applyEnvironmentalReverbStates(EnvironmentalReverbStateStore states) {
+        final boolean enabled = states.isEnabled();
+        final IEnvironmentalReverb envreverb = (enabled) ? createEnvironmentalReverb() : getEnvironmentalReverb();
 
-        presetreverb.setProperties(states.getSettings());
-        presetreverb.setEnabled(states.isEnabled());
-    }
-
-    private void applyEnvironmentalReverbStates(
-            IEnvironmentalReverb envreverb, EnvironmentalReverbStateStore states) {
-        if (envreverb == null)
-            return;
+        if (envreverb == null) return;
 
         envreverb.setProperties(states.getSettings());
-        envreverb.setEnabled(states.isEnabled());
+        envreverb.setEnabled(enabled);
+
+        if (!enabled) {
+            releaseEnvironmentalReverb();
+        }
     }
 
-    private void applyHQEqualizerStates(
-            IEqualizer equalizer, HQEqualizerStateStore states) {
-        if (equalizer == null)
-            return;
+    private void applyPresetReverbStates(PresetReverbStateStore states) {
+        final boolean enabled = states.isEnabled();
+        final IPresetReverb presetreverb = (enabled) ? createPresetReverb() : getPresetReverb();
+
+        if (presetreverb == null) return;
+
+        presetreverb.setProperties(states.getSettings());
+        presetreverb.setEnabled(enabled);
+
+        if (!enabled) {
+            releasePresetReverb();
+        }
+    }
+
+    private void applyHQEqualizerStates(HQEqualizerStateStore states) {
+        final boolean enabled = states.isEnabled();
+        final IEqualizer equalizer = (enabled) ? createHQEqualizer() : getHQEqualizer();
+
+        if (equalizer == null) return;
 
         equalizer.setProperties(states.getSettings());
-        equalizer.setEnabled(states.isEnabled());
-    }
+        equalizer.setEnabled(enabled);
 
-    private boolean createPlayer(int index) {
-        if (mMediaPlayer[index] == null) {
-            IBasicMediaPlayer player = mFactory.createMediaPlayer();
-
-            player.setWakeMode(mContext, PowerManager.PARTIAL_WAKE_LOCK);
-            player.setOnBufferingUpdateListener(mOnBufferingUpdateListener);
-            player.setOnCompletionListener(mOnCompletionListener);
-            player.setOnErrorListener(mOnErrorListener);
-            player.setOnInfoListener(mOnInfoListener);
-            player.setOnPreparedListener(mOnPreparedListener);
-            player.setOnSeekCompleteListener(mOnSeekCompleteListener);
-
-            mMediaPlayer[index] = player;
-        }
-
-        return (mMediaPlayer[index] != null);
-    }
-
-    private void createNormalAudioEffects() {
-        IMediaPlayerFactory factory = mFactory;
-        IBasicMediaPlayer player0 = getPlayer(0);
-        IBasicMediaPlayer player1 = getPlayer(1);
-
-        if (player0 instanceof StandardMediaPlayer) {
-            // Share same audio session
-            player1.setAudioSessionId(player0.getAudioSessionId());
-        } else {
-            // OpenSLMediaPlayer does not support setAudioSessionId() method.
-            // However audio effects are shared if player instances were created
-            // by the same factory instance.
-        }
-
-        try {
-            mBassBoost = factory.createBassBoost(player0);
-        } catch (UnsupportedOperationException e) {
-            // the effect is not supported
-        }
-        try {
-            mVirtualizer = factory.createVirtualizer(player0);
-        } catch (UnsupportedOperationException e) {
-            // the effect is not supported
-        }
-        try {
-            mEqualizer = factory.createEqualizer(player0);
-        } catch (UnsupportedOperationException e) {
-            // the effect is not supported
-        }
-        try {
-            mLoudnessEnhancer = factory.createLoudnessEnhancer(player0);
-        } catch (UnsupportedOperationException e) {
-            // the effect is not supported
+        if (!enabled) {
+            releaseHQEqualizer();
         }
     }
 
-    private void createAuxAudioEffects() {
-        try {
-            mEnvironmentalReverb = mFactory.createEnvironmentalReverb();
-        } catch (UnsupportedOperationException e) {
-            // the effect is not supported
-        }
+    private void applyPreAmpStates(PreAmpStateStore states) {
+        final boolean enabled = states.isEnabled();
+        final IPreAmp preamp = (enabled) ? createPreAmp() : getPreAmp();
 
-        try {
-            mPresetReverb = mFactory.createPresetReverb();
-        } catch (UnsupportedOperationException e) {
-            // the effect is not supported
-        }
-    }
+        if (preamp == null) return;
 
-    private void createVisualizer() {
-        IMediaPlayerFactory factory = mFactory;
-        IBasicMediaPlayer player0 = mMediaPlayer[0];
+        preamp.setProperties(states.getSettings());
+        preamp.setEnabled(enabled);
 
-        try {
-            mVisualizer = factory.createVisualizer(player0);
-        } catch (UnsupportedOperationException e) {
-            // the effect is not supported
-        }
-    }
-
-    private void createHQEqualizer() {
-        IMediaPlayerFactory factory = mFactory;
-
-        try {
-            mHQEqualizer = factory.createHQEqualizer();
-        } catch (UnsupportedOperationException e) {
-            // the effect is not supported
-        }
-    }
-
-    private void createPreAmp() {
-        IMediaPlayerFactory factory = mFactory;
-
-        try {
-            mPreAmp = factory.createPreAmp();
-        } catch (UnsupportedOperationException e) {
-            // the effect is not supported
-        }
-    }
-
-    private void createHQVisualizer() {
-        IMediaPlayerFactory factory = mFactory;
-
-        try {
-            mHQVisualizer = factory.createHQVisualizer();
-        } catch (UnsupportedOperationException e) {
-            // the effect is not supported
+        if (!enabled) {
+            releasePreAmp();
         }
     }
 
@@ -1670,7 +1600,7 @@ public class GlobalAppController implements IReleasable {
     private IEqualizer getEqualizer() {
         return mEqualizer;
     }
-    
+
     private ILoudnessEnhancer getLoudnessEnhancer() {
         return mLoudnessEnhancer;
     }
@@ -1704,33 +1634,64 @@ public class GlobalAppController implements IReleasable {
         playerRelease(1);
         resetPlayerStateControlVariables();
 
+        releaseBassBoost();
+        releaseVirtualizer();
+        releaseEqualizer();
+        releaseLoudnessEnhancer();
+        releasePresetReverb();
+        releaseEnvironmentalReverb();
+        releaseVisualizer();
+        releaseHQVisualizer();
+        releaseHQEqualizer();
+        releasePreAmp();
+    }
+
+    private void releaseBassBoost() {
         safeRelease(mBassBoost);
         mBassBoost = null;
+    }
 
+    private void releaseVirtualizer() {
         safeRelease(mVirtualizer);
         mVirtualizer = null;
+    }
 
+    private void releaseEqualizer() {
         safeRelease(mEqualizer);
         mEqualizer = null;
-        
+    }
+
+    private void releaseLoudnessEnhancer() {
         safeRelease(mLoudnessEnhancer);
         mLoudnessEnhancer = null;
+    }
 
-        safeRelease(mPresetReverb);
-        mPresetReverb = null;
-
+    private void releaseEnvironmentalReverb() {
         safeRelease(mEnvironmentalReverb);
         mEnvironmentalReverb = null;
+    }
 
+    private void releasePresetReverb() {
+        safeRelease(mPresetReverb);
+        mPresetReverb = null;
+    }
+
+    private void releaseVisualizer() {
         safeRelease(mVisualizer);
         mVisualizer = null;
+    }
 
+    private void releaseHQEqualizer() {
         safeRelease(mHQEqualizer);
         mHQEqualizer = null;
+    }
 
+    private void releasePreAmp() {
         safeRelease(mPreAmp);
         mPreAmp = null;
+    }
 
+    private void releaseHQVisualizer() {
         safeRelease(mHQVisualizer);
         mHQVisualizer = null;
     }
@@ -1749,11 +1710,143 @@ public class GlobalAppController implements IReleasable {
         }
     }
 
-    private void setBassBoostEnabled(boolean enabled) {
-        IAudioEffect effect = getBassBoost();
-        BaseAudioEffectStateStore state = getBassBoostStateStore();
+    private IBasicMediaPlayer createPlayer(int index) {
+        if (mMediaPlayer[index] == null) {
+            IBasicMediaPlayer player = mFactory.createMediaPlayer();
 
-        handleAudioEffectEnabled(effect, state, enabled);
+            player.setWakeMode(mContext, PowerManager.PARTIAL_WAKE_LOCK);
+            player.setOnBufferingUpdateListener(mOnBufferingUpdateListener);
+            player.setOnCompletionListener(mOnCompletionListener);
+            player.setOnErrorListener(mOnErrorListener);
+            player.setOnInfoListener(mOnInfoListener);
+            player.setOnPreparedListener(mOnPreparedListener);
+            player.setOnSeekCompleteListener(mOnSeekCompleteListener);
+
+            mMediaPlayer[index] = player;
+        }
+
+        return mMediaPlayer[index];
+    }
+
+    private IBassBoost createBassBoost() {
+        if (mBassBoost == null) {
+            try {
+                mBassBoost = mFactory.createBassBoost(getPlayer(0));
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            }
+        }
+        return mBassBoost;
+    }
+
+    private IVirtualizer createVirtualizer() {
+        if (mVirtualizer == null) {
+            try {
+                mVirtualizer = mFactory.createVirtualizer(getPlayer(0));
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            }
+        }
+        return mVirtualizer;
+    }
+
+    private IEqualizer createEqualizer() {
+        if (mEqualizer == null) {
+            try {
+                mEqualizer = mFactory.createEqualizer(getPlayer(0));
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            }
+        }
+        return mEqualizer;
+    }
+
+    private ILoudnessEnhancer createLoudnessEnhancer() {
+        if (mLoudnessEnhancer == null) {
+            try {
+                mLoudnessEnhancer = mFactory.createLoudnessEnhancer(getPlayer(0));
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            }
+        }
+        return mLoudnessEnhancer;
+    }
+
+    private IEnvironmentalReverb createEnvironmentalReverb() {
+        if (mEnvironmentalReverb == null) {
+            try {
+                mEnvironmentalReverb = mFactory.createEnvironmentalReverb();
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            }
+        }
+        return mEnvironmentalReverb;
+    }
+
+    private IPresetReverb createPresetReverb() {
+        if (mPresetReverb == null) {
+            try {
+                mPresetReverb = mFactory.createPresetReverb();
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            }
+        }
+        return mPresetReverb;
+    }
+
+    public IVisualizer createVisualizer() {
+        if (mVisualizer == null) {
+            try {
+                mVisualizer = mFactory.createVisualizer(getPlayer(0));
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            }
+        }
+
+        return mVisualizer;
+    }
+
+    private IEqualizer createHQEqualizer() {
+        if (mHQEqualizer == null) {
+            try {
+                mHQEqualizer = mFactory.createHQEqualizer();
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            }
+        }
+
+        return mHQEqualizer;
+    }
+
+    private IPreAmp createPreAmp() {
+        IMediaPlayerFactory factory = mFactory;
+
+        try {
+            mPreAmp = factory.createPreAmp();
+        } catch (UnsupportedOperationException e) {
+            // the effect is not supported
+        }
+
+        return mPreAmp;
+    }
+
+    public IHQVisualizer createHQVisualizer() {
+        if (mHQVisualizer == null) {
+            try {
+                mHQVisualizer = mFactory.createHQVisualizer();
+            } catch (UnsupportedOperationException e) {
+                // the effect is not supported
+            }
+        }
+
+        return mHQVisualizer;
+    }
+
+    private void setBassBoostEnabled(boolean enabled) {
+        BassBoostStateStore state = getBassBoostStateStore();
+
+        state.setEnabled(enabled);
+        applyBassBoostStates(state);
 
         // notify enabled state updated
         postAppEvent(
@@ -1764,10 +1857,10 @@ public class GlobalAppController implements IReleasable {
     }
 
     private void setVirtualizerEnabled(boolean enabled) {
-        IAudioEffect effect = getVirtualizer();
-        BaseAudioEffectStateStore state = getVirtualizerStateStore();
+        VirtualizerStateStore state = getVirtualizerStateStore();
 
-        handleAudioEffectEnabled(effect, state, enabled);
+        state.setEnabled(enabled);
+        applyVirtualizerStates(state);
 
         // notify enabled state updated
         postAppEvent(
@@ -1778,10 +1871,10 @@ public class GlobalAppController implements IReleasable {
     }
 
     private void setEqualizerEnabled(boolean enabled) {
-        IAudioEffect effect = getEqualizer();
-        BaseAudioEffectStateStore state = getEqualizerStateStore();
+        EqualizerStateStore state = getEqualizerStateStore();
 
-        handleAudioEffectEnabled(effect, state, enabled);
+        state.setEnabled(enabled);
+        applyEqualizerStates(state);
 
         // notify enabled state updated
         postAppEvent(
@@ -1792,10 +1885,10 @@ public class GlobalAppController implements IReleasable {
     }
 
     private void setLoudnessEnhancerEnabled(boolean enabled) {
-        ILoudnessEnhancer effect = getLoudnessEnhancer();
-        BaseAudioEffectStateStore state = getLoudnessEnhancerStateStore();
+        LoudnessEnhancerStateStore state = getLoudnessEnhancerStateStore();
 
-        handleAudioEffectEnabled(effect, state, enabled);
+        state.setEnabled(enabled);
+        applyLoudnessEnhancerStates(state);
 
         // notify enabled state updated
         postAppEvent(
@@ -1806,10 +1899,10 @@ public class GlobalAppController implements IReleasable {
     }
 
     private void setEnvironmentalReverbEnabled(boolean enabled) {
-        IAudioEffect effect = getEnvironmentalReverb();
-        BaseAudioEffectStateStore state = getEnvironmentalReverbStateStore();
+        EnvironmentalReverbStateStore state = getEnvironmentalReverbStateStore();
 
-        handleAudioEffectEnabled(effect, state, enabled);
+        state.setEnabled(enabled);
+        applyEnvironmentalReverbStates(state);
 
         // notify enabled state updated
         postAppEvent(
@@ -1820,10 +1913,10 @@ public class GlobalAppController implements IReleasable {
     }
 
     private void setPresetReverbEnabled(boolean enabled) {
-        IAudioEffect effect = getPresetReverb();
-        BaseAudioEffectStateStore state = getPresetReverbStateStore();
+        PresetReverbStateStore state = getPresetReverbStateStore();
 
-        handleAudioEffectEnabled(effect, state, enabled);
+        state.setEnabled(enabled);
+        applyPresetReverbStates(state);
 
         // notify enabled state updated
         postAppEvent(
@@ -1834,10 +1927,10 @@ public class GlobalAppController implements IReleasable {
     }
 
     private void setHQEqualizerEnabled(boolean enabled) {
-        IAudioEffect effect = getHQEqualizer();
-        BaseAudioEffectStateStore state = getHQEqualizerStateStore();
+        HQEqualizerStateStore state = getHQEqualizerStateStore();
 
-        handleAudioEffectEnabled(effect, state, enabled);
+        state.setEnabled(enabled);
+        applyHQEqualizerStates(state);
 
         // notify enabled state updated
         postAppEvent(
@@ -1848,10 +1941,10 @@ public class GlobalAppController implements IReleasable {
     }
 
     private void setPreAmpEnabled(boolean enabled) {
-        IAudioEffect effect = getPreAmp();
-        BaseAudioEffectStateStore state = getPreAmpStateStore();
+        PreAmpStateStore state = getPreAmpStateStore();
 
-        handleAudioEffectEnabled(effect, state, enabled);
+        state.setEnabled(enabled);
+        applyPreAmpStates(state);
 
         // notify enabled state updated
         postAppEvent(
@@ -1859,16 +1952,6 @@ public class GlobalAppController implements IReleasable {
                 PreAmpNotifyEvents.ENABLED_STATE_UPDATED,
                 state.isEnabled() ? 1 : 0,
                 0);
-    }
-
-    private void handleAudioEffectEnabled(
-            IAudioEffect effect, BaseAudioEffectStateStore state, boolean enabled) {
-        state.setEnabled(enabled);
-
-        // apply
-        if (effect != null) {
-            effect.setEnabled(state.isEnabled());
-        }
     }
 
     private int getMediaPlayerIndex(IBasicMediaPlayer player) {
@@ -1892,7 +1975,6 @@ public class GlobalAppController implements IReleasable {
         eventObj.extras.putString(
                 PlayerControlNotifyEvents.EXTRA_EXCEPTION_NAME,
                 exception.getClass().getSimpleName());
-
         eventObj.extras.putString(
                 PlayerControlNotifyEvents.EXTRA_STACK_TRACE,
                 getStackTraceString(exception));

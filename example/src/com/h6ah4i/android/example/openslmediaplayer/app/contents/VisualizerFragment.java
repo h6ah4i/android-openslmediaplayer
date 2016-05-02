@@ -292,12 +292,13 @@ public class VisualizerFragment
     }
 
     private void updateCaptureSettings() {
-        final IVisualizer visualizer = getVisualizer();
         final VisualizerStateStore state = getStateStore();
 
         final boolean captureWaveform = state.isCaptureWaveformEnabled();
         final boolean captureFft = state.isCaptureFftEnabled();
         final int scalingMode = state.getScalingMode();
+
+        final IVisualizer visualizer = getVisualizer(captureWaveform || captureFft);
 
         if (visualizer != null) {
             // stop visualizer
@@ -325,7 +326,7 @@ public class VisualizerFragment
     }
 
     private void updateMeasurementsSettings() {
-        final IVisualizer visualizer = getVisualizer();
+        final IVisualizer visualizer = getVisualizer(false);
         final VisualizerStateStore state = getStateStore();
 
         final boolean measurePeak = state.isMeasurementPeakEnabled();
@@ -352,12 +353,12 @@ public class VisualizerFragment
         return getAppController().getVisualizerStateStore();
     }
 
-    private IVisualizer getVisualizer() {
-        return getAppController().getVisualizer();
+    private IVisualizer getVisualizer(boolean createIfNotExists) {
+        return (createIfNotExists) ? getAppController().createVisualizer() : getAppController().getVisualizer();
     }
 
     private void cleanupVisualizer() {
-        IVisualizer visualizer = getVisualizer();
+        IVisualizer visualizer = getVisualizer(false);
 
         if (mPeriodicMeasureThread != null) {
             mPeriodicMeasureThread.stop();
