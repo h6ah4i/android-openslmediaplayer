@@ -16,22 +16,13 @@
 
 package com.h6ah4i.android.example.openslmediaplayer.app;
 
-import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_BASSBOOST;
-import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_ENVIRONMENTAL_REVERB;
-import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_EQUALIZER;
-import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_HQ_EQUALIZER;
-import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_HQ_VISUALIZER;
-import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_LOUDNESS_ENHANCER;
-import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_PRESET_REVERB;
-import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_VIRTUALIZER;
-import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_VISUALIZER;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.view.ViewCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
@@ -58,6 +49,16 @@ import com.h6ah4i.android.example.openslmediaplayer.app.model.BaseAudioEffectSta
 import com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs;
 import com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents;
 import com.h6ah4i.android.example.openslmediaplayer.app.model.MediaPlayerStateStore;
+
+import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_BASSBOOST;
+import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_ENVIRONMENTAL_REVERB;
+import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_EQUALIZER;
+import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_HQ_EQUALIZER;
+import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_HQ_VISUALIZER;
+import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_LOUDNESS_ENHANCER;
+import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_PRESET_REVERB;
+import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_VIRTUALIZER;
+import static com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.NavigationDrawerReqEvents.SECTION_INDEX_VISUALIZER;
 
 public class NavigationDrawerFragment extends AppBaseFragment {
 
@@ -297,6 +298,16 @@ public class NavigationDrawerFragment extends AppBaseFragment {
         Activity activity = getActivity();
         setUp((DrawerLayout) activity.findViewById(R.id.drawer_layout),
                 (ViewGroup) activity.findViewById(R.id.drawer_container));
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+
+        final int curPlayerImplType = getAppController().getPlayerStateStore().getPlayerImplType();
+        final int selectedIndex = playerImplTypeToModeListIndex(curPlayerImplType);
+
+        mModeSelectListView.setItemChecked(selectedIndex, true);
     }
 
     public void setSystemBarsOffset(int statusBarOffset, int navBarOffset) {
