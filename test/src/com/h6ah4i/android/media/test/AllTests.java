@@ -29,6 +29,7 @@ public class AllTests extends TestCase {
 
         suite.addTest(StandardMediaPlayerTest.suite());
         suite.addTest(OpenSLMediaPlayerTest.suite());
+        suite.addTest(HybridMediaPlayerTest.suite());
         suite.addTestSuite(EqualizerBandInfoCorrectorTestCase.class);
 
         return suite;

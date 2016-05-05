@@ -693,7 +693,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerMethod extends
     }
 
     public void testPausedStateAsNextMediaPlayer() throws Throwable {
-        if (!isOpenSL(getFactory()) && SKIP_HANGUP_SUSPECTED_TEST_CASE) {
+        if (isStandardPlayer(getFactory()) && SKIP_HANGUP_SUSPECTED_TEST_CASE) {
             fail("This test case is skipped to avoid HANGUP");
         }
 
@@ -709,7 +709,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerMethod extends
             player.setVolume(1.0f, 0.0f);
             nextPlayer.setVolume(0.0f, 1.0f);
 
-            if (isOpenSL(player)) {
+            if (!isStandardPlayer(player)) {
                 nextPlayer.start();
                 Thread.sleep(50);
                 nextPlayer.pause();
@@ -843,7 +843,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerMethod extends
     }
 
     public void testMultipleSetNextAudioPlayer_1() throws Throwable {
-        if (!isOpenSL(getFactory()) && SKIP_HANGUP_SUSPECTED_TEST_CASE) {
+        if (isStandardPlayer(getFactory()) && SKIP_HANGUP_SUSPECTED_TEST_CASE) {
             fail("This test case is skipped to avoid HANGUP");
         }
 
@@ -851,7 +851,7 @@ public class BasicMediaPlayerTestCase_SetNextMediaPlayerMethod extends
     }
 
     public void testMultipleSetNextAudioPlayer_2() throws Throwable {
-        if (!isOpenSL(getFactory()) && SKIP_HANGUP_SUSPECTED_TEST_CASE) {
+        if (isStandardPlayer(getFactory()) && SKIP_HANGUP_SUSPECTED_TEST_CASE) {
             fail("This test case is skipped to avoid HANGUP");
         }
 

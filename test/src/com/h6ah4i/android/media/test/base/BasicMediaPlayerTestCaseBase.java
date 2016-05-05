@@ -45,6 +45,8 @@ import com.h6ah4i.android.media.IMediaPlayerFactory;
 import com.h6ah4i.android.media.IReleasable;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayer;
 import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerFactory;
+import com.h6ah4i.android.media.standard.StandardMediaPlayer;
+import com.h6ah4i.android.media.standard.StandardMediaPlayerFactory;
 import com.h6ah4i.android.media.test.utils.CommonTestCaseUtils;
 import com.h6ah4i.android.media.test.utils.CompletionListenerObject;
 import com.h6ah4i.android.media.test.utils.DebugCompat;
@@ -455,12 +457,12 @@ public abstract class BasicMediaPlayerTestCaseBase
         return player;
     }
 
-    protected static boolean isOpenSL(IBasicMediaPlayer player) {
-        return (unwrap(player) instanceof OpenSLMediaPlayer);
+    protected static boolean isStandardPlayer(IBasicMediaPlayer player) {
+        return (unwrap(player) instanceof StandardMediaPlayer);
     }
 
-    protected static boolean isOpenSL(IMediaPlayerFactory factory) {
-        return (factory instanceof OpenSLMediaPlayerFactory);
+    protected static boolean isStandardPlayer(IMediaPlayerFactory factory) {
+        return (factory instanceof StandardMediaPlayerFactory);
     }
 
     protected void playLocalFileAndReset(IBasicMediaPlayer player, Object args) throws IOException {
