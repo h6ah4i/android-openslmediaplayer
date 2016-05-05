@@ -52,7 +52,7 @@
 
         <!-- Separator -->
 
-        <android.support.v7.widget.Space
+        <android.support.v4.widget.Space
             android:id="@+id/center_horizontal_separator_waveform_fft"
             android:layout_width="match_parent"
             android:layout_height="8dp"

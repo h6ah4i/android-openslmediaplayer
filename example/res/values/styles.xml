@@ -17,7 +17,7 @@
 <resources xmlns:android="http://schemas.android.com/apk/res/android">
 
     <!-- Base application theme. -->
-    <style name="AppTheme.Base" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppTheme.Base" parent="Theme.AppCompat.DayNight.NoActionBar">
         <item name="colorPrimary">@color/app_color_primary</item>
         <item name="colorPrimaryDark">@color/app_color_primary_dark</item>
         <item name="colorAccent">@color/app_color_accent</item>
@@ -25,7 +25,6 @@
     
     <style name="AppTheme" parent="AppTheme.Base">
     </style>
-
 
     <style name="About.TextView.LibraryName" parent="Base.TextAppearance.AppCompat">
         <item name="android:background">#333</item>

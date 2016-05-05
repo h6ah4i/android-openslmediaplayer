@@ -19,7 +19,8 @@ package com.h6ah4i.android.example.openslmediaplayer.app;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.ViewGroup;
@@ -45,7 +46,7 @@ import com.h6ah4i.android.example.openslmediaplayer.app.model.EventDefs.PlayerCo
 import com.h6ah4i.android.example.openslmediaplayer.app.model.GlobalAppController;
 import com.h6ah4i.android.example.openslmediaplayer.app.utils.GlobalAppControllerAccessor;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends AppCompatActivity {
 
     private static final String FRAGMENT_TAG_NAVIGATION_DRAWER = "NavigationDrawer";
 
@@ -85,8 +86,10 @@ public class MainActivity extends ActionBarActivity {
 
         // set ToolBar as a ActionBar
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
-        toolbar.setTitleTextColor(getResources().getColor(R.color.app_toolbar_title_text));
+        toolbar.setTitleTextColor(ContextCompat.getColor(this, R.color.app_toolbar_title_text));
         setSupportActionBar(toolbar);
+        getSupportActionBar().setHomeButtonEnabled(true);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
         // instantiate NavigationDrawerFragment
         FragmentManager fm = getSupportFragmentManager();

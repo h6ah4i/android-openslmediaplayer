@@ -19,7 +19,7 @@ package com.h6ah4i.android.example.openslmediaplayer.app;
 
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
-import android.support.v7.app.ActionBarActivity;
+import android.support.v7.app.AppCompatActivity;
 
 import com.h6ah4i.android.example.openslmediaplayer.app.framework.AppEventBus;
 import com.h6ah4i.android.example.openslmediaplayer.app.model.GlobalAppController;
@@ -27,7 +27,7 @@ import com.h6ah4i.android.example.openslmediaplayer.app.model.GlobalAppControlle
 public class AppBaseFragment extends Fragment {
 
     protected ActionBar getActionBar() {
-        return ((ActionBarActivity) getActivity()).getSupportActionBar();
+        return ((AppCompatActivity) getActivity()).getSupportActionBar();
     }
 
     protected boolean isNavigationDrawerOpen() {
