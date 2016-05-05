@@ -428,12 +428,9 @@ public abstract class BasicMediaPlayerTestCaseBase
         ConnectivityManager connManager =
                 (ConnectivityManager) getContext().
                         getSystemService(Context.CONNECTIVITY_SERVICE);
-        NetworkInfo wifi = connManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
-        // NetworkInfo mobile =
-        // connManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+        NetworkInfo active = connManager.getActiveNetworkInfo();
 
-        assertTrue("WiFi is not enabled", wifi.isConnected());
-        // assertFalse("Mobile communication is enabled", mobile.isConnected());
+        assertTrue("WiFi is not enabled", (active != null) && (active.getType() == ConnectivityManager.TYPE_WIFI));
     }
 
     protected void resetPlayerStates(final IBasicMediaPlayer player) {
