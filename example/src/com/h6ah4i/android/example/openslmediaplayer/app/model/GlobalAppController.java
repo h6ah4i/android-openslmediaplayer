@@ -1734,6 +1734,7 @@ public class GlobalAppController implements IReleasable {
                 mBassBoost = mFactory.createBassBoost(getPlayer(0));
             } catch (UnsupportedOperationException e) {
                 // the effect is not supported
+            } catch (IllegalArgumentException e) {
             }
         }
         return mBassBoost;
@@ -1745,6 +1746,7 @@ public class GlobalAppController implements IReleasable {
                 mVirtualizer = mFactory.createVirtualizer(getPlayer(0));
             } catch (UnsupportedOperationException e) {
                 // the effect is not supported
+            } catch (IllegalArgumentException e) {
             }
         }
         return mVirtualizer;
@@ -1756,6 +1758,7 @@ public class GlobalAppController implements IReleasable {
                 mEqualizer = mFactory.createEqualizer(getPlayer(0));
             } catch (UnsupportedOperationException e) {
                 // the effect is not supported
+            } catch (IllegalArgumentException e) {
             }
         }
         return mEqualizer;
@@ -1767,6 +1770,7 @@ public class GlobalAppController implements IReleasable {
                 mLoudnessEnhancer = mFactory.createLoudnessEnhancer(getPlayer(0));
             } catch (UnsupportedOperationException e) {
                 // the effect is not supported
+            } catch (IllegalArgumentException e) {
             }
         }
         return mLoudnessEnhancer;
@@ -1789,6 +1793,7 @@ public class GlobalAppController implements IReleasable {
                 mPresetReverb = mFactory.createPresetReverb();
             } catch (UnsupportedOperationException e) {
                 // the effect is not supported
+            } catch (IllegalArgumentException e) {
             }
         }
         return mPresetReverb;
@@ -1800,6 +1805,7 @@ public class GlobalAppController implements IReleasable {
                 mVisualizer = mFactory.createVisualizer(getPlayer(0));
             } catch (UnsupportedOperationException e) {
                 // the effect is not supported
+            } catch (IllegalArgumentException e) {
             }
         }
 
