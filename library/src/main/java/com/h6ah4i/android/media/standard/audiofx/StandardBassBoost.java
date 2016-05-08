@@ -49,7 +49,7 @@ public class StandardBassBoost extends StandardAudioEffect implements IBassBoost
      * @return underlying BassBoost instance.
      */
     public BassBoost getBassBoost() {
-        return (BassBoost) super.getGetAudioEffect();
+        return (BassBoost) super.getAudioEffect();
     }
 
     @Override

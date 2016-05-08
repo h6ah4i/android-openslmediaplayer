@@ -48,7 +48,7 @@ public class StandardVirtualizer extends StandardAudioEffect implements IVirtual
      * @return underlying Virtualizer instance.
      */
     public Virtualizer getVirtualizer() {
-        return (Virtualizer) super.getGetAudioEffect();
+        return (Virtualizer) super.getAudioEffect();
     }
 
     @Override

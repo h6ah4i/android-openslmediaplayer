@@ -62,14 +62,12 @@ class StandardAudioEffect implements IAudioEffect {
         mAudioEffect.setEnableStatusListener(StandardAudioEffect.wrap(this, listener));
     }
 
-    protected AudioEffect getGetAudioEffect() {
+    protected AudioEffect getAudioEffect() {
         return mAudioEffect;
     }
 
     protected void checkIsNotReleased() {
         checkIsNotReleased(null);
-        if (mAudioEffect == null) {
-        }
     }
 
     protected void checkIsNotReleased(String methodName) {
@@ -155,7 +153,7 @@ class StandardAudioEffect implements IAudioEffect {
     }
 
     protected void workaroundPrevReleaseSync() {
-        if (getGetAudioEffect() != null) {
+        if (getAudioEffect() != null) {
             try {
                 // My experiment result says 1 millisecond is enough, but adding more to keep safety...
                 Thread.sleep(5);

@@ -42,20 +42,20 @@ public class StandardLoudnessEnhancer extends StandardAudioEffect implements ILo
     public AudioEffect getLoudnessEnhancer() {
         // LoudnessEnhancer class has been introduced since API level 19,
         // so explicit casting should not be applied.
-        return super.getGetAudioEffect();
+        return super.getAudioEffect();
     }
 
     @Override
     public float getTargetGain() throws UnsupportedOperationException, IllegalStateException {
         checkIsNotReleased("getTargetGain()");
-        return S_IMPL.getTargetGain(super.getGetAudioEffect());
+        return S_IMPL.getTargetGain(super.getAudioEffect());
     }
 
     @Override
     public void setTargetGain(int gainmB) throws IllegalStateException, IllegalArgumentException {
         checkIsNotReleased("setTargetGain()");
         verifyTargetGainmBParameterRange(gainmB);
-        S_IMPL.setTargetGain(super.getGetAudioEffect(), gainmB);
+        S_IMPL.setTargetGain(super.getAudioEffect(), gainmB);
     }
 
     @Override

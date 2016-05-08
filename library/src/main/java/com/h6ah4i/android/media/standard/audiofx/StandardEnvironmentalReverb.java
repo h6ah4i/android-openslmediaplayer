@@ -48,7 +48,7 @@ public class StandardEnvironmentalReverb extends StandardAudioEffect implements 
      * @return underlying EnvironmentalReverb instance.
      */
     public EnvironmentalReverb getEnvironmentalReverb() {
-        return (EnvironmentalReverb) getGetAudioEffect();
+        return (EnvironmentalReverb) getAudioEffect();
     }
 
     @Override

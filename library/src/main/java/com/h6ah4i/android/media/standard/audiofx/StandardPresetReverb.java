@@ -46,7 +46,7 @@ public class StandardPresetReverb extends StandardAudioEffect implements IPreset
      * @return underlying PresetReverb instance.
      */
     public PresetReverb getPresetReverb() {
-        return (PresetReverb) super.getGetAudioEffect();
+        return (PresetReverb) super.getAudioEffect();
     }
 
     @Override

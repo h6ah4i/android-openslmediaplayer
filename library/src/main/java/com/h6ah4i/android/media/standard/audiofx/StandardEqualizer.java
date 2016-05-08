@@ -53,7 +53,7 @@ public class StandardEqualizer extends StandardAudioEffect implements IEqualizer
      * @return underlying Equalizer instance.
      */
     public Equalizer getEqualizer() {
-        return (Equalizer) super.getGetAudioEffect();
+        return (Equalizer) super.getAudioEffect();
     }
 
     @Override
