@@ -1910,6 +1910,9 @@ public class GlobalAppController implements IReleasable {
         state.setEnabled(enabled);
         applyEnvironmentalReverbStates(state);
 
+        checkStateAndApplyAttachedAuxEffectSettings(0);
+        checkStateAndApplyAttachedAuxEffectSettings(1);
+
         // notify enabled state updated
         postAppEvent(
                 EventDefs.Category.NOTIFY_ENVIRONMENTAL_REVERB,
@@ -1923,6 +1926,9 @@ public class GlobalAppController implements IReleasable {
 
         state.setEnabled(enabled);
         applyPresetReverbStates(state);
+
+        checkStateAndApplyAttachedAuxEffectSettings(0);
+        checkStateAndApplyAttachedAuxEffectSettings(1);
 
         // notify enabled state updated
         postAppEvent(
