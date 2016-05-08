@@ -23,6 +23,7 @@ import com.h6ah4i.android.media.audiofx.IEnvironmentalReverb;
 import com.h6ah4i.android.media.utils.AudioEffectSettingsConverter;
 
 public class StandardEnvironmentalReverb extends StandardAudioEffect implements IEnvironmentalReverb {
+    public static final String TAG = "StdEnvReverb";
 
     private IEnvironmentalReverb.OnParameterChangeListener mUserOnParameterChangeListener;
 
@@ -51,7 +52,20 @@ public class StandardEnvironmentalReverb extends StandardAudioEffect implements 
     }
 
     @Override
+    public int setEnabled(boolean enabled) throws IllegalStateException {
+        final int result = super.setEnabled(enabled);
+
+        if (result == SUCCESS) {
+            // workarounds
+            workaroundAfterSetEnabled(enabled);
+        }
+
+        return result;
+    }
+
+    @Override
     public void release() {
+        workaroundPrevReleaseSync();
         super.release();
         mOnParameterChangeListener = null;
         mUserOnParameterChangeListener = null;
@@ -62,15 +76,19 @@ public class StandardEnvironmentalReverb extends StandardAudioEffect implements 
             IllegalArgumentException,
             UnsupportedOperationException {
         checkIsNotReleased("getProperties()");
-        return AudioEffectSettingsConverter.convert(getEnvironmentalReverb().getProperties());
+        // NOTE: EnvironmentalReverb.getProperties() method does not work properly...
+        return AudioEffectSettingsConverter.convert(getPropertiesCompat(getEnvironmentalReverb()));
     }
 
     @Override
     public void setProperties(IEnvironmentalReverb.Settings settings)
             throws IllegalStateException, IllegalArgumentException, UnsupportedOperationException {
         verifySettings(settings);
+
         checkIsNotReleased("setProperties()");
-        getEnvironmentalReverb().setProperties(AudioEffectSettingsConverter.convert(settings));
+
+        // NOTE: EnvironmentalReverb.getProperties() method does not work properly...
+        setPropertiesCompat(getEnvironmentalReverb(), AudioEffectSettingsConverter.convert(settings));
     }
 
     @Override
@@ -327,5 +345,42 @@ public class StandardEnvironmentalReverb extends StandardAudioEffect implements 
         verifyDiffusionParameterRange(settings.diffusion);
         verifyDensityParameterRange(settings.density);
     }
+
+    private static EnvironmentalReverb.Settings getPropertiesCompat(EnvironmentalReverb reverb) {
+        EnvironmentalReverb.Settings settings = new EnvironmentalReverb.Settings();
+
+        settings.roomLevel = reverb.getRoomLevel();
+        settings.roomHFLevel = reverb.getRoomHFLevel();
+        settings.decayTime = reverb.getDecayTime();
+        settings.decayHFRatio = reverb.getDecayHFRatio();
+        settings.reflectionsLevel = reverb.getReflectionsLevel();
+        settings.reflectionsDelay = reverb.getReflectionsDelay();
+        settings.reverbLevel = reverb.getReverbLevel();
+        settings.reverbDelay = reverb.getReverbDelay();
+        settings.diffusion = reverb.getDiffusion();
+        settings.density = reverb.getDensity();
+
+        return settings;
+    }
+
+    private void setPropertiesCompat(EnvironmentalReverb reverb, EnvironmentalReverb.Settings settings) {
+        reverb.setRoomLevel(settings.roomLevel);
+        reverb.setRoomHFLevel(settings.roomHFLevel);
+        reverb.setDecayTime(settings.decayTime);
+        reverb.setDecayHFRatio(settings.decayHFRatio);
+        reverb.setReflectionsLevel(settings.reflectionsLevel);
+        reverb.setReflectionsDelay(settings.reflectionsDelay);
+        reverb.setReverbLevel(settings.reverbLevel);
+        reverb.setReverbDelay(settings.reverbDelay);
+        reverb.setDiffusion(settings.diffusion);
+        reverb.setDensity(settings.density);
+    }
+
+    private void workaroundAfterSetEnabled(boolean enabled) {
+        if (enabled) {
+            setProperties(getProperties());
+        }
+    }
+
     // ==============================
 }

@@ -58,6 +58,7 @@ public class StandardPresetReverb extends StandardAudioEffect implements IPreset
 
     @Override
     public void release() {
+        workaroundPrevReleaseSync();
         super.release();
         mOnParameterChangeListener = null;
         mUserOnParameterChangeListener = null;

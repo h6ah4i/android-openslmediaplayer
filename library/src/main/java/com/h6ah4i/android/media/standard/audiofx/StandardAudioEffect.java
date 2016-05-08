@@ -153,4 +153,14 @@ class StandardAudioEffect implements IAudioEffect {
             mListener = null;
         }
     }
+
+    protected void workaroundPrevReleaseSync() {
+        if (getGetAudioEffect() != null) {
+            try {
+                // My experiment result says 1 millisecond is enough, but adding more to keep safety...
+                Thread.sleep(5);
+            } catch (InterruptedException e) {
+            }
+        }
+    }
 }
