@@ -270,6 +270,21 @@ public class OpenSLMediaPlayerFactory implements IMediaPlayerFactory {
         boolean hasCyanogenModDSPManager = (getEqualizerNumberOfBands() == 6);
         int options = 0;
 
+        // [WARNING]
+        //
+        // Enabling Android Framework audio effects will cause audio glitches.
+        // - Bass boost
+        // - Virtualizer
+        // - Equalizer
+        // - Environmental Reverb
+        // - Preset Reverb
+        //
+        // These OSLMP features are not affected
+        // - Pre Amp
+        // - HQ Equalizer
+        // - Visualizer
+        // - HQ Visualizer
+
         if (!hasCyanogenModDSPManager) {
             options |= OpenSLMediaPlayerContext.OPTION_USE_BASSBOOST;
             options |= OpenSLMediaPlayerContext.OPTION_USE_VIRTUALIZER;
