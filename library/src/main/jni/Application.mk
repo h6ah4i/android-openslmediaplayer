@@ -24,11 +24,17 @@
 #
 # Detect NDK version
 #
-#OSLMP_NDK_RELEASE_VERSION_FULL := $(firstword $(strip $(shell cat $(NDK_ROOT)/RELEASE.TXT)))
-#OSLMP_NDK_RELEASE_VERSION_NUMBER := $(shell echo $(OSLMP_NDK_RELEASE_VERSION_FULL) | $(HOST_SED) 's/^r\([0-9]\+\).*$$/\1/g')
-OSLMP_NDK_RELEASE_VERSION_NUMBER := $(firstword $(strip $(shell awk 'BEGIN{ file="'$(NDK_ROOT)/RELEASE.TXT'";while ((getline<file) > 0){ if (match($$0,/[0-9]+/)) { print substr($$0, RSTART, RLENGTH); } } }')))
-#$(info OSLMP_NDK_RELEASE_VERSION_NUMBER = $(OSLMP_NDK_RELEASE_VERSION_NUMBER))
 
+# $(NDK_ROOT)/RELEASE.TXT
+OSLMP_NDK_RELEASE_VERSION_NUMBER := $(firstword $(strip $(shell awk 'BEGIN{ file="'$(NDK_ROOT)/RELEASE.TXT'";while ((getline<file) > 0){ if (match($$0,/[0-9]+/)) { print substr($$0, RSTART, RLENGTH); } } }')))
+# $(NDK_ROOT)/source.properties
+ifndef OSLMP_NDK_RELEASE_VERSION_NUMBER
+    OSLMP_NDK_RELEASE_VERSION_NUMBER := $(firstword $(strip $(shell awk 'BEGIN{ file="'$(NDK_ROOT)/source.properties'";while ((getline<file) > 0){ if ($$0 ~ /Pkg.Revision = / && match($$0,/[0-9]+/)) { print substr($$0, RSTART, RLENGTH); } } }')))
+endif
+# $(info OSLMP_NDK_RELEASE_VERSION_NUMBER = $(OSLMP_NDK_RELEASE_VERSION_NUMBER))
+
+
+# 
 #
 # NDK_TOOLCHAIN_VERSION
 #
@@ -68,8 +74,11 @@ APP_OPTIM := release
 #
 APP_ABI := 
 APP_ABI += armeabi
-# APP_ABI += armeabi-v7a
+ifeq ($(shell echo $(OSLMP_NDK_RELEASE_VERSION_NUMBER)\>=12 | bc), 1)
+APP_ABI += armeabi-v7a
+else
 APP_ABI += armeabi-v7a-hard
+endif
 APP_ABI += x86
 APP_ABI += mips
 ifneq ($(OSLMP_NDK_RELEASE_VERSION_NUMBER), 9)
