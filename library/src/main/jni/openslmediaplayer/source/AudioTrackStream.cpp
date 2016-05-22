@@ -445,7 +445,7 @@ int32_t AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcep
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
     const int32_t num_data_write = num_channels * buffer_size_in_frames;
     const size_t num_data_write_in_bytes = num_data_write * getBytesPerSample(format);
-    std::unique_ptr<int16_t[]> buffer(new int16_t[num_data_write]);
+    std::unique_ptr<int16_t[]> buffer(new int16_t[num_data_write]());
 
     LocalByteBuffer bb(env, buffer.get(), num_data_write_in_bytes);
 
@@ -491,7 +491,7 @@ int32_t AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexc
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
     const int32_t num_data_write = num_channels * buffer_size_in_frames;
     const size_t num_data_write_in_bytes = num_data_write * getBytesPerSample(format);
-    std::unique_ptr<float[]> buffer(new float[num_data_write]);
+    std::unique_ptr<float[]> buffer(new float[num_data_write]());
 
     LocalByteBuffer bb(env, buffer.get(), num_data_write_in_bytes);
 
