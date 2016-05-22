@@ -43,7 +43,9 @@ public:
     virtual JavaVM *getJavaVM() const noexcept override;
     virtual SLresult getInterfaceFromEngine(opensles::CSLInterface *itf) noexcept override;
     virtual SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept override;
-    virtual SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept override;
+    virtual SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept override;
+    virtual SLresult releaseInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept override;
+
     virtual uint32_t getContextOptions() const noexcept override;
     virtual OpenSLMediaPlayerContext::InternalThreadEventListener *getInternalThreadEventListener() const
         noexcept override;
@@ -73,8 +75,9 @@ public:
     virtual bool extPostMessage(OpenSLMediaPlayerExtension *handler, OpenSLMediaPlayerExtensionToken token, void *msg,
                                 size_t size) noexcept override;
 
-    virtual SLresult extGetInterfaceFromPlayer(opensles::CSLInterface *pInterface) noexcept override;
+    virtual SLresult extGetInterfaceFromPlayer(opensles::CSLInterface *pInterface, bool instantiate = false) noexcept override;
     virtual SLresult extGetInterfaceFromOutputMix(opensles::CSLInterface *pInterface) noexcept override;
+    virtual SLresult extReleaseInterfaceFromPlayer(opensles::CSLInterface *pInterface) noexcept override;
 
     virtual int extTranslateOpenSLErrorCode(SLresult result) const noexcept override;
 

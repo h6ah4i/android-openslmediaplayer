@@ -245,12 +245,20 @@ SLresult OpenSLMediaPlayerInternalContextImpl::getInterfaceFromOutputMixer(opens
     return audio_system_->getInterfaceFromOutputMixer(itf);
 }
 
-SLresult OpenSLMediaPlayerInternalContextImpl::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+SLresult OpenSLMediaPlayerInternalContextImpl::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept
 {
     if (!audio_system_)
         return SL_RESULT_INTERNAL_ERROR;
-    return audio_system_->getInterfaceFromSinkPlayer(itf);
+    return audio_system_->getInterfaceFromSinkPlayer(itf, instantiate);
 }
+
+SLresult OpenSLMediaPlayerInternalContextImpl::releaseInterfaceFromSinkPlayer(opensles::CSLInterface *pInterface) noexcept
+{
+    if (!audio_system_)
+        return SL_RESULT_INTERNAL_ERROR;
+    return audio_system_->releaseInterfaceFromSinkPlayer(pInterface);
+}
+
 
 uint32_t OpenSLMediaPlayerInternalContextImpl::getContextOptions() const noexcept { return this->options_; }
 
@@ -421,14 +429,19 @@ bool OpenSLMediaPlayerInternalContextImpl::extPostMessage(OpenSLMediaPlayerExten
     return msgHandlerThread_.post(msg, size, &tag, sizeof(tag));
 }
 
-SLresult OpenSLMediaPlayerInternalContextImpl::extGetInterfaceFromPlayer(opensles::CSLInterface *pInterface) noexcept
+SLresult OpenSLMediaPlayerInternalContextImpl::extGetInterfaceFromPlayer(opensles::CSLInterface *pInterface, bool instantiate) noexcept
 {
-    return this->getInterfaceFromSinkPlayer(pInterface);
+    return this->getInterfaceFromSinkPlayer(pInterface, instantiate);
 }
 
 SLresult OpenSLMediaPlayerInternalContextImpl::extGetInterfaceFromOutputMix(opensles::CSLInterface *pInterface) noexcept
 {
     return this->getInterfaceFromOutputMixer(pInterface);
+}
+
+SLresult OpenSLMediaPlayerInternalContextImpl::extReleaseInterfaceFromPlayer(opensles::CSLInterface *pInterface) noexcept
+{
+    return this->releaseInterfaceFromSinkPlayer(pInterface);
 }
 
 int OpenSLMediaPlayerInternalContextImpl::extTranslateOpenSLErrorCode(SLresult result) const noexcept

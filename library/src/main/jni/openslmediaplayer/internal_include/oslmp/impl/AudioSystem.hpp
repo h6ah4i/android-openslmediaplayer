@@ -87,7 +87,8 @@ public:
 
     SLresult getInterfaceFromEngine(opensles::CSLInterface *itf) noexcept;
     SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept;
-    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
+    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept;
+    SLresult releaseInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
 
     AudioDataPipeManager *getPipeManager() const noexcept;
     AudioMixer *getMixer() const noexcept;

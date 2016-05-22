@@ -142,7 +142,12 @@ SLresult AudioSinkAudioTrackBackend::onGetInterfaceFromOutputMixer(opensles::CSL
     return SL_RESULT_FEATURE_UNSUPPORTED;
 }
 
-SLresult AudioSinkAudioTrackBackend::onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+SLresult AudioSinkAudioTrackBackend::onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept
+{
+    return SL_RESULT_FEATURE_UNSUPPORTED;
+}
+
+SLresult AudioSinkAudioTrackBackend::onReleaseInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept
 {
     return SL_RESULT_FEATURE_UNSUPPORTED;
 }

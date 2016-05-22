@@ -73,7 +73,8 @@ public:
 
     virtual SLresult getInterfaceFromEngine(opensles::CSLInterface *itf) noexcept = 0;
     virtual SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept = 0;
-    virtual SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept = 0;
+    virtual SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept = 0;
+    virtual SLresult releaseInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept = 0;
     virtual uint32_t getContextOptions() const noexcept = 0;
     virtual OpenSLMediaPlayerContext::InternalThreadEventListener *getInternalThreadEventListener() const noexcept = 0;
     virtual AudioSystem *getAudioSystem() const noexcept = 0;

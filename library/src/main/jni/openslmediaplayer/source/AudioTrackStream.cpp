@@ -233,6 +233,8 @@ int32_t AudioTrackStream::getAudioSessionId() noexcept
 int32_t AudioTrackStream::setAuxEffectSendLevel(float level) noexcept {
     JNIEnv *env = getJNIEnv();
 
+    LOGD("AudioTrackStream::setAuxEffectSendLevel(level = %f)", level);
+
     if (!(track_ && env)) {
         return OSLMP_RESULT_INTERNAL_ERROR;
     }
@@ -244,6 +246,8 @@ int32_t AudioTrackStream::setAuxEffectSendLevel(float level) noexcept {
 
 int32_t AudioTrackStream::attachAuxEffect(int effect_id) noexcept {
     JNIEnv *env = getJNIEnv();
+
+    LOGD("AudioTrackStream::attachAuxEffect(effect_id = %d)", effect_id);
 
     if (!(track_ && env)) {
         return OSLMP_RESULT_INTERNAL_ERROR;

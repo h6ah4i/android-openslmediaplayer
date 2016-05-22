@@ -64,7 +64,9 @@ public:
     int setAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept;
 
     SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept;
-    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
+    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept;
+    SLresult releaseInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
+
 
     int setNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept;
 
@@ -180,11 +182,18 @@ SLresult AudioSink::getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noe
     return impl_->getInterfaceFromOutputMixer(itf);
 }
 
-SLresult AudioSink::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+SLresult AudioSink::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept
 {
     if (CXXPH_UNLIKELY(!impl_))
         return SL_RESULT_RESOURCE_ERROR;
-    return impl_->getInterfaceFromSinkPlayer(itf);
+    return impl_->getInterfaceFromSinkPlayer(itf, instantiate);
+}
+
+SLresult AudioSink::releaseInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return SL_RESULT_RESOURCE_ERROR;
+    return impl_->releaseInterfaceFromSinkPlayer(itf);
 }
 
 int AudioSink::setNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept
@@ -398,14 +407,19 @@ void AudioSink::Impl::updateState(state_t state) {
 #endif
 }
 
-SLresult AudioSink::Impl::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+SLresult AudioSink::Impl::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept
 {
-    return backend_->onGetInterfaceFromSinkPlayer(itf);
+    return backend_->onGetInterfaceFromSinkPlayer(itf, instantiate);
 }
 
 SLresult AudioSink::Impl::getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept
 {
     return backend_->onGetInterfaceFromOutputMixer(itf);
+}
+
+SLresult AudioSink::Impl::releaseInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+{
+    return backend_->onReleaseInterfaceFromOutputMixer(itf);
 }
 
 int AudioSink::Impl::setNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept

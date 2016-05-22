@@ -14,7 +14,7 @@
 //    limitations under the License.
 //
 
-// #define LOG_TAG "AudioSystem"
+#define LOG_TAG "AudioSystem"
 // #define NB_LOG_TAG "NB AudioSystem"
 
 #include "oslmp/impl/AudioSystem.hpp"
@@ -88,7 +88,8 @@ public:
 
     SLresult getInterfaceFromEngine(opensles::CSLInterface *itf) noexcept;
     SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept;
-    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
+    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept;
+    SLresult releaseInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
 
     AudioDataPipeManager *getPipeManager() const noexcept;
     AudioMixer *getMixer() const noexcept;
@@ -211,11 +212,18 @@ SLresult AudioSystem::getInterfaceFromOutputMixer(opensles::CSLInterface *itf) n
     return impl_->getInterfaceFromOutputMixer(itf);
 }
 
-SLresult AudioSystem::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+SLresult AudioSystem::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept
 {
     if (CXXPH_UNLIKELY(!impl_))
         return SL_RESULT_INTERNAL_ERROR;
-    return impl_->getInterfaceFromSinkPlayer(itf);
+    return impl_->getInterfaceFromSinkPlayer(itf, instantiate);
+}
+
+SLresult AudioSystem::releaseInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+{
+    if (CXXPH_UNLIKELY(!impl_))
+        return SL_RESULT_INTERNAL_ERROR;
+    return impl_->releaseInterfaceFromSinkPlayer(itf);
 }
 
 AudioDataPipeManager *AudioSystem::getPipeManager() const noexcept
@@ -726,7 +734,7 @@ SLresult AudioSystem::Impl::getInterfaceFromOutputMixer(opensles::CSLInterface *
     return sink_->getInterfaceFromOutputMixer(itf);
 }
 
-SLresult AudioSystem::Impl::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+SLresult AudioSystem::Impl::getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept
 {
     if (!itf)
         return SL_RESULT_PARAMETER_INVALID;
@@ -735,7 +743,19 @@ SLresult AudioSystem::Impl::getInterfaceFromSinkPlayer(opensles::CSLInterface *i
         return SL_RESULT_RESOURCE_ERROR;
     }
 
-    return sink_->getInterfaceFromSinkPlayer(itf);
+    return sink_->getInterfaceFromSinkPlayer(itf, instantiate);
+}
+
+SLresult AudioSystem::Impl::releaseInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+{
+    if (!itf)
+        return SL_RESULT_PARAMETER_INVALID;
+
+    if (!sink_) {
+        return SL_RESULT_RESOURCE_ERROR;
+    }
+
+    return sink_->releaseInterfaceFromSinkPlayer(itf);
 }
 
 AudioDataPipeManager *AudioSystem::Impl::getPipeManager() const noexcept { return pipe_mgr_.get(); }
@@ -1198,7 +1218,7 @@ bool AudioSystem::Impl::check_use_floating_point_output(const initialize_args_t 
 uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t &args, bool is_low_latency, bool floating_point) noexcept
 {
     const bool uses_opensl_sink = (args.sink_backend_type == OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL);
-    const int kBufferSizeMultiple = (uses_opensl_sink) ? 1 : 1;
+    const int kBufferSizeMultiple = (uses_opensl_sink) ? 2 : 1;
 
     if (uses_opensl_sink) {
         if (is_low_latency) {

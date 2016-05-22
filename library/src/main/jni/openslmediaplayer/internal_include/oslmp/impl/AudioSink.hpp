@@ -84,7 +84,8 @@ public:
     int setAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept;
 
     SLresult getInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept;
-    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
+    SLresult getInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept;
+    SLresult releaseInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept;
 
     int setNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept;
 
@@ -119,7 +120,8 @@ public:
     virtual int onSetAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept = 0;
 
     virtual SLresult onGetInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept = 0;
-    virtual SLresult onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept = 0;
+    virtual SLresult onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept = 0;
+    virtual SLresult onReleaseInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept = 0;
 
     virtual int onSetNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept = 0;
 

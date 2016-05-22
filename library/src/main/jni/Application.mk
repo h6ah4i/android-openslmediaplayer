@@ -77,6 +77,7 @@ APP_ABI += arm64-v8a
 APP_ABI += x86_64
 APP_ABI += mips64
 endif
+APP_ABI := arm64-v8a
 
 #
 # APP_CFLAGS

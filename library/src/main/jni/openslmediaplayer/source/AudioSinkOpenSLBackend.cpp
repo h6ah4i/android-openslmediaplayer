@@ -215,33 +215,33 @@ int AudioSinkOpenSLBackend::onInitialize(const AudioSink::initialize_args_t &arg
         req[cnt] = SL_BOOLEAN_FALSE;
         ++cnt;
 
-        // effect send
-        if (args.opts & (OSLMP_CONTEXT_OPTION_USE_PRESET_REVERB | OSLMP_CONTEXT_OPTION_USE_ENVIRONMENAL_REVERB)) {
-            ids[cnt] = CSLEffectSendItf::sGetIID();
-            req[cnt] = SL_BOOLEAN_FALSE;
-            ++cnt;
-        }
+        // // effect send
+        // if (args.opts & (OSLMP_CONTEXT_OPTION_USE_PRESET_REVERB | OSLMP_CONTEXT_OPTION_USE_ENVIRONMENAL_REVERB)) {
+        //     ids[cnt] = CSLEffectSendItf::sGetIID();
+        //     req[cnt] = SL_BOOLEAN_FALSE;
+        //     ++cnt;
+        // }
 
-        // bass boost
-        if (args.opts & OSLMP_CONTEXT_OPTION_USE_BASSBOOST) {
-            ids[cnt] = CSLBassBoostItf::sGetIID();
-            req[cnt] = SL_BOOLEAN_FALSE;
-            ++cnt;
-        }
+        // // bass boost
+        // if (args.opts & OSLMP_CONTEXT_OPTION_USE_BASSBOOST) {
+        //     ids[cnt] = CSLBassBoostItf::sGetIID();
+        //     req[cnt] = SL_BOOLEAN_FALSE;
+        //     ++cnt;
+        // }
 
-        // virtualizer
-        if (args.opts & OSLMP_CONTEXT_OPTION_USE_VIRTUALIZER) {
-            ids[cnt] = CSLVirtualizerItf::sGetIID();
-            req[cnt] = SL_BOOLEAN_FALSE;
-            ++cnt;
-        }
+        // // virtualizer
+        // if (args.opts & OSLMP_CONTEXT_OPTION_USE_VIRTUALIZER) {
+        //     ids[cnt] = CSLVirtualizerItf::sGetIID();
+        //     req[cnt] = SL_BOOLEAN_FALSE;
+        //     ++cnt;
+        // }
 
-        // equalizer
-        if (args.opts & OSLMP_CONTEXT_OPTION_USE_EQUALIZER) {
-            ids[cnt] = CSLEqualizerItf::sGetIID();
-            req[cnt] = SL_BOOLEAN_FALSE;
-            ++cnt;
-        }
+        // // equalizer
+        // if (args.opts & OSLMP_CONTEXT_OPTION_USE_EQUALIZER) {
+        //     ids[cnt] = CSLEqualizerItf::sGetIID();
+        //     req[cnt] = SL_BOOLEAN_FALSE;
+        //     ++cnt;
+        // }
 
         slResult = engine.CreateAudioPlayer(&obj_player, &audio_src, &audio_sink, cnt, ids, req);
 
@@ -478,7 +478,7 @@ SLresult AudioSinkOpenSLBackend::onGetInterfaceFromOutputMixer(opensles::CSLInte
     return obj_outmix_.GetInterface(itf);
 }
 
-SLresult AudioSinkOpenSLBackend::onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept
+SLresult AudioSinkOpenSLBackend::onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept
 {
     const SLInterfaceID iid = itf->getIID();
 
@@ -514,6 +514,11 @@ SLresult AudioSinkOpenSLBackend::onGetInterfaceFromSinkPlayer(opensles::CSLInter
     return obj_player_.GetInterface(itf);
 }
 
+SLresult AudioSinkOpenSLBackend::onReleaseInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept
+{
+    return SL_RESULT_FEATURE_UNSUPPORTED;
+}
+
 int AudioSinkOpenSLBackend::onSetNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept
 {
     notify_pull_callback_pfunc_ = pfunc;
@@ -528,7 +533,7 @@ int AudioSinkOpenSLBackend::applyActiveAuxEffectSettings() noexcept
     CSLEnvironmentalReverbItf env_reverb;
     CSLPresetReverbItf preset_reverb;
 
-    (void)onGetInterfaceFromSinkPlayer(&effect_send);
+    (void)onGetInterfaceFromSinkPlayer(&effect_send, false);
     (void)onGetInterfaceFromOutputMixer(&env_reverb);
     (void)onGetInterfaceFromOutputMixer(&preset_reverb);
 

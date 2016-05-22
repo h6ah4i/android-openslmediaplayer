@@ -100,8 +100,10 @@ public:
     virtual bool extPostMessage(OpenSLMediaPlayerExtension *handler, OpenSLMediaPlayerExtensionToken token, void *msg,
                                 size_t size) noexcept = 0;
 
-    virtual SLresult extGetInterfaceFromPlayer(opensles::CSLInterface *pInterface) noexcept = 0;
+    virtual SLresult extGetInterfaceFromPlayer(opensles::CSLInterface *pInterface, bool instantiate = false) noexcept = 0;
     virtual SLresult extGetInterfaceFromOutputMix(opensles::CSLInterface *pInterface) noexcept = 0;
+
+    virtual SLresult extReleaseInterfaceFromPlayer(opensles::CSLInterface *pInterface) noexcept = 0;
 
     virtual int extTranslateOpenSLErrorCode(SLresult result) const noexcept = 0;
 

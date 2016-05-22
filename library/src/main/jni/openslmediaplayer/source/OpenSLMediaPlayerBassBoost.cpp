@@ -508,7 +508,7 @@ bool BassBoostExtModule::onInstall(OpenSLMediaPlayerExtensionManager *extmgr, Op
 
     CSLBassBoostItf bassboost;
 
-    if (IS_SL_SUCCESS(extmgr->extGetInterfaceFromPlayer(&bassboost))) {
+    if (IS_SL_SUCCESS(extmgr->extGetInterfaceFromPlayer(&bassboost, true))) {
         // acquired a bassboost instance from the current player
 
         // apply default settings

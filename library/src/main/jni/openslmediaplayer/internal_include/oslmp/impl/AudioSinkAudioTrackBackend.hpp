@@ -50,7 +50,8 @@ public:
     virtual int onSetAuxEffectEnabled(int aux_effect_id, bool enabled) noexcept override;
 
     virtual SLresult onGetInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept override;
-    virtual SLresult onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf) noexcept override;
+    virtual SLresult onGetInterfaceFromSinkPlayer(opensles::CSLInterface *itf, bool instantiate) noexcept override;
+    virtual SLresult onReleaseInterfaceFromOutputMixer(opensles::CSLInterface *itf) noexcept override;
 
     virtual int onSetNotifyPullCallback(void (*pfunc)(void *), void *args) noexcept override;
 
