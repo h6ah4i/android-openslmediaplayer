@@ -62,7 +62,7 @@
 // NOTE: In current Android's implementation, the remnant data
 // of which cannot be deviced by DECODE_BLOCK_SIZE_IN_FRAMES will be discarded.
 // So, if this value is increased, more larger part of the end of the audio track will be lost.
-#define DECODE_BLOCK_SIZE_IN_FRAMES 1024
+#define DECODE_BLOCK_SIZE_IN_FRAMES 1152
 
 #ifdef USE_OSLMP_DEBUG_FEATURES
 #define TRACE_DECODER_BUFFER_QUEUE_CALLBACK_STATE(state)    ATRACE_COUNTER("DecoderQueueCallbackState", (state))
