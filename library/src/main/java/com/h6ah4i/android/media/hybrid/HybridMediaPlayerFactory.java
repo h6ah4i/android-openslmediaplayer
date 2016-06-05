@@ -34,13 +34,13 @@ import com.h6ah4i.android.media.opensl.OpenSLMediaPlayerContext;
 import com.h6ah4i.android.media.opensl.audiofx.OpenSLHQEqualizer;
 import com.h6ah4i.android.media.opensl.audiofx.OpenSLHQVisualizer;
 import com.h6ah4i.android.media.opensl.audiofx.OpenSLPreAmp;
+import com.h6ah4i.android.media.opensl.audiofx.OpenSLVisualizer;
 import com.h6ah4i.android.media.standard.audiofx.StandardBassBoost;
 import com.h6ah4i.android.media.standard.audiofx.StandardEnvironmentalReverb;
 import com.h6ah4i.android.media.standard.audiofx.StandardEqualizer;
 import com.h6ah4i.android.media.standard.audiofx.StandardLoudnessEnhancer;
 import com.h6ah4i.android.media.standard.audiofx.StandardPresetReverb;
 import com.h6ah4i.android.media.standard.audiofx.StandardVirtualizer;
-import com.h6ah4i.android.media.standard.audiofx.StandardVisualizer;
 
 public class HybridMediaPlayerFactory implements IMediaPlayerFactory {
     private Context mContext;
@@ -178,12 +178,12 @@ public class HybridMediaPlayerFactory implements IMediaPlayerFactory {
         return new StandardEqualizer(0, player.getAudioSessionId());
     }
 
-    protected StandardVisualizer onCreateVisualizer(int audioSession) {
-        return new StandardVisualizer(mContext, audioSession);
+    protected OpenSLVisualizer onCreateVisualizer(int audioSession) {
+        return new OpenSLVisualizer(getOpenSLMediaPlayerContext());
     }
 
-    protected StandardVisualizer onCreateVisualizer(OpenSLMediaPlayer player) {
-        return new StandardVisualizer(mContext, player.getAudioSessionId());
+    protected OpenSLVisualizer onCreateVisualizer(OpenSLMediaPlayer player) {
+        return new OpenSLVisualizer(getOpenSLMediaPlayerContext());
     }
 
     protected StandardLoudnessEnhancer onCreateLoudnessEnhancer(int audioSession) {
@@ -238,6 +238,7 @@ public class HybridMediaPlayerFactory implements IMediaPlayerFactory {
     protected int getDefaultContextOptions() {
         int options = 0;
 
+        options |= OpenSLMediaPlayerContext.OPTION_USE_VISUALIZER;
         options |= OpenSLMediaPlayerContext.OPTION_USE_HQ_EQUALIZER;
         options |= OpenSLMediaPlayerContext.OPTION_USE_PREAMP;
         options |= OpenSLMediaPlayerContext.OPTION_USE_HQ_VISUALIZER;
