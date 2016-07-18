@@ -14,7 +14,7 @@
 //    limitations under the License.
 //
 
-#define LOG_TAG "AudioTrackStream"
+// #define LOG_TAG "AudioTrackStream"
 
 #include "oslmp/impl/AudioTrackStream.hpp"
 
@@ -286,6 +286,8 @@ void* AudioTrackStream::sinkWriterThreadEntryFunc(void *args) noexcept
         env = nullptr;
     }
 
+    LOGD("AudioTrackStream::sinkWriterThreadEntryFunc - Exit");
+
     return nullptr;
 }
 
@@ -321,7 +323,7 @@ void AudioTrackStream::sinkWriterThreadProcess(JNIEnv *env) noexcept
 
     if (play_result == AudioTrack::SUCCESS) {
         track_->pause(env);
-        track_->stop(env);
+        track_->flush(env);
     }
 
     ATRACE_END_SECTION();
@@ -329,6 +331,8 @@ void AudioTrackStream::sinkWriterThreadProcess(JNIEnv *env) noexcept
 
 int32_t AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
 {
+    LOGD("AudioTrackStream::sinkWriterThreadLoopS16");
+
     int32_t play_result = AudioTrack::ERROR;
     const sample_format_type format = kAudioSampleFormatType_S16;
     const int32_t num_channels = track_->getChannelCount();
@@ -376,6 +380,8 @@ int32_t AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
 
 int32_t AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
 {
+    LOGD("AudioTrackStream::sinkWriterThreadLoopFloat");
+
     int32_t play_result = AudioTrack::ERROR;
     const sample_format_type format = kAudioSampleFormatType_F32;
     const int32_t num_channels = track_->getChannelCount();
@@ -439,6 +445,8 @@ int32_t AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
 
 int32_t AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcept
 {
+    LOGD("AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer");
+
     int32_t play_result = AudioTrack::ERROR;
     const sample_format_type format = kAudioSampleFormatType_S16;
     const int32_t num_channels = track_->getChannelCount();
@@ -485,6 +493,8 @@ int32_t AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcep
 
 int32_t AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexcept
 {
+    LOGD("AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer");
+
     int32_t play_result = AudioTrack::ERROR;
     const sample_format_type format = kAudioSampleFormatType_F32;
     const int32_t num_channels = track_->getChannelCount();

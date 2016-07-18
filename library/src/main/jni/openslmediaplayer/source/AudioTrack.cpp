@@ -37,7 +37,7 @@ static jmethodID safeGetMethodId(JNIEnv *env, jclass clazz, const char *name, co
 }
 
 AudioTrack::AudioTrack()
-    : cls_(nullptr), obj_(nullptr), m_play_(0), m_pause_(0), m_stop_(0), m_release_(0),
+    : cls_(nullptr), obj_(nullptr), m_play_(0), m_pause_(0), m_stop_(0), m_flush_(0), m_release_(0),
       m_get_state_(0), m_get_play_state_(0), m_get_audio_session_(0), m_write_sa_(0), m_write_fa_(0), m_write_bb_(0),
       audio_format_(AudioFormat::ENCODING_INVALID), channel_count_(AudioFormat::CHANNEL_INVALID),
       buffer_size_in_frames_(0), buffer_size_in_bytes_(0)
@@ -89,6 +89,7 @@ bool AudioTrack::create(
     const jmethodID m_play = safeGetMethodId(env, cls(), "play", "()V");
     const jmethodID m_pause = safeGetMethodId(env, cls(), "pause", "()V");
     const jmethodID m_stop = safeGetMethodId(env, cls(), "stop", "()V");
+    const jmethodID m_flush = safeGetMethodId(env, cls(), "flush", "()V");
     const jmethodID m_release = safeGetMethodId(env, cls(), "release", "()V");
     const jmethodID m_get_state = safeGetMethodId(env, cls(), "getState", "()I");
     const jmethodID m_get_play_state = safeGetMethodId(env, cls(), "getPlayState", "()I");
@@ -99,7 +100,7 @@ bool AudioTrack::create(
     const jmethodID m_write_fa = safeGetMethodId(env, cls(), "write", "([FIII)I");
     const jmethodID m_write_bb = safeGetMethodId(env, cls(), "write", "(Ljava/nio/ByteBuffer;II)I");
 
-    if (!(m_play && m_pause && m_stop && m_release && m_get_state && m_get_play_state &&
+    if (!(m_play && m_pause && m_stop && m_flush && m_release && m_get_state && m_get_play_state &&
         m_get_audio_session && m_set_aux_effect_send_level && m_attach_aux_effect && (
       m_write_bb || (m_write_sa && format == AudioFormat::ENCODING_PCM_16BIT) || (m_write_fa && format == AudioFormat::ENCODING_PCM_FLOAT)))) {
         return false;
@@ -111,6 +112,7 @@ bool AudioTrack::create(
     m_play_ = m_play;
     m_pause_ = m_pause;
     m_stop_ = m_stop;
+    m_flush_ = m_flush;
     m_release_ = m_release;
     m_get_state_ = m_get_state;
     m_get_play_state_ = m_get_play_state;
@@ -144,6 +146,7 @@ void AudioTrack::release(JNIEnv *env) noexcept
     m_play_ = 0;
     m_pause_ = 0;
     m_stop_ = 0;
+    m_flush_ = 0;
     m_release_ = 0;
     m_get_play_state_ = 0;
     m_get_audio_session_ = 0;
@@ -209,6 +212,26 @@ int32_t AudioTrack::stop(JNIEnv *env) noexcept
     }
 
     env->CallNonvirtualVoidMethod(obj_, cls_, m_stop_);
+
+    if (CXXPH_UNLIKELY(env->ExceptionCheck())) {
+        env->ExceptionClear();
+        return ERROR_INVALID_OPERATION;
+    }
+
+    return SUCCESS;
+}
+
+int32_t AudioTrack::flush(JNIEnv *env) noexcept
+{
+    if (CXXPH_UNLIKELY(!(m_flush_))) {
+        return ERROR_INVALID_OPERATION;
+    }
+
+    if (CXXPH_UNLIKELY(env->ExceptionCheck())) {
+        return ERROR_INVALID_OPERATION;
+    }
+
+    env->CallNonvirtualVoidMethod(obj_, cls_, m_flush_);
 
     if (CXXPH_UNLIKELY(env->ExceptionCheck())) {
         env->ExceptionClear();

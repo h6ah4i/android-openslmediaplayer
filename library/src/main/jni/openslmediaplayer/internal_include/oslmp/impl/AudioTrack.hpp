@@ -57,6 +57,7 @@ public:
     int32_t play(JNIEnv *env) noexcept;
     int32_t pause(JNIEnv *env) noexcept;
     int32_t stop(JNIEnv *env) noexcept;
+    int32_t flush(JNIEnv *env) noexcept;
     int32_t write(JNIEnv *env, jshortArray data, size_t offset, size_t size) noexcept;
     int32_t write(JNIEnv *env, jfloatArray data, size_t offset, size_t size, write_mode_t mode) noexcept;
     int32_t write(JNIEnv *env, jobject data, size_t size_in_bytes, write_mode_t mode) noexcept;
@@ -78,6 +79,7 @@ private:
     jmethodID m_play_;
     jmethodID m_pause_;
     jmethodID m_stop_;
+    jmethodID m_flush_;
     jmethodID m_release_;
     jmethodID m_get_state_;
     jmethodID m_get_play_state_;
