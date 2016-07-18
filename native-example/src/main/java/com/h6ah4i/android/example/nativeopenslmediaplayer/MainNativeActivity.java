@@ -16,11 +16,9 @@
 
 package com.h6ah4i.android.example.nativeopenslmediaplayer;
 
-import java.io.File;
-import java.lang.reflect.Field;
-
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.Instrumentation;
 import android.app.NativeActivity;
 import android.content.ContentUris;
 import android.content.Context;
@@ -33,12 +31,18 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.view.Gravity;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
+
+import java.io.File;
+import java.lang.reflect.Field;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class MainNativeActivity extends NativeActivity {
 
@@ -55,6 +59,8 @@ public class MainNativeActivity extends NativeActivity {
     private Handler mHandler;
     private Runnable mDeferredSetupControlViews;
     private Runnable mDeferredHandleSongPicked;
+    private Timer mTimer;
+    private TimerTask mSendFakeTouchTask;
 
     static {
         System.loadLibrary("OpenSLMediaPlayer");
@@ -88,12 +94,15 @@ public class MainNativeActivity extends NativeActivity {
             }
         };
         getWindow().getDecorView().post(mDeferredSetupControlViews);
+
+        startFakeTouchTask();
     }
 
     @Override
     protected void onPause() {
         cancelDeferredSetupControlViews();
         cancelDeferredHandleSongPicked();
+        cancelSendFakeTouchTask();
 
         removeControlViews();
 
@@ -137,6 +146,30 @@ public class MainNativeActivity extends NativeActivity {
             mHandler.removeCallbacks(mDeferredHandleSongPicked);
             mDeferredHandleSongPicked = null;
         }
+    }
+
+    private void cancelSendFakeTouchTask() {
+        if (mTimer != null) {
+            mTimer.cancel();
+            mTimer.purge();
+            mTimer = null;
+            mSendFakeTouchTask = null;
+        }
+    }
+
+    private void startFakeTouchTask() {
+        // Solution/Hack #3 - "Send fake touches!"
+        // https://www.youtube.com/watch?v=F2ZDp-eNrh4
+
+        mTimer = new Timer();
+        mSendFakeTouchTask = new TimerTask() {
+            @Override
+            public void run() {
+                Instrumentation instrumentation = new Instrumentation();
+                instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACKSLASH);
+            }
+        };
+        mTimer.schedule(mSendFakeTouchTask, 1000, 1000);
     }
 
     private void handleSongPicked(Uri uri) {
