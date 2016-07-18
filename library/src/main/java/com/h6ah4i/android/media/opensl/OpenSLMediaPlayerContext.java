@@ -71,7 +71,7 @@ public class OpenSLMediaPlayerContext implements IReleasable {
         public int hqEqualizerImplType = HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER;
         public int sinkBackEndType = SINK_BACKEND_TYPE_OPENSL;
         public boolean useLowLatencyIfAvailable = false;
-        public boolean useFloatingPointIfAvailable = false;
+        public boolean useFloatingPointIfAvailable = true;
     }
 
     public OpenSLMediaPlayerContext(Context context, Parameters params) {

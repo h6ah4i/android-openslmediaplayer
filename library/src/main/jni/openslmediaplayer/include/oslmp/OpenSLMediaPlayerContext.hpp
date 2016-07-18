@@ -93,7 +93,7 @@ public:
                                         hq_equalizer_impl_type(OSLMP_CONTEXT_HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER),
                                         sink_backend_type(OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL),
                                         use_low_latency_if_available(false),
-                                        use_floating_point_if_available(false)
+                                        use_floating_point_if_available(true)
         {
         }
     };
