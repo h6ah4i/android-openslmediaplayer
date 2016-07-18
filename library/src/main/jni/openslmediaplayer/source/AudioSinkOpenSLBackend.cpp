@@ -19,6 +19,9 @@
 
 #include "oslmp/impl/AudioSinkOpenSLBackend.hpp"
 
+#include <cxxporthelper/compiler.hpp>
+#include <cxxporthelper/cmath>
+
 #include <SLESCXX/OpenSLES_CXX.hpp>
 
 #include <oslmp/OpenSLMediaPlayer.hpp>

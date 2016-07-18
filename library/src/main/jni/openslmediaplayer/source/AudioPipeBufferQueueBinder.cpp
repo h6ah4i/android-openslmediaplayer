@@ -24,6 +24,8 @@
 
 #include <loghelper/loghelper.h>
 
+#include <cxxporthelper/compiler.hpp>
+
 #include "oslmp/impl/AndroidHelper.hpp"
 #include "oslmp/impl/OpenSLMediaPlayerInternalUtils.hpp"
 #include "oslmp/impl/OpenSLMediaPlayerInternalContext.hpp"

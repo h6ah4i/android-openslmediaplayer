@@ -16,6 +16,8 @@
 
 #include "oslmp/impl/AudioSinkDataPipeReadBlockQueue.hpp"
 
+#include <cxxporthelper/compiler.hpp>
+
 #include <SLESCXX/OpenSLES_CXX.hpp>
 
 #include "oslmp/OpenSLMediaPlayerResultCodes.hpp"

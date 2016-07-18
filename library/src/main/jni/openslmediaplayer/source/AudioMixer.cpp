@@ -25,6 +25,8 @@
 #include <string>
 #endif
 
+#include <algorithm>
+
 #include <cxxporthelper/memory>
 #include <cxxporthelper/time.hpp>
 
