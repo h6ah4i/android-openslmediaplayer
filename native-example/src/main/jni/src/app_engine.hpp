@@ -76,8 +76,8 @@ private:
     void configureRenderStates();
 
     void onRender();
-    void onRenderWaveform();
-    void onRenderFft();
+    void onRenderWaveform(const float *waveform);
+    void onRenderFft(const float *fft);
     void swapBuffers();
 
     bool initOSLMPContext();

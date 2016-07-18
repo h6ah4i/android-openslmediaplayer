@@ -189,10 +189,8 @@ void AppEngine::render()
         return;
     }
 
-    ::pthread_mutex_lock(&visualizer_mutex_);
     // LOGD("onRender");
     onRender();
-    ::pthread_mutex_unlock(&visualizer_mutex_);
 
     swapBuffers();
 }
@@ -322,9 +320,17 @@ void AppEngine::configureRenderStates()
 
 void AppEngine::onRender()
 {
+    int waveform_index;
+    int fft_index;
+
+    ::pthread_mutex_lock(&visualizer_mutex_);
+    waveform_index = active_waveform_buffer_index_;
+    fft_index = active_fft_buffer_index_;
+    ::pthread_mutex_unlock(&visualizer_mutex_);
+
     // update active_state_counter_
-    if ((active_state_counter_ != prev_render_active_waveform_buffer_index_) ||
-        (active_state_counter_ != prev_render_active_fft_buffer_index_)) {
+    if ((waveform_index != prev_render_active_waveform_buffer_index_) ||
+        (fft_index != prev_render_active_fft_buffer_index_)) {
         active_state_counter_ = ACTIVE_STATE_DURATION;
     } else {
         active_state_counter_ = std::max(0, (active_state_counter_ - 1));
@@ -335,24 +341,25 @@ void AppEngine::onRender()
     ::glClear(GL_COLOR_BUFFER_BIT);
 
     // waveform
-    onRenderWaveform();
+    const float *waveform = (waveform_index >= 0) ? &(waveform_buffers_[waveform_index][0]) : nullptr;
+    onRenderWaveform(waveform);
+    prev_render_active_waveform_buffer_index_ = waveform_index;
 
     // fft
-    onRenderFft();
+    const float *fft = (fft_index >= 0) ? &(fft_buffers_[fft_index][0]) : nullptr;
+    onRenderFft(fft);
+    prev_render_active_fft_buffer_index_ = fft_index;
 }
 
-void AppEngine::onRenderWaveform()
+void AppEngine::onRenderWaveform(const float *waveform)
 {
-    const float *waveform =
-        (active_waveform_buffer_index_ >= 0) ? &(waveform_buffers_[active_waveform_buffer_index_][0]) : nullptr;
-
     const int NUM_CHANNELS = capture_num_channels_; // == 2
     const int waveform_length = (capture_size_in_frames_ * NUM_CHANNELS);
     const int SKIP = (std::max)(1, (waveform_length >> 12));
     const int N = waveform_length / (SKIP * NUM_CHANNELS);
     const float yrange = 1.05f;
 
-    if (prev_render_active_waveform_buffer_index_ < 0) {
+    if (work_waveform_vertices_buff_.size() == 0) {
         work_waveform_vertices_buff_.resize(2 * N); // 2: (x, y)
         makeXPointPositionData(N, &work_waveform_vertices_buff_[0]);
     }
@@ -371,14 +378,10 @@ void AppEngine::onRenderWaveform()
         makeWaveformYPointPositionData(&waveform[0], N, SKIP, waveform_length / NUM_CHANNELS, &vertices[0]);
     }
     drawWaveForm(disp_width_, disp_height_, &vertices[0], N, 1, yrange, rchColor);
-
-    prev_render_active_waveform_buffer_index_ = active_waveform_buffer_index_;
 }
 
-void AppEngine::onRenderFft()
+void AppEngine::onRenderFft(const float *fft)
 {
-    const float *fft = (active_fft_buffer_index_ >= 0) ? &(fft_buffers_[active_fft_buffer_index_][0]) : nullptr;
-
     const int NUM_CHANNELS = capture_num_channels_; // == 2
     const int fft_length = (capture_size_in_frames_ * NUM_CHANNELS);
     // -2, +2: (DC + Fs/2), /2: (Re + Im)
@@ -386,7 +389,7 @@ void AppEngine::onRenderFft()
     const int data_range = (N - 1) / 2;
     const float yrange = data_range * 1.05f;
 
-    if (prev_render_active_fft_buffer_index_ < 0) {
+    if (work_fft_vertices_buff_.size() == 0) {
         work_fft_vertices_buff_.resize(2 * N); // 2: (x, y)
         makeXPointPositionData(N, &work_fft_vertices_buff_[0]);
     }
@@ -405,8 +408,6 @@ void AppEngine::onRenderFft()
         makeFftYPointPositionData(&fft[0], N, fft_length / NUM_CHANNELS, &vertices[0]);
     }
     drawFft(disp_width_, disp_height_, &vertices[0], N, 1, yrange, rchColor);
-
-    prev_render_active_fft_buffer_index_ = active_fft_buffer_index_;
 }
 
 void AppEngine::makeXPointPositionData(int N, float *points)
@@ -498,6 +499,10 @@ bool AppEngine::initOSLMPContext()
     OpenSLMediaPlayerContext::create_args_t args;
 
     args.options = OSLMP_CONTEXT_OPTION_USE_HQ_VISUALIZER;
+    args.sink_backend_type = OSLMP_CONTEXT_SINK_BACKEND_TYPE_AUDIO_TRACK;
+    args.use_low_latency_if_available = false;
+    args.use_floating_point_if_available = true;
+
 
     // Use default values for these fields;
     //    args.system_out_sampling_rate;
@@ -727,8 +732,6 @@ void AppEngine::onWaveFormDataCapture(oslmp::OpenSLMediaPlayerHQVisualizer *visu
     // NOTE:
     // This callback function is called from OpenSLMediaPlayerHQVisualizer's capture thread.
 
-    ::pthread_mutex_lock(&visualizer_mutex_);
-
     // toggle index
     const int next_index = (active_waveform_buffer_index_ < 0) ? 0 : (active_waveform_buffer_index_ ^ 1);
 
@@ -737,8 +740,8 @@ void AppEngine::onWaveFormDataCapture(oslmp::OpenSLMediaPlayerHQVisualizer *visu
     // copy
     ::memcpy(&dest_buffer[0], waveform, (sizeof(float) * numChannels * sizeInFrames));
 
+    ::pthread_mutex_lock(&visualizer_mutex_);
     active_waveform_buffer_index_ = next_index;
-
     ::pthread_mutex_unlock(&visualizer_mutex_);
 }
 
@@ -748,8 +751,6 @@ void AppEngine::onFftDataCapture(oslmp::OpenSLMediaPlayerHQVisualizer *visualize
     // NOTE:
     // This callback function is called from OpenSLMediaPlayerHQVisualizer's capture thread.
 
-    ::pthread_mutex_lock(&visualizer_mutex_);
-
     // toggle index
     const int next_index = (active_fft_buffer_index_ < 0) ? 0 : (active_fft_buffer_index_ ^ 1);
 
@@ -758,7 +759,7 @@ void AppEngine::onFftDataCapture(oslmp::OpenSLMediaPlayerHQVisualizer *visualize
     // copy
     ::memcpy(&dest_buffer[0], fft, (sizeof(float) * numChannels * sizeInFrames));
 
+    ::pthread_mutex_lock(&visualizer_mutex_);
     active_fft_buffer_index_ = next_index;
-
     ::pthread_mutex_unlock(&visualizer_mutex_);
 }
