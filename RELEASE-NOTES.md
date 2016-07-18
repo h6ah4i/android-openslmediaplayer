@@ -1,3 +1,10 @@
+## 0.7.0
+
+- Added `HybridMediaPlayerFactory` which creates `AudioTrack` audio sink player. It is more tolerant against glitches and strongly recommended than normal `OpenSLMediaPlayer`.
+- Fully migrated to Gradle build system. Eclipse is no longer supported.
+- Bug fixes
+
+
 ## 0.6.0
 
 - Changed the Standard* prefixed classes not to inherit Android framework classes
