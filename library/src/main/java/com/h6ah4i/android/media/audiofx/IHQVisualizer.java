@@ -223,7 +223,7 @@ public interface IHQVisualizer extends IReleasable {
      * @param windowType window function type. One of the 
      *        {@link #WINDOW_RECTANGULAR = 0}, {@link #WINDOW_HANN}, 
      *        {@link #WINDOW_HAMMING},  {@link #WINDOW_BLACKMAN}, 
-     *        {@link #WINDOW_FLAT_TOP} with optional {@link WINDOW_OPT_APPLY_FOR_WAVEFORM} flag.
+     *        {@link #WINDOW_FLAT_TOP} with optional {@link #WINDOW_OPT_APPLY_FOR_WAVEFORM} flag.
      *
      * @return {@link #SUCCESS} in case of success,
      *         {@link #ERROR_INVALID_OPERATION} or {@link #ERROR_DEAD_OBJECT} in

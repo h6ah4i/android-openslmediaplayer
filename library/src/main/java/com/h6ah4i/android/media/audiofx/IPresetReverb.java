@@ -41,7 +41,7 @@ import java.util.StringTokenizer;
 public interface IPresetReverb extends IAudioEffect {
     /**
      * The Settings class regroups all preset reverb parameters. It is used in
-     * conjuntion with getProperties() and setProperties() methods
+     * conjunction with getProperties() and setProperties() methods
      * to backup and restore all parameters in a single call.
      */
     public static class Settings implements Cloneable {

@@ -41,7 +41,7 @@ import java.util.StringTokenizer;
 public interface IEnvironmentalReverb extends IAudioEffect {
     /**
      * The Settings class regroups all environmental reverb parameters. It is
-     * used in conjuntion with getProperties() and setProperties()
+     * used in conjunction with getProperties() and setProperties()
      * methods to backup and restore all parameters in a single call.
      */
     public static class Settings implements Cloneable {

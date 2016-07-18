@@ -42,7 +42,7 @@ public interface IVirtualizer extends IAudioEffect {
 
     /**
      * The Settings class regroups all virtualizer parameters. It is used in
-     * conjuntion with getProperties() and setProperties() methods
+     * conjunction with getProperties() and setProperties() methods
      * to backup and restore all parameters in a single call.
      */
     public static class Settings implements Cloneable {

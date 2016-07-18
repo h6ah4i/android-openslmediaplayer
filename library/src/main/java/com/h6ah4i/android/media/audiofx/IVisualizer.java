@@ -374,10 +374,10 @@ public interface IVisualizer extends IReleasable {
 
     /**
      * Retrieves the latest peak and RMS measurement. Sets the peak and RMS
-     * fields of the supplied {@link Visualizer.MeasurementPeakRms} to the
+     * fields of the supplied {@link MeasurementPeakRms} to the
      * latest measured values.
      *
-     * @param measurement a non-null {@link Visualizer.MeasurementPeakRms}
+     * @param measurement a non-null {@link MeasurementPeakRms}
      *            instance to store the measurement values.
      * @return {@link #SUCCESS} in case of success, {@link #ERROR_BAD_VALUE},
      *         {@link #ERROR_NO_MEMORY}, {@link #ERROR_INVALID_OPERATION} or
