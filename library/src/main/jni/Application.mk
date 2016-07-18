@@ -67,7 +67,7 @@ APP_PLATFORM := android-14
 # APP_OPTIM
 #
 # APP_OPTIM := debug
-APP_OPTIM := release
+# APP_OPTIM := release
 
 #
 # APP_ABI

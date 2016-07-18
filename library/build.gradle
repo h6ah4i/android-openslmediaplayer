@@ -19,8 +19,14 @@ apply plugin: 'com.android.library'
 ext {
     projectBasePath = file('.').absolutePath
 
-    // required for 'android-setup-custom-ndk-build.gradle'
-    ndkProjectCodeRootDir = file('./src/main/jni').absolutePath
+    // NOTE-1: Set true if using `com.android.tools.build:gradle:2.2.0-alpha5`
+    // NOTE-2: However, it is so slooooow!!! It does not activates parallel build feature for now...
+    useOfficialExternalNativeBuild = true
+
+    if (!useOfficialExternalNativeBuild) {
+        // required for 'android-setup-custom-ndk-build.gradle'
+        ndkProjectCodeRootDir = file('./src/main/jni').absolutePath
+    }
 
     // required for 'android-maven-publish.gradle'
     mavenPublishDestDir = new File(rootDir, "repository").absolutePath
@@ -32,9 +38,20 @@ ext {
 
 // Common configurations
 apply from: '../common/android-set-common-properties.gradle'
-apply from: '../common/android-setup-custom-ndk-build.gradle'
+if (!useOfficialExternalNativeBuild) {
+    apply from: '../common/android-setup-custom-ndk-build.gradle'
+}
 
 android {
+
+    if (useOfficialExternalNativeBuild) {
+        externalNativeBuild {
+            ndkBuild{
+                path "src/main/jni/Android.mk"
+            }
+        }
+    }
+
     defaultConfig {
         // NOTE: StandardMediaPlayer: API level 9+, OpenSLMediaPlayer: API level 14+
         //       (test app requires API level 10 because of MediaMetadataRetriever class)
@@ -46,6 +63,17 @@ android {
 
         versionCode dataProps.VERSION_CODE.toInteger()
         versionName dataProps.VERSION_NAME
+
+        if (useOfficialExternalNativeBuild) {
+            externalNativeBuild {
+                ndkBuild {
+                    // NOTE: need to specify targets to build successfully (build tools 2.2.0-alpha5)
+                    targets "OpenSLMediaPlayer", "OpenSLMediaPlayerJNI", "OpenSLMediaPlayerLibLoaderHelper"
+                    arguments "NDK_APPLICATION_MK:=src/main/jni/Application.mk", "APP_PLATFORM:=android-14"
+                    abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+                }
+            }
+        }
     }
 
     buildTypes {
@@ -53,6 +81,14 @@ android {
             minifyEnabled false
             shrinkResources false
             consumerProguardFiles  'proguard-rules.pro'
+
+            if (useOfficialExternalNativeBuild) {
+                externalNativeBuild {
+                    ndkBuild {
+                        arguments "APP_OPTIM:=release"
+                    }
+                }
+            }
         }
         debug {
             jniDebuggable true
@@ -60,6 +96,14 @@ android {
             minifyEnabled false
             shrinkResources false
             consumerProguardFiles  'proguard-rules.pro'
+
+            if (useOfficialExternalNativeBuild) {
+                externalNativeBuild {
+                    ndkBuild {
+                        arguments "APP_OPTIM:=debug"
+                    }
+                }
+            }
         }
     }
 }

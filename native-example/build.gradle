@@ -18,21 +18,52 @@ apply plugin: 'com.android.application'
 
 ext {
     projectBasePath = file('.').absolutePath
-    ndkProjectCodeRootDir = file('./src/main/jni').absolutePath // required for 'android-setup-custom-ndk-build.gradle'
+
+    // NOTE-1: Set true if using `com.android.tools.build:gradle:2.2.0-alpha5`
+    // NOTE-2: However, it is so slooooow!!! It does not activates parallel build feature for now...
+    useOfficialExternalNativeBuild = true
+
+    if (!useOfficialExternalNativeBuild) {
+        ndkProjectCodeRootDir = file('./src/main/jni').absolutePath
+        // required for 'android-setup-custom-ndk-build.gradle'
+    }
 }
 
 // Common configurations 
 apply from: '../common/android-set-common-properties.gradle'
-apply from: '../common/android-setup-custom-ndk-build.gradle'
 apply from: '../common/android-signing-utils.gradle'
 
+if (!useOfficialExternalNativeBuild) {
+    apply from: '../common/android-setup-custom-ndk-build.gradle'
+}
+
 android {
+
+    if (useOfficialExternalNativeBuild) {
+        externalNativeBuild {
+            ndkBuild {
+                path "src/main/jni/Android.mk"
+            }
+        }
+    }
+
     defaultConfig {
         applicationId "com.h6ah4i.android.example.nativeopenslmediaplayer"
         minSdkVersion 14
         targetSdkVersion 21
         versionCode 2
         versionName "0.6.0"
+
+        if (useOfficialExternalNativeBuild) {
+            externalNativeBuild {
+                ndkBuild {
+                    // NOTE: need to specify targets to build successfully (build tools 2.2.0-alpha5)
+                    targets "OpenSLMediaPlayer", "OpenSLMediaPlayerNativeAPIExample"
+                    arguments "NDK_APPLICATION_MK:=src/main/jni/Application.mk", "APP_PLATFORM:=android-14"
+                    abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+                }
+            }
+        }
     }
 
     signingConfigs {
@@ -45,9 +76,25 @@ android {
             minifyEnabled false
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            if (useOfficialExternalNativeBuild) {
+                externalNativeBuild {
+                    ndkBuild {
+                        arguments "APP_OPTIM:=release"
+                    }
+                }
+            }
         }
         debug {
             jniDebuggable true
+
+            if (useOfficialExternalNativeBuild) {
+                externalNativeBuild {
+                    ndkBuild {
+                        arguments "APP_OPTIM:=debug"
+                    }
+                }
+            }
         }
     }
 }
