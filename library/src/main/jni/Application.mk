@@ -33,7 +33,6 @@ ifndef OSLMP_NDK_RELEASE_VERSION_NUMBER
 endif
 # $(info OSLMP_NDK_RELEASE_VERSION_NUMBER = $(OSLMP_NDK_RELEASE_VERSION_NUMBER))
 
-
 # 
 #
 # NDK_TOOLCHAIN_VERSION
@@ -74,10 +73,11 @@ APP_PLATFORM := android-14
 #
 APP_ABI := 
 APP_ABI += armeabi
-ifeq ($(shell echo $(OSLMP_NDK_RELEASE_VERSION_NUMBER)\>=12 | bc), 1)
-APP_ABI += armeabi-v7a
-else
+# use armeabi-v7a (deprecated in NDK version >= 12)
+ifneq (,$(filter $(OSLMP_NDK_RELEASE_VERSION_NUMBER), 9 10 11))
 APP_ABI += armeabi-v7a-hard
+else
+APP_ABI += armeabi-v7a
 endif
 APP_ABI += x86
 APP_ABI += mips
