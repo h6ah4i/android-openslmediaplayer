@@ -165,8 +165,13 @@ public class MainNativeActivity extends NativeActivity {
         mSendFakeTouchTask = new TimerTask() {
             @Override
             public void run() {
-                Instrumentation instrumentation = new Instrumentation();
-                instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACKSLASH);
+                try {
+                    Instrumentation instrumentation = new Instrumentation();
+                    instrumentation.sendKeyDownUpSync(KeyEvent.KEYCODE_BACKSLASH);
+                } catch (SecurityException e) {
+                    // ignore SecurityException
+                    // "Injecting to another application requires INJECT_EVENTS permission"
+                }
             }
         };
         mTimer.schedule(mSendFakeTouchTask, 1000, 1000);
