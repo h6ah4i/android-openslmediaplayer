@@ -19,9 +19,10 @@ apply plugin: 'com.android.application'
 ext {
     projectBasePath = file('.').absolutePath
 
-    // NOTE-1: Set true if using `com.android.tools.build:gradle:2.2.0-alpha5`
+    // NOTE-1: Set true if using `com.android.tools.build:gradle:2.2.0-alpha5` or later
     // NOTE-2: However, it is so slooooow!!! It does not activates parallel build feature for now...
-    useOfficialExternalNativeBuild = true
+    // NOTE-3: Built-in external build system not work on Windows! (2.2.0-alpha6)
+    useOfficialExternalNativeBuild = !org.gradle.internal.os.OperatingSystem.current().isWindows()
 
     if (!useOfficialExternalNativeBuild) {
         ndkProjectCodeRootDir = file('./src/main/jni').absolutePath
