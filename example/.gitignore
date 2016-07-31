@@ -1,6 +1,1 @@
-/bin
-/obj
-/libs
-
-/gen/*
-!/gen/.gitignore
+/build

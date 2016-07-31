@@ -40,6 +40,7 @@ Features
 
 - Highly compatibility with standard [`MediaPlayer`](http://developer.android.com/reference/android/media/MediaPlayer.html) and [`audio effect classes`](http://developer.android.com/reference/android/media/audiofx/package-summary.html)
 - Implements a lot of workarounds, more better behavior and well-tested ([`Standard*` prefixed API classes](../../wiki/OpenSL-prefixed-API-classes))
+- Provides Hybrid media player factory which is a player using OpenSL ES for decoding audio and using `AudioTrack` for playback. This is the most recommended `MediaPlayer` because it provides more tolerance for audio glitches than `OpenSLMediaPlayer` but it can use all features of `OpenSLMediaPlayer`!
 - Provides some compatibility class or methods for older devices
 - NEON/SSE optimized
 
@@ -53,7 +54,7 @@ Target platforms
 Latest version
 ---
 
-- Version 0.6.0  (Februaly 17, 2015)
+- Version 0.7.0  (July 18, 2016)
 
 
 Demo application (pre-built example apps)
@@ -71,7 +72,7 @@ Getting started
 
 ```groovy
 dependencies {
-    compile 'com.h6ah4i.android:openslmediaplayer:0.6.0'
+    compile 'com.h6ah4i.android:openslmediaplayer:0.7.0'
 }
 ```
 

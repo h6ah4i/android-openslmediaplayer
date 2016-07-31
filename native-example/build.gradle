@@ -1,0 +1,111 @@
+/*
+ *    Copyright (C) 2014 Haruki Hasegawa
+ *
+ *    Licensed under the Apache License, Version 2.0 (the "License");
+ *    you may not use this file except in compliance with the License.
+ *    You may obtain a copy of the License at
+ *
+ *        http://www.apache.org/licenses/LICENSE-2.0
+ *
+ *    Unless required by applicable law or agreed to in writing, software
+ *    distributed under the License is distributed on an "AS IS" BASIS,
+ *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *    See the License for the specific language governing permissions and
+ *    limitations under the License.
+ */
+
+apply plugin: 'com.android.application'
+
+ext {
+    projectBasePath = file('.').absolutePath
+
+    // NOTE-1: Set true if using `com.android.tools.build:gradle:2.2.0-alpha5` or later
+    // NOTE-2: However, it is so slooooow!!! It does not activates parallel build feature for now...
+    // NOTE-3: Built-in external build system not work on Windows! (2.2.0-alpha6)
+    useOfficialExternalNativeBuild = !org.gradle.internal.os.OperatingSystem.current().isWindows()
+
+    if (!useOfficialExternalNativeBuild) {
+        ndkProjectCodeRootDir = file('./src/main/jni').absolutePath
+        // required for 'android-setup-custom-ndk-build.gradle'
+    }
+}
+
+// Common configurations 
+apply from: '../common/android-set-common-properties.gradle'
+apply from: '../common/android-signing-utils.gradle'
+
+if (!useOfficialExternalNativeBuild) {
+    apply from: '../common/android-setup-custom-ndk-build.gradle'
+}
+
+android {
+
+    if (useOfficialExternalNativeBuild) {
+        externalNativeBuild {
+            ndkBuild {
+                path "src/main/jni/Android.mk"
+            }
+        }
+    }
+
+    defaultConfig {
+        applicationId "com.h6ah4i.android.example.nativeopenslmediaplayer"
+        minSdkVersion 14
+        targetSdkVersion 21
+        versionCode 3
+        versionName "0.7.0"
+
+        if (useOfficialExternalNativeBuild) {
+            externalNativeBuild {
+                ndkBuild {
+                    // NOTE: need to specify targets to build successfully (build tools 2.2.0-alpha5)
+                    targets "OpenSLMediaPlayer", "OpenSLMediaPlayerNativeAPIExample"
+                    arguments "NDK_APPLICATION_MK:=src/main/jni/Application.mk", "APP_PLATFORM:=android-14"
+                    abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+                }
+            }
+        }
+    }
+
+    signingConfigs {
+        release
+    }
+
+    buildTypes {
+        release {
+            // NOTE: disable minify & shrinking easy to find out the problem
+            minifyEnabled false
+            shrinkResources false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+
+            if (useOfficialExternalNativeBuild) {
+                externalNativeBuild {
+                    ndkBuild {
+                        arguments "APP_OPTIM:=release"
+                    }
+                }
+            }
+        }
+        debug {
+            jniDebuggable true
+
+            if (useOfficialExternalNativeBuild) {
+                externalNativeBuild {
+                    ndkBuild {
+                        arguments "APP_OPTIM:=debug"
+                    }
+                }
+            }
+        }
+    }
+}
+
+// load signing config from external properties file
+if (loadSigningConfigFromPropertiesFile(
+    project, android.signingConfigs.release, '../signing/native-example-signing.properties')) {
+    android.buildTypes.release.signingConfig android.signingConfigs.release  
+}
+
+dependencies {
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+}

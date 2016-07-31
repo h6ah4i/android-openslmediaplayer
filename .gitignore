@@ -1,4 +1,19 @@
+
+/.idea/
+.gradle
+/local.properties
+/.idea/workspace.xml
+/.idea/libraries
+.DS_Store
+/build
+/repository
+
+/*/externalNativeBuild/
+
+*.iml
+
+hs_err_*.log
+
 # backup files
 *~
 *.orig
-
