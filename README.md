@@ -34,7 +34,7 @@ Features
 ### Disadvantages
 
 - **Does not support video playback, audio only** ( Please use [`MediaPlayer`](http://developer.android.com/reference/android/media/MediaPlayer.html) or [`ExoPlayer`](http://developer.android.com/guide/topics/media/exoplayer.html) for video playback)
-- Consumes more CPU resources than standard MediaPlayer and other OpenSL based audio player products (ex. PowerAmp)
+- Consumes more CPU resources than standard MediaPlayer and other AudioTrack/OpenSL based audio player products (ex. PowerAmp)
 
 ### Misc.
 
@@ -80,12 +80,12 @@ dependencies {
 
 ### Build from source
 
-If you want to build from source or want to build with ADT (Eclipse), please refer to [this article](../../wiki/Build-From-Source).
+If you want to build this library from source, please refer to [this article](../../wiki/Build-From-Source).
 
 Documentation
 ---
 
-Refer to [Wiki](../../wiki) and [JavaDoc](https://h6ah4i.github.io/android-openslmediaplayer/javadoc/0.6.0/).
+Refer to [Wiki](../../wiki) and [JavaDoc](https://h6ah4i.github.io/android-openslmediaplayer/javadoc/0.7.0/).
 
 
 ToDos
