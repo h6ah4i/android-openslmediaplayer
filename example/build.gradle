@@ -46,6 +46,9 @@ android {
             shrinkResources false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
+        debug {
+            jniDebuggable true
+        }
     }
 }
 
@@ -64,8 +67,4 @@ dependencies {
 
 
     compile project(path: ':library')
-
-    // WTF!  This does not work on New Build System 0.14.4 (2014/11/19)
-    // releaseCompile project(path: ':library', configuration: 'release')
-    // debugCompile project(path: ':library', configuration: 'debug')
 }
