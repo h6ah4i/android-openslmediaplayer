@@ -183,9 +183,13 @@ bool AudioDataAdapter::Impl::init(const AudioDataAdapter::initialize_args_t &arg
         return false;
     }
 
-    if (!(args.in_sampling_rate == 8000000 || args.in_sampling_rate == 16000000 || args.in_sampling_rate == 32000000 ||
-          args.in_sampling_rate == 44100000 || args.in_sampling_rate == 48000000 || args.in_sampling_rate == 88200000 ||
-          args.in_sampling_rate == 96000000)) {
+    if (!(args.in_sampling_rate == 8000000 ||
+          args.in_sampling_rate == 11025000 || args.in_sampling_rate == 12000000 ||
+          args.in_sampling_rate == 16000000 ||
+          args.in_sampling_rate == 22050000 || args.in_sampling_rate == 24000000 ||
+          args.in_sampling_rate == 32000000 ||
+          args.in_sampling_rate == 44100000 || args.in_sampling_rate == 48000000 ||
+          args.in_sampling_rate == 88200000 || args.in_sampling_rate == 96000000)) {
         return false;
     }
 
