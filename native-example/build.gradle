@@ -39,7 +39,6 @@ if (!useOfficialExternalNativeBuild) {
 }
 
 android {
-
     if (useOfficialExternalNativeBuild) {
         externalNativeBuild {
             ndkBuild {
@@ -52,8 +51,8 @@ android {
         applicationId "com.h6ah4i.android.example.nativeopenslmediaplayer"
         minSdkVersion 14
         targetSdkVersion 21
-        versionCode 3
-        versionName "0.7.0"
+        versionCode 4
+        versionName "0.7.1"
 
         if (useOfficialExternalNativeBuild) {
             externalNativeBuild {
@@ -61,7 +60,7 @@ android {
                     // NOTE: need to specify targets to build successfully (build tools 2.2.0-alpha5)
                     targets "OpenSLMediaPlayer", "OpenSLMediaPlayerNativeAPIExample"
                     arguments "NDK_APPLICATION_MK:=src/main/jni/Application.mk", "APP_PLATFORM:=android-14"
-                    abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
+                    abiFilters "arm64-v8a"
                 }
             }
         }
@@ -82,6 +81,7 @@ android {
                 externalNativeBuild {
                     ndkBuild {
                         arguments "APP_OPTIM:=release"
+                        abiFilters "armeabi", "armeabi-v7a", "arm64-v8a", "x86", "x86_64"
                     }
                 }
             }
