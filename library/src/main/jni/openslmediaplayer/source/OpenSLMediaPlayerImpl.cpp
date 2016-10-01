@@ -854,11 +854,7 @@ void OpenSLMediaPlayer::Impl::handleOnPrepareFinished(int result, bool async) no
         // prepare()
         utils::pt_unique_lock lock(mutex_wait_processed_);
 
-        if (result == OSLMP_RESULT_SUCCESS) {
-            prepared_result_.set(OSLMP_RESULT_SUCCESS);
-        } else {
-            prepared_result_.set(OSLMP_RESULT_INTERNAL_ERROR);
-        }
+        prepared_result_.set(result);
 
         cond_wait_processed_.notify_all();
     }
