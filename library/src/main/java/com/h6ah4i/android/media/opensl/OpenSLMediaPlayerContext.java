@@ -45,8 +45,8 @@ public class OpenSLMediaPlayerContext implements IReleasable {
     public static final int RESAMPLER_QUALITY_HIGH = 2;
 
     // HQEqualizer implementation type specifier
-    public static final int HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER = 0;
-    public static final int HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPONSE = 1;
+    public static final int HQ_EQUALIZER_IMPL_BASIC_PEAKING_FILTER = 0;
+    public static final int HQ_EQUALIZER_IMPL_FLAT_GAIN_RESPONSE = 1;
 
     // Sink back-end implementation type specifier
     public static final int SINK_BACKEND_TYPE_OPENSL = 0;
@@ -68,7 +68,7 @@ public class OpenSLMediaPlayerContext implements IReleasable {
         public int shortFadeDuration = 25; // [milli seconds]
         public int longFadeDuration = 1500; // [milli seconds]
         public int resamplerQuality = RESAMPLER_QUALITY_MIDDLE;
-        public int hqEqualizerImplType = HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER;
+        public int hqEqualizerImplType = HQ_EQUALIZER_IMPL_BASIC_PEAKING_FILTER;
         public int sinkBackEndType = SINK_BACKEND_TYPE_OPENSL;
         public boolean useLowLatencyIfAvailable = false;
         public boolean useFloatingPointIfAvailable = true;

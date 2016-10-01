@@ -40,8 +40,8 @@
 #define OSLMP_CONTEXT_RESAMPLER_QUALITY_HIGH 2
 
 // HQEqualizer implementation type specifier
-#define OSLMP_CONTEXT_HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER 0
-#define OSLMP_CONTEXT_HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPOINSE 1
+#define OSLMP_CONTEXT_HQ_EQUALIZER_IMPL_BASIC_PEAKING_FILTER 0
+#define OSLMP_CONTEXT_HQ_EQUALIZER_IMPL_FLAT_GAIN_RESPONSE 1
 
 // Sink backend implementation type specifier
 #define OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL      0
@@ -90,7 +90,7 @@ public:
                                         long_fade_duration(1500),
                                         listener(nullptr),
                                         resampler_quality(OSLMP_CONTEXT_RESAMPLER_QUALITY_MIDDLE),
-                                        hq_equalizer_impl_type(OSLMP_CONTEXT_HQ_EAUALIZER_IMPL_BASIC_PEAKING_FILTER),
+                                        hq_equalizer_impl_type(OSLMP_CONTEXT_HQ_EQUALIZER_IMPL_BASIC_PEAKING_FILTER),
                                         sink_backend_type(OSLMP_CONTEXT_SINK_BACKEND_TYPE_OPENSL),
                                         use_low_latency_if_available(false),
                                         use_floating_point_if_available(true)
