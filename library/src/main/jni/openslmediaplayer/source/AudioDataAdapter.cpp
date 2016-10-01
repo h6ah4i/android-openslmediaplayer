@@ -189,7 +189,8 @@ bool AudioDataAdapter::Impl::init(const AudioDataAdapter::initialize_args_t &arg
           args.in_sampling_rate == 22050000 || args.in_sampling_rate == 24000000 ||
           args.in_sampling_rate == 32000000 ||
           args.in_sampling_rate == 44100000 || args.in_sampling_rate == 48000000 ||
-          args.in_sampling_rate == 88200000 || args.in_sampling_rate == 96000000)) {
+          args.in_sampling_rate == 88200000 || args.in_sampling_rate == 96000000 ||
+          args.in_sampling_rate == 176400000 || args.in_sampling_rate == 192000000)) {
         return false;
     }
 
