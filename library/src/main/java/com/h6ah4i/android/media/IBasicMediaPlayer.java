@@ -426,7 +426,7 @@ public interface IBasicMediaPlayer extends IReleasable {
      * Returns the audio session ID.
      *
      * @return the audio session ID. Note that
-     *         the audio session ID is 0 only if a problem occured when the
+     *         the audio session ID is 0 only if a problem occurred when the
      *         MediaPlayer was contructed.
      */
     int getAudioSessionId();
