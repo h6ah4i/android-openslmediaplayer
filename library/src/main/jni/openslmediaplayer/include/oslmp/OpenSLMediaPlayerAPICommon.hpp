@@ -24,6 +24,6 @@
 
 #include <oslmp/OpenSLMediaPlayerResultCodes.hpp>
 
-#define OSLMP_API_ABI __NDK_FPABI__
+#define OSLMP_API_ABI
 
 #endif // OPENSLMEDIAPLAYERAPICOMMONHPP_
