@@ -1,3 +1,8 @@
+## 0.7.2
+
+- Fixed 176.4 kHz, 192 kHz audio playback issue
+- Fixed build failure issue with the latest NDK (13.0.3315539)
+
 ## 0.7.1
 
 - Fixed 11.025 kHz, 12 kHz, 22.05 kHz and 24 kHz audio playback issue (issue #20)

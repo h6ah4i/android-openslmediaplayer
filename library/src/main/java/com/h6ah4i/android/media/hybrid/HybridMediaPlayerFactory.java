@@ -259,7 +259,7 @@ public class HybridMediaPlayerFactory implements IMediaPlayerFactory {
         // params.resamplerQuality =
         // OpenSLMediaPlayerContext.RESAMPLER_QUALITY_HIGH;
         // params.hqEqualizerImplType =
-        // OpenSLMediaPlayerContext.HQ_EAUALIZER_IMPL_FLAT_GAIN_RESPONSE;
+        // OpenSLMediaPlayerContext.HQ_EQUALIZER_IMPL_FLAT_GAIN_RESPONSE;
 
         return params;
     }

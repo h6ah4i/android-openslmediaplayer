@@ -31,8 +31,8 @@ android {
         applicationId "com.h6ah4i.android.example.openslmediaplayer"
         minSdkVersion 14
         targetSdkVersion 21
-        versionCode 5
-        versionName "0.7.1"
+        versionCode 6
+        versionName "0.7.2"
     }
 
     signingConfigs {

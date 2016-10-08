@@ -54,7 +54,7 @@ Target platforms
 Latest version
 ---
 
-- Version 0.7.1  (September 25, 2016)
+- Version 0.7.2  (October 8, 2016)
 
 
 Demo application (pre-built example apps)
@@ -72,7 +72,7 @@ Getting started
 
 ```groovy
 dependencies {
-    compile 'com.h6ah4i.android:openslmediaplayer:0.7.1'
+    compile 'com.h6ah4i.android:openslmediaplayer:0.7.2'
 }
 ```
 
@@ -85,7 +85,7 @@ If you want to build this library from source, please refer to [this article](..
 Documentation
 ---
 
-Refer to [Wiki](../../wiki) and [JavaDoc](https://h6ah4i.github.io/android-openslmediaplayer/javadoc/0.7.1/).
+Refer to [Wiki](../../wiki) and [JavaDoc](https://h6ah4i.github.io/android-openslmediaplayer/javadoc/0.7.2/).
 
 
 ToDos

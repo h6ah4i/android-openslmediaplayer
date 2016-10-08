@@ -20,7 +20,7 @@ import android.os.Build;
 import android.util.Log;
 
 public class OpenSLMediaPlayerNativeLibraryLoader {
-    private static String TAG = "OpenSLMediaPlayerNativeLibraryLoader";
+    private static String TAG = "OSLMPNativeLibLoader";
 
     private static final boolean USE_NEON_DISABLED_LIB;
 

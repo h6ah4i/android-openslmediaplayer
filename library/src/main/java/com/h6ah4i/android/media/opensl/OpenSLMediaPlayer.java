@@ -1022,13 +1022,13 @@ public class OpenSLMediaPlayer implements IBasicMediaPlayer {
             case Internal.RESULT_ILLEGAL_STATE:
                 throw new IllegalStateException("Method is called in unexpected state");
             case Internal.RESULT_ILLEGAL_ARGUMENT:
-                throw new IllegalArgumentException("Illegal argument error occured in native layer");
+                throw new IllegalArgumentException("Illegal argument error occurred in native layer");
             case Internal.RESULT_INTERNAL_ERROR:
                 throw new IllegalStateException("Internal error");
             case Internal.RESULT_MEMORY_ALLOCATION_FAILED:
                 throw new IllegalStateException("Failed to allocate memory in native layer");
             case Internal.RESULT_RESOURCE_ALLOCATION_FAILED:
-                throw new IllegalStateException("Failed to allocate reosurces in native layer");
+                throw new IllegalStateException("Failed to allocate resources in native layer");
             case Internal.RESULT_CONTENT_NOT_FOUND:
                 throw new IOException("Content not found");
             case Internal.RESULT_CONTENT_UNSUPPORTED:
