@@ -88,7 +88,7 @@ public:
     virtual int extGetPreAmp(PreAmp **p_preamp) const noexcept override;
     virtual int extGetHQEqualizer(HQEqualizer **p_hq_equalizer) const noexcept override;
 
-    virtual JavaVM *extGetJavaVM() const noexcept;
+    virtual JavaVM *extGetJavaVM() const noexcept override;
 
     // implementations of MessageHandlerThread::EventHandler
     virtual void onEnterHandlerThread() noexcept override;

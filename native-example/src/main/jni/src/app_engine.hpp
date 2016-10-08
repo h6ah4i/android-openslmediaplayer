@@ -52,11 +52,11 @@ public:
     // implementation of oslmp::OpenSLMediaPlayerHQVisualizer::OnDataCaptureListener
     virtual void onWaveFormDataCapture(oslmp::OpenSLMediaPlayerHQVisualizer *visualizer, const float *waveform,
                                        uint32_t numChannels, size_t sizeInFrames,
-                                       uint32_t samplingRate) noexcept OSLMP_API_ABI;
+                                       uint32_t samplingRate) noexcept override OSLMP_API_ABI;
 
     virtual void onFftDataCapture(oslmp::OpenSLMediaPlayerHQVisualizer *visualizer, const float *fft,
                                   uint32_t numChannels, size_t sizeInFrames,
-                                  uint32_t samplingRate) noexcept OSLMP_API_ABI;
+                                  uint32_t samplingRate) noexcept override OSLMP_API_ABI;
 
     static AppCommandPipe *sGetAppCommandPipeFromHandle(jlong handle);
 
