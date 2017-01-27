@@ -520,7 +520,6 @@ int32_t AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexc
 #endif
 
     const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
-    track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
 
     if (write_result != bb.size()) {
         return play_result;
