@@ -1212,7 +1212,6 @@ uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t 
 #if 1
         JavaVM *vm = args.context->getJavaVM();
         JNIEnv *env = nullptr;
-        int result;
 
         (void) vm->GetEnv(reinterpret_cast<void **>(&env), JNI_VERSION_1_6);
 
