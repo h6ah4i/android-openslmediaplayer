@@ -183,6 +183,10 @@ int AudioTrackStream::start(render_callback_func_t callback, void *args) noexcep
     if (!track_) {
         return OSLMP_RESULT_ILLEGAL_STATE;
     }
+    if (callback_func_) {
+        LOGE("AudioTrackStream::start  --- stream is already active");
+        return OSLMP_RESULT_ILLEGAL_STATE;
+    }
 
     pthread_t pt_handle;
     int pt_create_result;
