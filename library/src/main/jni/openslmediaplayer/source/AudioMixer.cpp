@@ -1779,7 +1779,7 @@ void AudioMixer::Impl::requestThreadRaiseOnMixingStopped(const AudioSourceSlot &
         break;
     }
 
-    calling_context_ = CALLING_CONTEXT_FROM_ON_MIXING_STARTED_EVENT;
+    calling_context_ = CALLING_CONTEXT_FROM_ON_MIXING_STOPPED_EVENT;
     event_handler->onMixingStopped(slot.source_pipe, cause);
     calling_context_ = CALLING_CONTEXT_NORMAL;
 }

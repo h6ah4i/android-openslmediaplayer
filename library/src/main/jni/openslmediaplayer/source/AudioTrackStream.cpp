@@ -92,6 +92,111 @@ private:
     jmethodID m_rewind_;
 };
 
+// WORKAROUND: AudioTrack.write() sometimes returns smaller value than specified
+// https://github.com/h6ah4i/android-openslmediaplayer/issues/26
+class AudioTrackWrapper {
+public:
+    const int MAX_RETRIES = 10;
+    const int RETRY_DELAY_MS = 10;
+
+    AudioTrackWrapper(AudioTrack &track)
+            : track_(track),
+              ts_sleep_(utils::timespec_utils::add_ms(utils::timespec_utils::ZERO(), RETRY_DELAY_MS)) {
+    }
+
+    int32_t getChannelCount() const noexcept {
+        return track_.getChannelCount();
+    }
+
+    int32_t play(JNIEnv *env) noexcept {
+        return track_.play(env);
+    }
+
+    int32_t write(JNIEnv *env, jshortArray data, size_t offset, size_t size) noexcept {
+        int32_t written = 0;
+        int retry = 0;
+
+        while (true) {
+            const int32_t ret = track_.write(env, data, (offset + written), (size - written));
+
+            if (ret < 0) {
+                return ret;
+            } else {
+                written += ret;
+            }
+
+            if (!((written < size) && (retry < MAX_RETRIES))) {
+                break;
+            }
+
+            retry += 1;
+            LOGD("AudioTrackWrapper - retry[%d] / size: %d / written: %d", retry, size, written);
+            retry_delay();
+        }
+
+        return written;
+    }
+
+    int32_t write(JNIEnv *env, jfloatArray data, size_t offset, size_t size, AudioTrack::write_mode_t mode) noexcept {
+        int32_t written = 0;
+        int retry = 0;
+
+        while (true) {
+            const int32_t ret = track_.write(env, data, (offset + written), (size - written), mode);
+
+            if (ret < 0) {
+                return ret;
+            } else {
+                written += ret;
+            }
+
+            if (!((written < size) && (retry < MAX_RETRIES) && (mode == AudioTrack::WRITE_BLOCKING))) {
+                break;
+            }
+
+            retry += 1;
+            LOGD("AudioTrackWrapper - retry[%d] / size: %d / written: %d", retry, size, written);
+            retry_delay();
+        }
+
+        return written;
+    }
+
+    int32_t write(JNIEnv *env, jobject data, size_t size_in_bytes, AudioTrack::write_mode_t mode) noexcept {
+        int32_t written = 0;
+        int retry = 0;
+
+        while (true) {
+            const int32_t ret = track_.write(env, data, (size_in_bytes - written), mode);
+
+            if (ret < 0) {
+                return ret;
+            } else {
+                written += ret;
+            }
+
+            if (!((written < size_in_bytes) && (retry < MAX_RETRIES) && (mode == AudioTrack::WRITE_BLOCKING))) {
+                break;
+            }
+
+            retry += 1;
+            LOGD("AudioTrackWrapper - retry[%d] / size: %d / written: %d", retry, size_in_bytes, written);
+            retry_delay();
+        }
+
+        return written;
+    }
+
+private:
+    void retry_delay() {
+        ::clock_nanosleep(CLOCK_MONOTONIC, 0, &ts_sleep_, nullptr);
+    }
+
+private:
+    AudioTrack &track_;
+    const timespec ts_sleep_;
+};
+
 static int translate_audio_track_result(int result) {
     switch (result) {
     case AudioTrack::SUCCESS:
@@ -183,6 +288,10 @@ int AudioTrackStream::start(render_callback_func_t callback, void *args) noexcep
     if (!track_) {
         return OSLMP_RESULT_ILLEGAL_STATE;
     }
+    if (callback_func_) {
+        LOGE("AudioTrackStream::start  --- stream is already active");
+        return OSLMP_RESULT_ILLEGAL_STATE;
+    }
 
     pthread_t pt_handle;
     int pt_create_result;
@@ -264,7 +373,6 @@ JNIEnv *AudioTrackStream::getJNIEnv() noexcept {
     }
 }
 
-
 void* AudioTrackStream::sinkWriterThreadEntryFunc(void *args) noexcept
 {
     LOGD("AudioTrackStream::sinkWriterThreadEntryFunc");
@@ -334,11 +442,11 @@ int32_t AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
     LOGD("AudioTrackStream::sinkWriterThreadLoopS16");
 
     int32_t play_result = AudioTrack::ERROR;
+    AudioTrackWrapper trackWrapper(*track_);
     const sample_format_type format = kAudioSampleFormatType_S16;
-    const int32_t num_channels = track_->getChannelCount();
+    const int32_t num_channels = trackWrapper.getChannelCount();
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
     const int32_t num_data_write = num_channels * buffer_size_in_frames;
-    const size_t bytes_per_sample = getBytesPerSample(format);
 
     jshortArray buffer = env->NewShortArray(num_channels * buffer_size_in_frames);
 
@@ -349,12 +457,13 @@ int32_t AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
     jlocal_ref_wrapper<jshortArray> buffer_ref;
     buffer_ref.assign(env, buffer, jref_type::local_reference);
 
-    const int32_t write_result = track_->write(env, buffer, 0, num_data_write);
+    const int32_t write_result = trackWrapper.write(env, buffer, 0, num_data_write);
     if (write_result != num_data_write) {
+        LOGW("AudioTrack::write() returns unexpected result  (actual: %d, expected: %d)", write_result, num_data_write);
         return play_result;
     }
 
-    play_result = track_->play(env);
+    play_result = trackWrapper.play(env);
     if (play_result != AudioTrack::SUCCESS) {
         return play_result;
     }
@@ -368,9 +477,10 @@ int32_t AudioTrackStream::sinkWriterThreadLoopS16(JNIEnv *env) noexcept
             (*callback_func_)(buffer_array.data(), format, num_channels, buffer_size_in_frames, callback_args_);
         }
 
-        const int32_t write_result = track_->write(env, buffer, 0, num_data_write);
+        const int32_t write_result = trackWrapper.write(env, buffer, 0, num_data_write);
 
         if (write_result != num_data_write) {
+            LOGW("AudioTrack::write() returns unexpected result  (actual: %d, expected: %d)", write_result, num_data_write);
             break;
         }
     }
@@ -383,11 +493,11 @@ int32_t AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
     LOGD("AudioTrackStream::sinkWriterThreadLoopFloat");
 
     int32_t play_result = AudioTrack::ERROR;
+    AudioTrackWrapper trackWrapper(*track_);
     const sample_format_type format = kAudioSampleFormatType_F32;
-    const int32_t num_channels = track_->getChannelCount();
+    const int32_t num_channels = trackWrapper.getChannelCount();
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
     const int32_t num_data_write = num_channels * buffer_size_in_frames;
-    const size_t bytes_per_sample = getBytesPerSample(format);
 
     jfloatArray buffer = env->NewFloatArray(num_channels * buffer_size_in_frames);
 
@@ -411,12 +521,13 @@ int32_t AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
     }
 #endif
 
-    const int32_t write_result = track_->write(env, buffer, 0, num_data_write, AudioTrack::WRITE_BLOCKING);
+    const int32_t write_result = trackWrapper.write(env, buffer, 0, num_data_write, AudioTrack::WRITE_BLOCKING);
     if (write_result != num_data_write) {
+        LOGW("AudioTrack::write() returns unexpected result  (actual: %d, expected: %d)", write_result, num_data_write);
         return play_result;
     }
 
-    play_result = track_->play(env);
+    play_result = trackWrapper.play(env);
     if (play_result != AudioTrack::SUCCESS) {
         return play_result;
     }
@@ -433,9 +544,10 @@ int32_t AudioTrackStream::sinkWriterThreadLoopFloat(JNIEnv *env) noexcept
         }
 #endif
 
-        const int32_t write_result = track_->write(env, buffer, 0, num_data_write, AudioTrack::WRITE_BLOCKING);
+        const int32_t write_result = trackWrapper.write(env, buffer, 0, num_data_write, AudioTrack::WRITE_BLOCKING);
 
         if (write_result != num_data_write) {
+            LOGW("AudioTrack::write() returns unexpected result  (actual: %d, expected: %d)", write_result, num_data_write);
             break;
         }
     }
@@ -448,8 +560,9 @@ int32_t AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcep
     LOGD("AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer");
 
     int32_t play_result = AudioTrack::ERROR;
+    AudioTrackWrapper trackWrapper(*track_);
     const sample_format_type format = kAudioSampleFormatType_S16;
-    const int32_t num_channels = track_->getChannelCount();
+    const int32_t num_channels = trackWrapper.getChannelCount();
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
     const int32_t num_data_write = num_channels * buffer_size_in_frames;
     const size_t num_data_write_in_bytes = num_data_write * getBytesPerSample(format);
@@ -461,15 +574,16 @@ int32_t AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcep
         return play_result;
     }
 
-    const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
+    const int32_t write_result = trackWrapper.write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
 
     if (write_result != bb.size()) {
+        LOGW("AudioTrack::write() returns unexpected result  (actual: %d, expected: %d)", write_result, bb.size());
         return play_result;
     }
 
     bb.rewind();
 
-    play_result = track_->play(env);
+    play_result = trackWrapper.play(env);
     if (play_result != AudioTrack::SUCCESS) {
         return play_result;
     }
@@ -479,9 +593,10 @@ int32_t AudioTrackStream::sinkWriterThreadLoopS16ByteBuffer(JNIEnv *env) noexcep
     while (CXXPH_UNLIKELY(!stop_request_)) {
         STREAM_COUNTER_LOG();
         (*callback_func_)(buffer.get(), format, num_channels, buffer_size_in_frames, callback_args_);
-        const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
+        const int32_t write_result = trackWrapper.write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
 
         if (write_result != bb.size()) {
+            LOGW("AudioTrack::write() returns unexpected result  (actual: %d, expected: %d)", write_result, bb.size());
             break;
         }
 
@@ -496,8 +611,9 @@ int32_t AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexc
     LOGD("AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer");
 
     int32_t play_result = AudioTrack::ERROR;
+    AudioTrackWrapper trackWrapper(*track_);
     const sample_format_type format = kAudioSampleFormatType_F32;
-    const int32_t num_channels = track_->getChannelCount();
+    const int32_t num_channels = trackWrapper.getChannelCount();
     const int32_t buffer_size_in_frames = buffer_size_in_frames_;
     const int32_t num_data_write = num_channels * buffer_size_in_frames;
     const size_t num_data_write_in_bytes = num_data_write * getBytesPerSample(format);
@@ -519,16 +635,16 @@ int32_t AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexc
     }
 #endif
 
-    const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
-    track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
+    const int32_t write_result = trackWrapper.write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
 
     if (write_result != bb.size()) {
+        LOGW("AudioTrack::write() returns unexpected result  (actual: %d, expected: %d)", write_result, bb.size());
         return play_result;
     }
 
     bb.rewind();
 
-    play_result = track_->play(env);
+    play_result = trackWrapper.play(env);
     if (play_result != AudioTrack::SUCCESS) {
         return play_result;
     }
@@ -541,9 +657,10 @@ int32_t AudioTrackStream::sinkWriterThreadLoopFloatByteBuffer(JNIEnv *env) noexc
         (*callback_func_)(buffer.get(), format, num_channels, buffer_size_in_frames, callback_args_);
 #endif
 
-        const int32_t write_result = track_->write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
+        const int32_t write_result = trackWrapper.write(env, bb.get(), bb.size(), AudioTrack::WRITE_BLOCKING);
 
         if (write_result != bb.size()) {
+            LOGW("AudioTrack::write() returns unexpected result  (actual: %d, expected: %d)", write_result, bb.size());
             break;
         }
 
