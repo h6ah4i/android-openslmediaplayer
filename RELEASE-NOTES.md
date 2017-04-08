@@ -1,3 +1,8 @@
+## 0.7.3
+
+- Add workaround for incomplete AudioTrack.write() (issue #26)
+- Fix warning message due to inappropriate use of AudioTrack.write() (issue #26)
+
 ## 0.7.2
 
 - Fixed 176.4 kHz, 192 kHz audio playback issue

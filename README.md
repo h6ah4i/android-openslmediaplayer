@@ -54,7 +54,7 @@ Target platforms
 Latest version
 ---
 
-- Version 0.7.2  (October 8, 2016)
+- Version 0.7.3  (April 8, 2017)
 
 
 Demo application (pre-built example apps)
@@ -72,7 +72,7 @@ Getting started
 
 ```groovy
 dependencies {
-    compile 'com.h6ah4i.android:openslmediaplayer:0.7.2'
+    compile 'com.h6ah4i.android:openslmediaplayer:0.7.3'
 }
 ```
 
