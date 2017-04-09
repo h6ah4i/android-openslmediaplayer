@@ -105,6 +105,16 @@ ifeq ($(APP_OPTIM), release)
     APP_CFLAGS += -DNDEBUG
 endif
 
+#
+# APP_LDFLAGS
+#
+ifeq ($(APP_OPTIM), release)
+    # Strip debug info on release build
+    # issue #33: https://github.com/h6ah4i/android-openslmediaplayer/issues/33
+    # related: https://code.google.com/p/android/issues/detail?id=222831
+    APP_LDFLAGS += -s
+endif
+
 # include paths
 APP_CFLAGS := \
     -I$(call my-dir)/android-platform-system-core/include \
