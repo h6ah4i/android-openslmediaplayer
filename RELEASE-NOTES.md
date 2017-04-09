@@ -1,3 +1,8 @@
+## 0.7.4
+
+- Strip debug info on AAR (issue #33)
+- Fix compilation error with NDK v15
+
 ## 0.7.3
 
 - Add workaround for incomplete AudioTrack.write() (issue #26)
