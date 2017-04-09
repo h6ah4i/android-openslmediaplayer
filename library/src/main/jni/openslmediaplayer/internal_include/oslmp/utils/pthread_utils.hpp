@@ -195,31 +195,31 @@ public:
 private:
     int timedwait_absolute(pt_unique_lock &lock, const timespec &timeout_abs) noexcept
     {
-#if __ANDROID_API__ <= 19
-        return ::pthread_cond_timedwait_monotonic_np(&cv_, &(lock.native_handle()), &timeout_abs);
-#else
+// #if __ANDROID_API__ <= 19
+//         return ::pthread_cond_timedwait_monotonic_np(&cv_, &(lock.native_handle()), &timeout_abs);
+// #else
         return ::pthread_cond_timedwait(&cv_, &(lock.native_handle()), &timeout_abs);
-#endif
+// #endif
     }
 
     int timedwait_relative(pt_unique_lock &lock, const timespec &offset) noexcept
     {
-#if __ANDROID_API__ <= 19
-        timespec ts({ 0, 0 });
+// #if __ANDROID_API__ <= 19
+//         timespec ts({ 0, 0 });
 
-        static_assert(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE, "HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE is requred");
+//         static_assert(HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE, "HAVE_PTHREAD_COND_TIMEDWAIT_RELATIVE is requred");
 
-        ts = timespec_utils::add_timespec(ts, offset);
+//         ts = timespec_utils::add_timespec(ts, offset);
 
-        return ::pthread_cond_timedwait_relative_np(&cv_, &(lock.native_handle()), &ts);
-#else
+//         return ::pthread_cond_timedwait_relative_np(&cv_, &(lock.native_handle()), &ts);
+// #else
         timespec ts({ 0, 0 });
 
         timespec_utils::get_current_time(ts);
         ts = timespec_utils::add_timespec(ts, offset);
 
         return ::pthread_cond_timedwait(&cv_, &(lock.native_handle()), &ts);
-#endif
+// #endif
     }
 
     pthread_cond_t cv_;

@@ -20,7 +20,7 @@
 #include <android/api-level.h>
 #include <SLES/OpenSLES.h>
 
-#if (__ANDROID_API__ < 21)
+#if (__ANDROID_API__ < 21) && !defined(SL_ANDROID_PCM_REPRESENTATION_SIGNED_INT)
 extern "C" {
 
 /* The following pcm representations and data formats map to those in OpenSLES 1.1 */
