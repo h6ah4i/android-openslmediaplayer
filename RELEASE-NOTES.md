@@ -1,3 +1,8 @@
+## 0.7.5
+
+- Fixed monotonic clock not used Android 6.0 or prior devices (issue #35)
+- Fixed prepareAsync() broken on StandardMediaPlayer
+
 ## 0.7.4
 
 - Strip debug info on AAR (issue #33)
