@@ -50,6 +50,7 @@ class MediaPlayerStateManager {
 
     private static boolean canTransitToPrepared(int state) {
         return state == STATE_INITIALIZED ||
+                state == STATE_PREPARING ||
                 state == STATE_STOPPED;
     }
 
@@ -99,7 +100,8 @@ class MediaPlayerStateManager {
     }
 
     public boolean canCallPrepare() {
-        return canTransitToPrepared(mState);
+        final int state = mState;
+        return state == STATE_INITIALIZED || state == STATE_STOPPED;
     }
 
     public boolean canCallPrepareAsync() {
@@ -246,7 +248,7 @@ class MediaPlayerStateManager {
             case STATE_INITIALIZED:
                 return canTransitToInitialized(current);
             case STATE_PREPARING:
-                return canTransitToPrepared(current);
+                return canTransitToPreparing(current);
             case STATE_PREPARED:
                 return canTransitToPrepared(current);
             case STATE_STARTED:

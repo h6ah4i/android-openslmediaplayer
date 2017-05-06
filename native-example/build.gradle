@@ -51,8 +51,8 @@ android {
         applicationId "com.h6ah4i.android.example.nativeopenslmediaplayer"
         minSdkVersion 14
         targetSdkVersion 21
-        versionCode 7
-        versionName "0.7.4"
+        versionCode 8
+        versionName "0.7.5"
 
         if (useOfficialExternalNativeBuild) {
             externalNativeBuild {

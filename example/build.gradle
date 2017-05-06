@@ -31,8 +31,8 @@ android {
         applicationId "com.h6ah4i.android.example.openslmediaplayer"
         minSdkVersion 14
         targetSdkVersion 21
-        versionCode 8
-        versionName "0.7.4"
+        versionCode 9
+        versionName "0.7.5"
     }
 
     signingConfigs {
@@ -62,8 +62,8 @@ if (loadSigningConfigFromPropertiesFile(
 
 dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:support-v4:24.2.1'
-    compile 'com.android.support:appcompat-v7:24.2.1'
+    compile 'com.android.support:support-v4:25.3.1'
+    compile 'com.android.support:appcompat-v7:25.3.1'
 
 
     compile project(path: ':library')
