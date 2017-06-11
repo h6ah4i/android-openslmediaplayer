@@ -65,7 +65,7 @@ public class OpenSLMediaPlayerContext implements IReleasable {
     public static class Parameters {
         public int options = 0;
         public int streamType = AudioManager.STREAM_MUSIC;
-        public int shortFadeDuration = 25; // [milli seconds]
+        public int shortFadeDuration = 15; // [milli seconds]
         public int longFadeDuration = 1500; // [milli seconds]
         public int resamplerQuality = RESAMPLER_QUALITY_MIDDLE;
         public int hqEqualizerImplType = HQ_EQUALIZER_IMPL_BASIC_PEAKING_FILTER;
