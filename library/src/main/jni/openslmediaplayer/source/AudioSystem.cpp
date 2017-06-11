@@ -1226,15 +1226,22 @@ uint32_t AudioSystem::Impl::determine_output_frame_size(const initialize_args_t 
             encoding);
         const int32_t bytes_per_sample = AudioFormat::get_sample_size_from_encoding(encoding);
         const int32_t min_buffer_size_in_frames = (min_buffer_size_in_bytes / (2 * bytes_per_sample));
-        const int32_t normal_mixer_frame_count = calc_android_NormalMixer_FrameCount(
-            args.system_out_frames_per_buffer, args.system_out_sampling_rate / 1000);
 
-        int32_t frame_count = 0;
-        while (frame_count < min_buffer_size_in_frames) {
-            frame_count += normal_mixer_frame_count;
-        }
+        int32_t frame_count = min_buffer_size_in_frames;
+
+        // NOTE: AudioTrackStream doubles buffer when initialize the AudioTrack, so here can return a half size one.
+        frame_count /= 2;
 
         return frame_count;
+//        const int32_t normal_mixer_frame_count = calc_android_NormalMixer_FrameCount(
+//                args.system_out_frames_per_buffer, args.system_out_sampling_rate / 1000);
+
+//        int32_t frame_count = 0;
+//        while (frame_count < min_buffer_size_in_frames) {
+//            frame_count += normal_mixer_frame_count;
+//        }
+
+//        return frame_count;
 #else
         return calc_android_NormalMixer_FrameCount(args.system_out_frames_per_buffer,
                                                    args.system_out_sampling_rate / 1000) * kBufferSizeMultiple;
