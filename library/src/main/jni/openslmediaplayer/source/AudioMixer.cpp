@@ -1562,8 +1562,7 @@ bool AudioMixer::Impl::requestThreadApplyAudioSourceSetItems() noexcept
     }
 
     // wake up mixer thread
-    control_flags_t &ref_ctrl_flg = mixer_thread_control_flags_;
-    if (applied && (ref_ctrl_flg.load(std::memory_order_relaxed) & CONTROL_FLAG_REQUEST_SUSPENDED_STATE)) {
+    if (applied) {
         utils::pt_unique_lock lock(mutex_mixer_thread_);
         cond_mixer_thread_.notify_one();
     }
